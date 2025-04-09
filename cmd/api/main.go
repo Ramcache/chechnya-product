@@ -64,6 +64,8 @@ func main() {
 	public.HandleFunc("/register", userHandler.Register).Methods("POST")
 	public.HandleFunc("/login", userHandler.Login).Methods("POST")
 	public.HandleFunc("/products", productHandler.GetAll).Methods("GET")
+	public.HandleFunc("/categories", productHandler.GetCategories).Methods("GET")
+	public.HandleFunc("/products/{id}", productHandler.GetByID).Methods("GET")
 
 	// 🔐 Приватные маршруты (JWT Middleware)
 	private := r.PathPrefix("/api").Subrouter()
@@ -76,7 +78,6 @@ func main() {
 
 	private.HandleFunc("/cart/{product_id}", cartHandler.UpdateItem).Methods("PUT")
 	private.HandleFunc("/cart/{product_id}", cartHandler.DeleteItem).Methods("DELETE")
-	public.HandleFunc("/products/{id}", productHandler.GetByID).Methods("GET")
 
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTAuth(cfg.JWTSecret))

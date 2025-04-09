@@ -23,16 +23,38 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 // @Description  Возвращает товары с фильтрацией по поиску и категории
 // @Tags         products
 // @Produce      json
-// @Param        search   query     string  false  "Поиск по названию или описанию"
-// @Param        category query     string  false  "Категория товара"
+// @Param search   query string false "Поиск"
+// @Param category query string false "Категория"
+// @Param limit    query int    false "Сколько товаров вернуть"
+// @Param offset   query int    false "С какого начать (смещение)"
+// @Param sort     query string false "Сортировка: price_asc, price_desc, name_asc, name_desc, stock_asc, stock_desc"
 // @Success      200      {array}   models.Product
 // @Failure      500      {string}  string "Ошибка получения товаров"
 // @Router       /products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 	category := r.URL.Query().Get("category")
+	sort := r.URL.Query().Get("sort")
 
-	products, err := h.service.GetFiltered(search, category)
+	// Разбираем limit
+	limitStr := r.URL.Query().Get("limit")
+	limit := 0
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil {
+			limit = l
+		}
+	}
+
+	// Разбираем offset
+	offsetStr := r.URL.Query().Get("offset")
+	offset := 0
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil {
+			offset = o
+		}
+	}
+
+	products, err := h.service.GetFiltered(search, category, limit, offset, sort)
 	if err != nil {
 		http.Error(w, "Ошибка получения товаров", http.StatusInternalServerError)
 		return
@@ -172,4 +194,23 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(product)
+}
+
+// GetCategories godoc
+// @Summary      Получить список категорий
+// @Description  Возвращает список всех уникальных категорий товаров
+// @Tags         products
+// @Produce      json
+// @Success      200 {array} string
+// @Failure      500 {string} string "Ошибка получения категорий"
+// @Router       /categories [get]
+func (h *ProductHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
+	categories, err := h.service.GetCategories()
+	if err != nil {
+		http.Error(w, "Ошибка получения категорий", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(categories)
 }

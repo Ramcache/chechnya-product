@@ -15,7 +15,8 @@ type ProductRepository interface {
 	Update(id int, product *models.Product) error
 	GetByID(id int) (*models.Product, error)
 	DecreaseStock(id int, quantity int) error
-	GetFiltered(search, category string) ([]models.Product, error)
+	GetFiltered(search, category string, limit, offset int, sort string) ([]models.Product, error)
+	GetCategories() ([]string, error)
 }
 type ProductRepo struct {
 	db *sqlx.DB
@@ -79,7 +80,7 @@ func (r *ProductRepo) DecreaseStock(id int, quantity int) error {
 	return nil
 }
 
-func (r *ProductRepo) GetFiltered(search, category string) ([]models.Product, error) {
+func (r *ProductRepo) GetFiltered(search, category string, limit, offset int, sort string) ([]models.Product, error) {
 	query := `SELECT * FROM products WHERE 1=1`
 	args := []interface{}{}
 	i := 1
@@ -92,9 +93,43 @@ func (r *ProductRepo) GetFiltered(search, category string) ([]models.Product, er
 	if category != "" {
 		query += fmt.Sprintf(" AND LOWER(category) = $%d", i)
 		args = append(args, strings.ToLower(category))
+		i++
+	}
+
+	// 🔒 Безопасная сортировка (только whitelist)
+	sortMap := map[string]string{
+		"price_asc":  "price ASC",
+		"price_desc": "price DESC",
+		"name_asc":   "name ASC",
+		"name_desc":  "name DESC",
+		"stock_asc":  "stock ASC",
+		"stock_desc": "stock DESC",
+	}
+
+	if orderBy, ok := sortMap[sort]; ok {
+		query += " ORDER BY " + orderBy
+	} else {
+		query += " ORDER BY id DESC" // default
+	}
+
+	// LIMIT и OFFSET всегда последние, безопасно через args
+	if limit > 0 {
+		query += fmt.Sprintf(" LIMIT $%d", i)
+		args = append(args, limit)
+		i++
+	}
+	if offset > 0 {
+		query += fmt.Sprintf(" OFFSET $%d", i)
+		args = append(args, offset)
 	}
 
 	var products []models.Product
 	err := r.db.Select(&products, query, args...)
 	return products, err
+}
+
+func (r *ProductRepo) GetCategories() ([]string, error) {
+	var categories []string
+	err := r.db.Select(&categories, "SELECT DISTINCT category FROM products ORDER BY category ASC")
+	return categories, err
 }

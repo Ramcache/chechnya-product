@@ -33,6 +33,14 @@ func (s *ProductService) GetByID(id int) (*models.Product, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *ProductService) GetFiltered(search, category string) ([]models.Product, error) {
-	return s.repo.GetFiltered(search, category)
+func (s *ProductService) GetFiltered(
+	search, category string,
+	limit, offset int,
+	sort string,
+) ([]models.Product, error) {
+	return s.repo.GetFiltered(search, category, limit, offset, sort)
+}
+
+func (s *ProductService) GetCategories() ([]string, error) {
+	return s.repo.GetCategories()
 }
