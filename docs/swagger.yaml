@@ -1,0 +1,455 @@
+basePath: /api
+definitions:
+  chechnya-product_internal_models.Product:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
+  internal_handlers.AddToCartRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      user_id:
+        description: временно напрямую
+        type: integer
+    type: object
+  internal_handlers.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_handlers.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Онлайн-магазин для продажи продуктов
+  title: Chechnya Product API
+  version: "1.0"
+paths:
+  /admin/orders:
+    get:
+      description: Возвращает список всех заказов в системе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "500":
+          description: Ошибка получения заказов
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Все заказы (только для админа)
+      tags:
+      - admin-orders
+  /admin/products:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый товар (доступно только администратору)
+      parameters:
+      - description: Данные товара
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/chechnya-product_internal_models.Product'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Товар добавлен
+          schema:
+            type: string
+        "400":
+          description: Невалидный JSON
+          schema:
+            type: string
+        "403":
+          description: Нет доступа
+          schema:
+            type: string
+        "500":
+          description: Ошибка добавления товара
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Добавить новый товар
+      tags:
+      - admin-products
+  /admin/products/{id}:
+    delete:
+      description: Удаляет товар по ID (доступно только администратору)
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Товар удалён
+          schema:
+            type: string
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "403":
+          description: Нет доступа
+          schema:
+            type: string
+        "500":
+          description: Ошибка удаления товара
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Удалить товар
+      tags:
+      - admin-products
+    put:
+      consumes:
+      - application/json
+      description: Обновляет данные товара по ID (доступно только администратору)
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новые данные товара
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/chechnya-product_internal_models.Product'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Товар обновлён
+          schema:
+            type: string
+        "400":
+          description: Некорректный ID или JSON
+          schema:
+            type: string
+        "500":
+          description: Ошибка обновления товара
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить товар
+      tags:
+      - admin-products
+  /cart:
+    get:
+      description: Возвращает список товаров в корзине по user_id
+      parameters:
+      - description: ID пользователя
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: Неверный user_id
+          schema:
+            type: string
+        "500":
+          description: Ошибка получения корзины
+          schema:
+            type: string
+      summary: Получить корзину пользователя
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      description: Добавляет определённое количество товара в корзину пользователя
+      parameters:
+      - description: Данные для добавления в корзину
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.AddToCartRequest'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Добавлено в корзину
+          schema:
+            type: string
+        "400":
+          description: Невалидный запрос
+          schema:
+            type: string
+        "500":
+          description: Ошибка добавления в корзину
+          schema:
+            type: string
+      summary: Добавить товар в корзину
+      tags:
+      - cart
+  /cart/{product_id}:
+    delete:
+      description: Удаляет указанный товар из корзины текущего пользователя
+      parameters:
+      - description: ID товара
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Товар удалён из корзины
+          schema:
+            type: string
+        "500":
+          description: Ошибка удаления
+          schema:
+            type: string
+      summary: Удалить товар из корзины
+      tags:
+      - cart
+    put:
+      consumes:
+      - application/json
+      description: Обновляет количество определённого товара в корзине текущего пользователя
+      parameters:
+      - description: ID товара
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      - description: Новое количество (quantity)
+        in: body
+        name: input
+        required: true
+        schema:
+          additionalProperties:
+            type: integer
+          type: object
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Количество обновлено
+          schema:
+            type: string
+        "400":
+          description: Невалидный JSON или ошибка
+          schema:
+            type: string
+      summary: Обновить количество товара в корзине
+      tags:
+      - cart
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает JWT токен при успешном входе
+      parameters:
+      - description: Данные входа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT токен
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Невалидный JSON
+          schema:
+            type: string
+        "401":
+          description: Неверный логин или пароль
+          schema:
+            type: string
+      summary: Авторизация
+      tags:
+      - users
+  /me:
+    get:
+      description: Возвращает ID, имя пользователя и роль из JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Пользователь не найден
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Профиль текущего пользователя
+      tags:
+      - users
+  /order:
+    post:
+      description: Создаёт заказ на основе содержимого корзины пользователя
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Заказ успешно оформлен
+          schema:
+            type: string
+        "400":
+          description: 'Ошибка: корзина пуста или товара не хватает'
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Оформить заказ
+      tags:
+      - orders
+  /orders:
+    get:
+      description: Возвращает список всех заказов текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "500":
+          description: Ошибка получения заказов
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: История заказов пользователя
+      tags:
+      - orders
+  /products:
+    get:
+      description: Возвращает список всех товаров в магазине
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: object
+            type: array
+        "500":
+          description: Ошибка получения товаров
+          schema:
+            type: string
+      summary: Получить все товары
+      tags:
+      - products
+  /products/{id}:
+    get:
+      description: Возвращает один товар по его ID
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chechnya-product_internal_models.Product'
+        "404":
+          description: Товар не найден
+          schema:
+            type: string
+      summary: Получить товар по ID
+      tags:
+      - products
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует нового пользователя по логину и паролю
+      parameters:
+      - description: Данные регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.RegisterRequest'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Пользователь зарегистрирован
+          schema:
+            type: string
+        "400":
+          description: Невалидный JSON или пользователь уже существует
+          schema:
+            type: string
+      summary: Регистрация пользователя
+      tags:
+      - users
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

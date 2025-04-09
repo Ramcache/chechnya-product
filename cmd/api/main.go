@@ -1,19 +1,29 @@
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 package main
 
 import (
+	"chechnya-product/config"
+	_ "chechnya-product/docs"
+	"chechnya-product/internal/db"
 	"chechnya-product/internal/handlers"
+	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/repositories"
 	"chechnya-product/internal/services"
+	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
-
-	"chechnya-product/config"
-	"chechnya-product/internal/db"
-	"chechnya-product/internal/middleware"
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
+// @title        Chechnya Product API
+// @version      1.0
+// @description  Онлайн-магазин для продажи продуктов
+// @host         localhost:8080
+// @BasePath     /api
+// @schemes      http
 func main() {
 	cfg := config.LoadConfig()
 
@@ -31,6 +41,7 @@ func main() {
 	// Роутер
 	r := mux.NewRouter()
 	r.Use(middleware.LoggerMiddleware(logger))
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	// Репозитории и сервисы
 	userRepo := repositories.NewUserRepo(database)

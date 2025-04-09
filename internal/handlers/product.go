@@ -18,6 +18,14 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 	return &ProductHandler{service: service}
 }
 
+// GetAll godoc
+// @Summary      Получить все товары
+// @Description  Возвращает список всех товаров в магазине
+// @Tags         products
+// @Produce      json
+// @Success 200 {array} object
+// @Failure      500 {string} string "Ошибка получения товаров"
+// @Router       /products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	products, err := h.service.GetAll()
 	if err != nil {
@@ -29,6 +37,19 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(products)
 }
 
+// Add godoc
+// @Summary      Добавить новый товар
+// @Description  Создаёт новый товар (доступно только администратору)
+// @Tags         admin-products
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      plain
+// @Param        product  body      models.Product  true  "Данные товара"
+// @Success      201      {string}  string "Товар добавлен"
+// @Failure      400      {string}  string "Невалидный JSON"
+// @Failure      403      {string}  string "Нет доступа"
+// @Failure      500      {string}  string "Ошибка добавления товара"
+// @Router       /admin/products [post]
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value("role")
 	if role != "admin" {
@@ -52,6 +73,18 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Товар добавлен"))
 }
 
+// Delete godoc
+// @Summary      Удалить товар
+// @Description  Удаляет товар по ID (доступно только администратору)
+// @Tags         admin-products
+// @Security     BearerAuth
+// @Produce      plain
+// @Param        id   path      int  true  "ID товара"
+// @Success      200  {string}  string "Товар удалён"
+// @Failure      400  {string}  string "Некорректный ID"
+// @Failure      403  {string}  string "Нет доступа"
+// @Failure      500  {string}  string "Ошибка удаления товара"
+// @Router       /admin/products/{id} [delete]
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value("role")
 	if role != "admin" {
@@ -77,6 +110,19 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Товар удалён"))
 }
 
+// Update godoc
+// @Summary      Обновить товар
+// @Description  Обновляет данные товара по ID (доступно только администратору)
+// @Tags         admin-products
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      plain
+// @Param        id       path      int            true  "ID товара"
+// @Param        product  body      models.Product true  "Новые данные товара"
+// @Success      200      {string}  string "Товар обновлён"
+// @Failure      400      {string}  string "Некорректный ID или JSON"
+// @Failure      500      {string}  string "Ошибка обновления товара"
+// @Router       /admin/products/{id} [put]
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -102,6 +148,15 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Товар обновлён"))
 }
 
+// GetByID godoc
+// @Summary      Получить товар по ID
+// @Description  Возвращает один товар по его ID
+// @Tags         products
+// @Produce      json
+// @Param        id   path      int  true  "ID товара"
+// @Success      200  {object}  models.Product
+// @Failure      404  {string}  string "Товар не найден"
+// @Router       /products/{id} [get]
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 

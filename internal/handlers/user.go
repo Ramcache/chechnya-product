@@ -26,6 +26,16 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// Register godoc
+// @Summary      Регистрация пользователя
+// @Description  Регистрирует нового пользователя по логину и паролю
+// @Tags         users
+// @Accept       json
+// @Produce      plain
+// @Param        input  body      RegisterRequest  true  "Данные регистрации"
+// @Success      201    {string}  string "Пользователь зарегистрирован"
+// @Failure      400    {string}  string "Невалидный JSON или пользователь уже существует"
+// @Router       /register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -43,6 +53,17 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Пользователь зарегистрирован"))
 }
 
+// Login godoc
+// @Summary      Авторизация
+// @Description  Возвращает JWT токен при успешном входе
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        input  body      LoginRequest  true  "Данные входа"
+// @Success      200    {object}  map[string]string "JWT токен"
+// @Failure      400    {string}  string "Невалидный JSON"
+// @Failure      401    {string}  string "Неверный логин или пароль"
+// @Router       /login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -68,6 +89,15 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Me godoc
+// @Summary      Профиль текущего пользователя
+// @Description  Возвращает ID, имя пользователя и роль из JWT
+// @Tags         users
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      404  {string}  string "Пользователь не найден"
+// @Router       /me [get]
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 
