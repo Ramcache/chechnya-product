@@ -41,7 +41,7 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	cartService := services.NewCartService(cartRepo)
 	productService := services.NewProductService(productRepo)
-	orderService := services.NewOrderService(cartRepo, orderRepo)
+	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo)
 
 	userHandler := handlers.NewUserHandler(userService)
 	cartHandler := handlers.NewCartHandler(cartService)
@@ -69,6 +69,7 @@ func main() {
 	admin.HandleFunc("/products", productHandler.Add).Methods("POST")
 	admin.HandleFunc("/products/{id}", productHandler.Delete).Methods("DELETE")
 	admin.HandleFunc("/orders", orderHandler.GetAllOrders).Methods("GET")
+	admin.HandleFunc("/products/{id}", productHandler.Update).Methods("PUT")
 
 	// Запуск сервера
 	log.Printf("Сервер запущен на порту %s", cfg.Port)

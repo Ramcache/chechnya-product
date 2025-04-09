@@ -76,3 +76,28 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Товар удалён"))
 }
+
+func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Некорректный ID", http.StatusBadRequest)
+		return
+	}
+
+	var product models.Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		http.Error(w, "Невалидный JSON", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.UpdateProduct(id, &product)
+	if err != nil {
+		http.Error(w, "Ошибка обновления товара", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("Товар обновлён"))
+}

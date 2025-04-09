@@ -4,42 +4,52 @@ import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
 	"errors"
+	"fmt"
 )
 
 type OrderService struct {
-	cartRepo  repositories.CartRepository
-	orderRepo repositories.OrderRepository
+	cartRepo    repositories.CartRepository
+	orderRepo   repositories.OrderRepository
+	productRepo repositories.ProductRepository
 }
 
-func NewOrderService(cartRepo repositories.CartRepository, orderRepo repositories.OrderRepository) *OrderService {
-	return &OrderService{cartRepo: cartRepo, orderRepo: orderRepo}
+func NewOrderService(cartRepo repositories.CartRepository, orderRepo repositories.OrderRepository, productRepo repositories.ProductRepository) *OrderService {
+	return &OrderService{cartRepo: cartRepo, orderRepo: orderRepo, productRepo: productRepo}
 }
 
 func (s *OrderService) PlaceOrder(userID int) error {
-	// Получаем товары из корзины
 	items, err := s.cartRepo.GetCartItems(userID)
 	if err != nil {
 		return err
 	}
-
 	if len(items) == 0 {
 		return errors.New("корзина пуста")
 	}
 
-	// Считаем общую сумму (в будущем можно загрузить цену из продуктов)
 	var total float64
 	for _, item := range items {
-		// В реальном магазине — брать цену из БД
-		total += float64(item.Quantity) * 100.0 // допустим 100₽ за штуку временно
+		product, err := s.productRepo.GetByID(item.ProductID)
+		if err != nil {
+			return err
+		}
+		if product.Stock < item.Quantity {
+			return fmt.Errorf("товара \"%s\" недостаточно на складе", product.Name)
+		}
+
+		total += float64(item.Quantity) * product.Price
+
+		// уменьшаем остатки
+		err = s.productRepo.DecreaseStock(item.ProductID, item.Quantity)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Создаём заказ
 	err = s.orderRepo.CreateOrder(userID, total)
 	if err != nil {
 		return err
 	}
 
-	// Очищаем корзину
 	return s.cartRepo.ClearCart(userID)
 }
 
