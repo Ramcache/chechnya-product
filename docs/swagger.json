@@ -410,6 +410,35 @@
                 }
             }
         },
+        "/categories": {
+            "get": {
+                "description": "Возвращает список всех уникальных категорий товаров",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "products"
+                ],
+                "summary": "Получить список категорий",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка получения категорий",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Возвращает JWT токен при успешном входе",
@@ -569,14 +598,32 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Поиск по названию или описанию",
+                        "description": "Поиск",
                         "name": "search",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Категория товара",
+                        "description": "Категория",
                         "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Сколько товаров вернуть",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "С какого начать (смещение)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка: price_asc, price_desc, name_asc, name_desc, stock_asc, stock_desc",
+                        "name": "sort",
                         "in": "query"
                     }
                 ],

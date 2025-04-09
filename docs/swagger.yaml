@@ -304,6 +304,25 @@ paths:
       summary: Обновить количество товара в корзине
       tags:
       - cart
+  /categories:
+    get:
+      description: Возвращает список всех уникальных категорий товаров
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Ошибка получения категорий
+          schema:
+            type: string
+      summary: Получить список категорий
+      tags:
+      - products
   /login:
     post:
       consumes:
@@ -400,13 +419,26 @@ paths:
     get:
       description: Возвращает товары с фильтрацией по поиску и категории
       parameters:
-      - description: Поиск по названию или описанию
+      - description: Поиск
         in: query
         name: search
         type: string
-      - description: Категория товара
+      - description: Категория
         in: query
         name: category
+        type: string
+      - description: Сколько товаров вернуть
+        in: query
+        name: limit
+        type: integer
+      - description: С какого начать (смещение)
+        in: query
+        name: offset
+        type: integer
+      - description: 'Сортировка: price_asc, price_desc, name_asc, name_desc, stock_asc,
+          stock_desc'
+        in: query
+        name: sort
         type: string
       produces:
       - application/json
