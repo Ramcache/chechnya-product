@@ -10,6 +10,7 @@ type CartRepository interface {
 	AddItem(userID int, productID int, quantity int) error
 	GetCartItems(userID int) ([]models.CartItem, error)
 	ClearCart(userID int) error
+	GetCartItem(userID, productID int) (*models.CartItem, error)
 }
 
 type CartRepo struct {
@@ -73,4 +74,21 @@ func (r *CartRepo) ClearCart(userID int) error {
 			SELECT id FROM carts WHERE user_id = $1
 		)`, userID)
 	return err
+}
+
+func (r *CartRepo) GetCartItem(userID, productID int) (*models.CartItem, error) {
+	var item models.CartItem
+
+	query := `
+	SELECT ci.id, ci.cart_id, ci.product_id, ci.quantity
+	FROM cart_items ci
+	JOIN carts c ON ci.cart_id = c.id
+	WHERE c.user_id = $1 AND ci.product_id = $2
+	`
+
+	err := r.db.Get(&item, query, userID, productID)
+	if err == sql.ErrNoRows {
+		return nil, nil // ещё нет в корзине
+	}
+	return &item, err
 }

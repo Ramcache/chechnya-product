@@ -39,7 +39,7 @@ func main() {
 	orderRepo := repositories.NewOrderRepo(database)
 
 	userService := services.NewUserService(userRepo)
-	cartService := services.NewCartService(cartRepo)
+	cartService := services.NewCartService(cartRepo, productRepo)
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo)
 

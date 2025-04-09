@@ -3,17 +3,42 @@ package services
 import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
+	"fmt"
 )
 
 type CartService struct {
-	repo repositories.CartRepository
+	repo        repositories.CartRepository
+	productRepo repositories.ProductRepository
 }
 
-func NewCartService(repo repositories.CartRepository) *CartService {
-	return &CartService{repo: repo}
+func NewCartService(repo repositories.CartRepository, productRepo repositories.ProductRepository) *CartService {
+	return &CartService{repo: repo, productRepo: productRepo}
 }
 
 func (s *CartService) AddToCart(userID, productID, quantity int) error {
+	// Получаем продукт
+	product, err := s.productRepo.GetByID(productID)
+	if err != nil {
+		return err
+	}
+
+	// Смотрим, сколько уже в корзине
+	existingItem, err := s.repo.GetCartItem(userID, productID)
+	if err != nil {
+		return err
+	}
+
+	totalQty := quantity
+	if existingItem != nil {
+		totalQty += existingItem.Quantity
+	}
+
+	// Проверяем остаток
+	if totalQty > product.Stock {
+		return fmt.Errorf("на складе доступно только %d шт.", product.Stock-existingItem.Quantity)
+	}
+
+	// Добавляем
 	return s.repo.AddItem(userID, productID, quantity)
 }
 
