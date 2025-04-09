@@ -11,6 +11,8 @@ type CartRepository interface {
 	GetCartItems(userID int) ([]models.CartItem, error)
 	ClearCart(userID int) error
 	GetCartItem(userID, productID int) (*models.CartItem, error)
+	UpdateQuantity(userID, productID, quantity int) error
+	DeleteItem(userID, productID int) error
 }
 
 type CartRepo struct {
@@ -91,4 +93,24 @@ func (r *CartRepo) GetCartItem(userID, productID int) (*models.CartItem, error) 
 		return nil, nil // ещё нет в корзине
 	}
 	return &item, err
+}
+
+func (r *CartRepo) UpdateQuantity(userID, productID, quantity int) error {
+	query := `
+	UPDATE cart_items
+	SET quantity = $1
+	WHERE product_id = $2 AND cart_id = (
+		SELECT id FROM carts WHERE user_id = $3
+	)`
+	_, err := r.db.Exec(query, quantity, productID, userID)
+	return err
+}
+
+func (r *CartRepo) DeleteItem(userID, productID int) error {
+	_, err := r.db.Exec(`
+	DELETE FROM cart_items
+	WHERE product_id = $1 AND cart_id = (
+		SELECT id FROM carts WHERE user_id = $2
+	)`, productID, userID)
+	return err
 }

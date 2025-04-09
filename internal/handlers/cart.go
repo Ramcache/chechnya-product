@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
@@ -54,4 +56,38 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(items)
+}
+
+func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r)
+	vars := mux.Vars(r)
+	productID, _ := strconv.Atoi(vars["product_id"])
+
+	var req struct {
+		Quantity int `json:"quantity"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Невалидный JSON", http.StatusBadRequest)
+		return
+	}
+
+	err := h.service.UpdateItem(userID, productID, req.Quantity)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("Количество обновлено"))
+}
+
+func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r)
+	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
+
+	err := h.service.DeleteItem(userID, productID)
+	if err != nil {
+		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte("Товар удалён из корзины"))
 }

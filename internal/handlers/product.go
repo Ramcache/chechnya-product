@@ -101,3 +101,15 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Товар обновлён"))
 }
+
+func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	product, err := h.service.GetByID(id)
+	if err != nil {
+		http.Error(w, "Товар не найден", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(product)
+}

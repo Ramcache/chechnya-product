@@ -61,6 +61,11 @@ func main() {
 	private.HandleFunc("/cart", cartHandler.GetCart).Methods("GET")
 	private.HandleFunc("/order", orderHandler.PlaceOrder).Methods("POST")
 	private.HandleFunc("/orders", orderHandler.GetUserOrders).Methods("GET")
+	private.HandleFunc("/me", userHandler.Me).Methods("GET")
+
+	private.HandleFunc("/cart/{product_id}", cartHandler.UpdateItem).Methods("PUT")
+	private.HandleFunc("/cart/{product_id}", cartHandler.DeleteItem).Methods("DELETE")
+	public.HandleFunc("/products/{id}", productHandler.GetByID).Methods("GET")
 
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTAuth(cfg.JWTSecret))

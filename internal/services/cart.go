@@ -45,3 +45,18 @@ func (s *CartService) AddToCart(userID, productID, quantity int) error {
 func (s *CartService) GetCart(userID int) ([]models.CartItem, error) {
 	return s.repo.GetCartItems(userID)
 }
+
+func (s *CartService) UpdateItem(userID, productID, quantity int) error {
+	product, err := s.productRepo.GetByID(productID)
+	if err != nil {
+		return err
+	}
+	if quantity > product.Stock {
+		return fmt.Errorf("на складе только %d шт.", product.Stock)
+	}
+	return s.repo.UpdateQuantity(userID, productID, quantity)
+}
+
+func (s *CartService) DeleteItem(userID, productID int) error {
+	return s.repo.DeleteItem(userID, productID)
+}

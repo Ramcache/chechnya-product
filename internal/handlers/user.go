@@ -67,3 +67,19 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		"token": token,
 	})
 }
+
+func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r)
+
+	user, err := h.service.GetByID(userID)
+	if err != nil {
+		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"id":       user.ID,
+		"username": user.Username,
+		"role":     user.Role,
+	})
+}

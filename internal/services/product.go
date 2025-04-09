@@ -28,3 +28,7 @@ func (s *ProductService) DeleteProduct(id int) error {
 func (s *ProductService) UpdateProduct(id int, product *models.Product) error {
 	return s.repo.Update(id, product)
 }
+
+func (s *ProductService) GetByID(id int) (*models.Product, error) {
+	return s.repo.GetByID(id)
+}
