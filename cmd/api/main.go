@@ -86,6 +86,7 @@ func main() {
 	admin.HandleFunc("/products/{id}", productHandler.Delete).Methods("DELETE")
 	admin.HandleFunc("/orders", orderHandler.GetAllOrders).Methods("GET")
 	admin.HandleFunc("/products/{id}", productHandler.Update).Methods("PUT")
+	admin.HandleFunc("/orders/export", orderHandler.ExportOrdersCSV).Methods("GET")
 
 	// Запуск сервера
 	log.Printf("Сервер запущен на порту %s", cfg.Port)

@@ -49,6 +49,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/orders/export": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает CSV-файл со всеми заказами (только для админа)",
+                "produces": [
+                    "text/csv"
+                ],
+                "tags": [
+                    "admin-orders"
+                ],
+                "summary": "Экспорт заказов в CSV",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Ошибка экспорта",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/products": {
             "post": {
                 "security": [
@@ -533,21 +561,35 @@ const docTemplate = `{
         },
         "/products": {
             "get": {
-                "description": "Возвращает список всех товаров в магазине",
+                "description": "Возвращает товары с фильтрацией по поиску и категории",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "products"
                 ],
-                "summary": "Получить все товары",
+                "summary": "Получить товары",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Поиск по названию или описанию",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Категория товара",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/chechnya-product_internal_models.Product"
                             }
                         }
                     },
@@ -640,6 +682,9 @@ const docTemplate = `{
         "chechnya-product_internal_models.Product": {
             "type": "object",
             "properties": {
+                "category": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },

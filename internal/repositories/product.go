@@ -3,7 +3,9 @@ package repositories
 import (
 	"chechnya-product/internal/models"
 	"errors"
+	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strings"
 )
 
 type ProductRepository interface {
@@ -13,6 +15,7 @@ type ProductRepository interface {
 	Update(id int, product *models.Product) error
 	GetByID(id int) (*models.Product, error)
 	DecreaseStock(id int, quantity int) error
+	GetFiltered(search, category string) ([]models.Product, error)
 }
 type ProductRepo struct {
 	db *sqlx.DB
@@ -74,4 +77,24 @@ func (r *ProductRepo) DecreaseStock(id int, quantity int) error {
 		return errors.New("недостаточно товара на складе")
 	}
 	return nil
+}
+
+func (r *ProductRepo) GetFiltered(search, category string) ([]models.Product, error) {
+	query := `SELECT * FROM products WHERE 1=1`
+	args := []interface{}{}
+	i := 1
+
+	if search != "" {
+		query += fmt.Sprintf(" AND (LOWER(name) LIKE $%d OR LOWER(description) LIKE $%d)", i, i)
+		args = append(args, "%"+strings.ToLower(search)+"%")
+		i++
+	}
+	if category != "" {
+		query += fmt.Sprintf(" AND LOWER(category) = $%d", i)
+		args = append(args, strings.ToLower(category))
+	}
+
+	var products []models.Product
+	err := r.db.Select(&products, query, args...)
+	return products, err
 }

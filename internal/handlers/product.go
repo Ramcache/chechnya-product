@@ -19,15 +19,20 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 }
 
 // GetAll godoc
-// @Summary      Получить все товары
-// @Description  Возвращает список всех товаров в магазине
+// @Summary      Получить товары
+// @Description  Возвращает товары с фильтрацией по поиску и категории
 // @Tags         products
 // @Produce      json
-// @Success 200 {array} object
-// @Failure      500 {string} string "Ошибка получения товаров"
+// @Param        search   query     string  false  "Поиск по названию или описанию"
+// @Param        category query     string  false  "Категория товара"
+// @Success      200      {array}   models.Product
+// @Failure      500      {string}  string "Ошибка получения товаров"
 // @Router       /products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	products, err := h.service.GetAll()
+	search := r.URL.Query().Get("search")
+	category := r.URL.Query().Get("category")
+
+	products, err := h.service.GetFiltered(search, category)
 	if err != nil {
 		http.Error(w, "Ошибка получения товаров", http.StatusInternalServerError)
 		return

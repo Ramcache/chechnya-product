@@ -32,3 +32,7 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) error {
 func (s *ProductService) GetByID(id int) (*models.Product, error) {
 	return s.repo.GetByID(id)
 }
+
+func (s *ProductService) GetFiltered(search, category string) ([]models.Product, error) {
+	return s.repo.GetFiltered(search, category)
+}

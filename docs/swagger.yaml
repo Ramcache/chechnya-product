@@ -2,6 +2,8 @@ basePath: /api
 definitions:
   chechnya-product_internal_models.Product:
     properties:
+      category:
+        type: string
       createdAt:
         type: string
       description:
@@ -65,6 +67,23 @@ paths:
       security:
       - BearerAuth: []
       summary: Все заказы (только для админа)
+      tags:
+      - admin-orders
+  /admin/orders/export:
+    get:
+      description: Возвращает CSV-файл со всеми заказами (только для админа)
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Ошибка экспорта
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Экспорт заказов в CSV
       tags:
       - admin-orders
   /admin/products:
@@ -379,7 +398,16 @@ paths:
       - orders
   /products:
     get:
-      description: Возвращает список всех товаров в магазине
+      description: Возвращает товары с фильтрацией по поиску и категории
+      parameters:
+      - description: Поиск по названию или описанию
+        in: query
+        name: search
+        type: string
+      - description: Категория товара
+        in: query
+        name: category
+        type: string
       produces:
       - application/json
       responses:
@@ -387,13 +415,13 @@ paths:
           description: OK
           schema:
             items:
-              type: object
+              $ref: '#/definitions/chechnya-product_internal_models.Product'
             type: array
         "500":
           description: Ошибка получения товаров
           schema:
             type: string
-      summary: Получить все товары
+      summary: Получить товары
       tags:
       - products
   /products/{id}:
