@@ -94,6 +94,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить все заказы (Админ)
+      tags:
+      - Заказ
   /api/admin/orders/export:
     get:
       description: Экспортирует все заказы в формате CSV (только для администратора)
@@ -119,6 +121,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Экспортировать заказы в CSV (Админ)
+      tags:
+      - Заказ
   /api/admin/products:
     post:
       consumes:
@@ -153,6 +157,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Добавить товар (админ)
+      tags:
+      - Товар
   /api/admin/products/{id}:
     delete:
       description: Удаляет товар по его ID (только для администратора)
@@ -184,6 +190,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Удалить товар (админ)
+      tags:
+      - Товар
     put:
       consumes:
       - application/json
@@ -222,6 +230,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновить товар (админ)
+      tags:
+      - Товар
   /api/cart:
     get:
       description: Возвращает список товаров в корзине текущего пользователя
@@ -245,6 +255,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить корзину
+      tags:
+      - Корзина
     post:
       consumes:
       - application/json
@@ -274,6 +286,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Добавить товар в корзину
+      tags:
+      - Корзина
   /api/cart/{product_id}:
     delete:
       description: Удаляет указанный товар из корзины
@@ -301,6 +315,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Удалить товар из корзины
+      tags:
+      - Корзина
     put:
       consumes:
       - application/json
@@ -338,6 +354,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновить количество товара в корзине
+      tags:
+      - Корзина
   /api/cart/checkout:
     post:
       description: Завершает оформление заказа на основе текущей корзины
@@ -359,6 +377,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Оформить заказ
+      tags:
+      - Корзина
   /api/cart/clear:
     delete:
       description: Удаляет все товары из корзины пользователя
@@ -380,6 +400,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Очистить корзину
+      tags:
+      - Корзина
   /api/categories:
     get:
       description: Возвращает список категорий товаров
@@ -397,6 +419,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получить категории товаров
+      tags:
+      - Товар
   /api/login:
     post:
       consumes:
@@ -428,6 +452,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Авторизация пользователя
+      tags:
+      - Пользователь
   /api/me:
     get:
       description: Возвращает профиль текущего пользователя
@@ -456,6 +482,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить информацию о пользователе
+      tags:
+      - Пользователь
   /api/order:
     post:
       description: Создаёт новый заказ из товаров в корзине пользователя
@@ -477,6 +505,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Оформить заказ
+      tags:
+      - Заказ
   /api/orders:
     get:
       description: Возвращает список заказов текущего пользователя
@@ -500,6 +530,8 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить заказы пользователя
+      tags:
+      - Заказ
   /api/products:
     get:
       description: Получает список товаров с возможностью фильтрации
@@ -546,6 +578,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получить список товаров
+      tags:
+      - Товар
   /api/products/{id}:
     get:
       description: Возвращает детали товара по его идентификатору
@@ -571,6 +605,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получить товар по ID
+      tags:
+      - Товар
   /api/register:
     post:
       consumes:
@@ -595,6 +631,8 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Регистрация пользователя
+      tags:
+      - Пользователь
 securityDefinitions:
   BearerAuth:
     in: header

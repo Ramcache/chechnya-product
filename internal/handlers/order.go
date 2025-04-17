@@ -21,6 +21,7 @@ func NewOrderHandler(service *services.OrderService) *OrderHandler {
 // PlaceOrder
 // @Summary Оформить заказ
 // @Description Создаёт новый заказ из товаров в корзине пользователя
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce plain
 // @Success 200 {string} string "Заказ успешно создан"
@@ -41,6 +42,7 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 // GetUserOrders
 // @Summary Получить заказы пользователя
 // @Description Возвращает список заказов текущего пользователя
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
@@ -62,6 +64,7 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 // GetAllOrders
 // @Summary Получить все заказы (Админ)
 // @Description Возвращает список всех заказов (только для администратора)
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
@@ -82,6 +85,7 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 // ExportOrdersCSV
 // @Summary Экспортировать заказы в CSV (Админ)
 // @Description Экспортирует все заказы в формате CSV (только для администратора)
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce text/csv
 // @Success 200 {file} file "CSV-файл с заказами"

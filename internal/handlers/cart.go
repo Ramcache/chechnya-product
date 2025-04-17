@@ -36,6 +36,7 @@ func (h *CartHandler) respondError(w http.ResponseWriter, status int, msg string
 // AddToCart
 // @Summary Добавить товар в корзину
 // @Description Добавляет выбранный товар в корзину пользователя
+// @Tags Корзина
 // @Security BearerAuth
 // @Accept json
 // @Produce plain
@@ -68,6 +69,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 // GetCart
 // @Summary Получить корзину
 // @Description Возвращает список товаров в корзине текущего пользователя
+// @Tags Корзина
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.CartItem
@@ -89,6 +91,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 // UpdateItem
 // @Summary Обновить количество товара в корзине
 // @Description Изменяет количество указанного товара в корзине
+// @Tags Корзина
 // @Security BearerAuth
 // @Accept json
 // @Produce plain
@@ -124,6 +127,7 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 // DeleteItem
 // @Summary Удалить товар из корзины
 // @Description Удаляет указанный товар из корзины
+// @Tags Корзина
 // @Security BearerAuth
 // @Produce plain
 // @Param product_id path int true "ID товара"
@@ -149,6 +153,7 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 // ClearCart
 // @Summary Очистить корзину
 // @Description Удаляет все товары из корзины пользователя
+// @Tags Корзина
 // @Security BearerAuth
 // @Produce plain
 // @Success 200 {string} string "Корзина очищена"
@@ -169,6 +174,7 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 // Checkout
 // @Summary Оформить заказ
 // @Description Завершает оформление заказа на основе текущей корзины
+// @Tags Корзина
 // @Security BearerAuth
 // @Produce plain
 // @Success 200 {string} string "Заказ успешно оформлен"

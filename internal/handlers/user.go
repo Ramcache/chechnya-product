@@ -29,6 +29,7 @@ type LoginRequest struct {
 // Register
 // @Summary Регистрация пользователя
 // @Description Создаёт нового пользователя
+// @Tags Пользователь
 // @Accept json
 // @Produce plain
 // @Param input body RegisterRequest true "Имя пользователя и пароль"
@@ -54,6 +55,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // Login
 // @Summary Авторизация пользователя
 // @Description Выполняет вход пользователя и возвращает JWT-токен
+// @Tags Пользователь
 // @Accept json
 // @Produce json
 // @Param input body LoginRequest true "Имя пользователя и пароль"
@@ -90,6 +92,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 // Me
 // @Summary Получить информацию о пользователе
 // @Description Возвращает профиль текущего пользователя
+// @Tags Пользователь
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} object{id=int, username=string, role=string}

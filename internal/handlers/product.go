@@ -21,6 +21,7 @@ func NewProductHandler(service *services.ProductService) *ProductHandler {
 // GetAll
 // @Summary Получить список товаров
 // @Description Получает список товаров с возможностью фильтрации
+// @Tags Товар
 // @Produce json
 // @Param search query string false "Поиск по названию"
 // @Param category query string false "Фильтр по категории"
@@ -60,6 +61,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // GetByID
 // @Summary Получить товар по ID
 // @Description Возвращает детали товара по его идентификатору
+// @Tags Товар
 // @Produce json
 // @Param id path int true "ID товара"
 // @Success 200 {object} models.Product
@@ -86,6 +88,7 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // Add
 // @Summary Добавить товар (админ)
 // @Description Создаёт новый товар (только для администратора)
+// @Tags Товар
 // @Security BearerAuth
 // @Accept json
 // @Produce plain
@@ -119,6 +122,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 // Update
 // @Summary Обновить товар (админ)
 // @Description Обновляет существующий товар по его ID (только для администратора)
+// @Tags Товар
 // @Security BearerAuth
 // @Accept json
 // @Produce plain
@@ -159,6 +163,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete
 // @Summary Удалить товар (админ)
 // @Description Удаляет товар по его ID (только для администратора)
+// @Tags Товар
 // @Security BearerAuth
 // @Produce plain
 // @Param id path int true "ID товара"
@@ -191,6 +196,7 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // GetCategories
 // @Summary Получить категории товаров
 // @Description Возвращает список категорий товаров
+// @Tags Товар
 // @Produce json
 // @Success 200 {array} string
 // @Failure 500 {object} ErrorResponse

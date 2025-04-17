@@ -26,6 +26,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Заказ"
+                ],
                 "summary": "Получить все заказы (Админ)",
                 "responses": {
                     "200": {
@@ -69,6 +72,9 @@ const docTemplate = `{
                 "produces": [
                     "text/csv"
                 ],
+                "tags": [
+                    "Заказ"
+                ],
                 "summary": "Экспортировать заказы в CSV (Админ)",
                 "responses": {
                     "200": {
@@ -111,6 +117,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Товар"
                 ],
                 "summary": "Добавить товар (админ)",
                 "parameters": [
@@ -165,6 +174,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Товар"
                 ],
                 "summary": "Обновить товар (админ)",
                 "parameters": [
@@ -222,6 +234,9 @@ const docTemplate = `{
                 "produces": [
                     "text/plain"
                 ],
+                "tags": [
+                    "Товар"
+                ],
                 "summary": "Удалить товар (админ)",
                 "parameters": [
                     {
@@ -271,6 +286,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Корзина"
+                ],
                 "summary": "Получить корзину",
                 "responses": {
                     "200": {
@@ -308,6 +326,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Корзина"
                 ],
                 "summary": "Добавить товар в корзину",
                 "parameters": [
@@ -354,6 +375,9 @@ const docTemplate = `{
                 "produces": [
                     "text/plain"
                 ],
+                "tags": [
+                    "Корзина"
+                ],
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
@@ -387,6 +411,9 @@ const docTemplate = `{
                 "description": "Удаляет все товары из корзины пользователя",
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Корзина"
                 ],
                 "summary": "Очистить корзину",
                 "responses": {
@@ -424,6 +451,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Корзина"
                 ],
                 "summary": "Обновить количество товара в корзине",
                 "parameters": [
@@ -480,6 +510,9 @@ const docTemplate = `{
                 "produces": [
                     "text/plain"
                 ],
+                "tags": [
+                    "Корзина"
+                ],
                 "summary": "Удалить товар из корзины",
                 "parameters": [
                     {
@@ -518,6 +551,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Товар"
+                ],
                 "summary": "Получить категории товаров",
                 "responses": {
                     "200": {
@@ -546,6 +582,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Пользователь"
                 ],
                 "summary": "Авторизация пользователя",
                 "parameters": [
@@ -597,6 +636,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Пользователь"
+                ],
                 "summary": "Получить информацию о пользователе",
                 "responses": {
                     "200": {
@@ -642,6 +684,9 @@ const docTemplate = `{
                 "produces": [
                     "text/plain"
                 ],
+                "tags": [
+                    "Заказ"
+                ],
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
@@ -676,6 +721,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Заказ"
+                ],
                 "summary": "Получить заказы пользователя",
                 "responses": {
                     "200": {
@@ -707,6 +755,9 @@ const docTemplate = `{
                 "description": "Получает список товаров с возможностью фильтрации",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Товар"
                 ],
                 "summary": "Получить список товаров",
                 "parameters": [
@@ -778,6 +829,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Товар"
+                ],
                 "summary": "Получить товар по ID",
                 "parameters": [
                     {
@@ -818,6 +872,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "text/plain"
+                ],
+                "tags": [
+                    "Пользователь"
                 ],
                 "summary": "Регистрация пользователя",
                 "parameters": [
