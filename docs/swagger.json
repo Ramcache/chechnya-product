@@ -1,154 +1,161 @@
 {
-    "schemes": [
-        "http"
-    ],
     "swagger": "2.0",
     "info": {
-        "description": "Онлайн-магазин для продажи продуктов",
-        "title": "Chechnya Product API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "localhost:8080",
-    "basePath": "/api",
     "paths": {
-        "/admin/orders": {
+        "/api/admin/orders": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает список всех заказов в системе",
+                "description": "Возвращает список всех заказов (только для администратора)",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "admin-orders"
-                ],
-                "summary": "Все заказы (только для админа)",
+                "summary": "Получить все заказы (Админ)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/models.Order"
                             }
                         }
                     },
-                    "500": {
-                        "description": "Ошибка получения заказов",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/admin/orders/export": {
+        "/api/admin/orders/export": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает CSV-файл со всеми заказами (только для админа)",
+                "description": "Экспортирует все заказы в формате CSV (только для администратора)",
                 "produces": [
                     "text/csv"
                 ],
-                "tags": [
-                    "admin-orders"
-                ],
-                "summary": "Экспорт заказов в CSV",
+                "summary": "Экспортировать заказы в CSV (Админ)",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "CSV-файл с заказами",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
                     },
                     "500": {
-                        "description": "Ошибка экспорта",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/admin/products": {
+        "/api/admin/products": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Создаёт новый товар (доступно только администратору)",
+                "description": "Создаёт новый товар (только для администратора)",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "text/plain"
                 ],
-                "tags": [
-                    "admin-products"
-                ],
-                "summary": "Добавить новый товар",
+                "summary": "Добавить товар (админ)",
                 "parameters": [
                     {
                         "description": "Данные товара",
-                        "name": "product",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/chechnya-product_internal_models.Product"
+                            "$ref": "#/definitions/models.Product"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Товар добавлен",
+                        "description": "Product added",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Невалидный JSON",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Нет доступа",
+                        "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Ошибка добавления товара",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/admin/products/{id}": {
+        "/api/admin/products/{id}": {
             "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Обновляет данные товара по ID (доступно только администратору)",
+                "description": "Обновляет существующий товар по его ID (только для администратора)",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "text/plain"
                 ],
-                "tags": [
-                    "admin-products"
-                ],
-                "summary": "Обновить товар",
+                "summary": "Обновить товар (админ)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -159,31 +166,37 @@
                     },
                     {
                         "description": "Новые данные товара",
-                        "name": "product",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/chechnya-product_internal_models.Product"
+                            "$ref": "#/definitions/models.Product"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Товар обновлён",
+                        "description": "Product updated",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Некорректный ID или JSON",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Ошибка обновления товара",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -194,14 +207,11 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Удаляет товар по ID (доступно только администратору)",
+                "description": "Удаляет товар по его ID (только для администратора)",
                 "produces": [
                     "text/plain"
                 ],
-                "tags": [
-                    "admin-products"
-                ],
-                "summary": "Удалить товар",
+                "summary": "Удалить товар (админ)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -213,131 +223,196 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Товар удалён",
+                        "description": "Product deleted",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Некорректный ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Нет доступа",
+                        "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Ошибка удаления товара",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/cart": {
+        "/api/cart": {
             "get": {
-                "description": "Возвращает список товаров в корзине по user_id",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список товаров в корзине текущего пользователя",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "cart"
-                ],
-                "summary": "Получить корзину пользователя",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID пользователя",
-                        "name": "user_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
+                "summary": "Получить корзину",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/models.CartItem"
                             }
                         }
                     },
-                    "400": {
-                        "description": "Неверный user_id",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Ошибка получения корзины",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Добавляет определённое количество товара в корзину пользователя",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавляет выбранный товар в корзину пользователя",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "text/plain"
                 ],
-                "tags": [
-                    "cart"
-                ],
                 "summary": "Добавить товар в корзину",
                 "parameters": [
                     {
-                        "description": "Данные для добавления в корзину",
+                        "description": "ID товара и количество",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.AddToCartRequest"
+                            "$ref": "#/definitions/handlers.AddToCartRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Добавлено в корзину",
+                        "description": "Товар добавлен в корзину",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Невалидный запрос",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Ошибка добавления в корзину",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/cart/{product_id}": {
+        "/api/cart/checkout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Завершает оформление заказа на основе текущей корзины",
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Оформить заказ",
+                "responses": {
+                    "200": {
+                        "description": "Заказ успешно оформлен",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/clear": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет все товары из корзины пользователя",
+                "produces": [
+                    "text/plain"
+                ],
+                "summary": "Очистить корзину",
+                "responses": {
+                    "200": {
+                        "description": "Корзина очищена",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/{product_id}": {
             "put": {
-                "description": "Обновляет количество определённого товара в корзине текущего пользователя",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Изменяет количество указанного товара в корзине",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "text/plain"
-                ],
-                "tags": [
-                    "cart"
                 ],
                 "summary": "Обновить количество товара в корзине",
                 "parameters": [
@@ -349,40 +424,50 @@
                         "required": true
                     },
                     {
-                        "description": "Новое количество (quantity)",
+                        "description": "Новое количество",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
+                            "properties": {
+                                "quantity": {
+                                    "type": "integer"
+                                }
                             }
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Количество обновлено",
+                        "description": "Количество товара обновлено",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Невалидный JSON или ошибка",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             },
             "delete": {
-                "description": "Удаляет указанный товар из корзины текущего пользователя",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет указанный товар из корзины",
                 "produces": [
                     "text/plain"
-                ],
-                "tags": [
-                    "cart"
                 ],
                 "summary": "Удалить товар из корзины",
                 "parameters": [
@@ -401,25 +486,28 @@
                             "type": "string"
                         }
                     },
-                    "500": {
-                        "description": "Ошибка удаления",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/categories": {
+        "/api/categories": {
             "get": {
-                "description": "Возвращает список всех уникальных категорий товаров",
+                "description": "Возвращает список категорий товаров",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Получить список категорий",
+                "summary": "Получить категории товаров",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -431,199 +519,226 @@
                         }
                     },
                     "500": {
-                        "description": "Ошибка получения категорий",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/login": {
+        "/api/login": {
             "post": {
-                "description": "Возвращает JWT токен при успешном входе",
+                "description": "Выполняет вход пользователя и возвращает JWT-токен",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Авторизация",
+                "summary": "Авторизация пользователя",
                 "parameters": [
                     {
-                        "description": "Данные входа",
+                        "description": "Имя пользователя и пароль",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.LoginRequest"
+                            "$ref": "#/definitions/handlers.LoginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "JWT токен",
+                        "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
+                            "properties": {
+                                "token": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
                     "400": {
-                        "description": "Невалидный JSON",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Неверный логин или пароль",
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/me": {
+        "/api/me": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает ID, имя пользователя и роль из JWT",
+                "description": "Возвращает профиль текущего пользователя",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Профиль текущего пользователя",
+                "summary": "Получить информацию о пользователе",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": true
+                            "properties": {
+                                " role": {
+                                    "type": "string"
+                                },
+                                " username": {
+                                    "type": "string"
+                                },
+                                "id": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Пользователь не найден",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/order": {
+        "/api/order": {
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Создаёт заказ на основе содержимого корзины пользователя",
+                "description": "Создаёт новый заказ из товаров в корзине пользователя",
                 "produces": [
                     "text/plain"
-                ],
-                "tags": [
-                    "orders"
                 ],
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
-                        "description": "Заказ успешно оформлен",
+                        "description": "Заказ успешно создан",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Ошибка: корзина пуста или товара не хватает",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/orders": {
+        "/api/orders": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает список всех заказов текущего пользователя",
+                "description": "Возвращает список заказов текущего пользователя",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "orders"
-                ],
-                "summary": "История заказов пользователя",
+                "summary": "Получить заказы пользователя",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/models.Order"
                             }
                         }
                     },
-                    "500": {
-                        "description": "Ошибка получения заказов",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/products": {
+        "/api/products": {
             "get": {
-                "description": "Возвращает товары с фильтрацией по поиску и категории",
+                "description": "Получает список товаров с возможностью фильтрации",
                 "produces": [
                     "application/json"
                 ],
-                "tags": [
-                    "products"
-                ],
-                "summary": "Получить товары",
+                "summary": "Получить список товаров",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Поиск",
+                        "description": "Поиск по названию",
                         "name": "search",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Категория",
+                        "description": "Фильтр по категории",
                         "name": "category",
                         "in": "query"
                     },
                     {
+                        "type": "number",
+                        "description": "Минимальная цена",
+                        "name": "min_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Максимальная цена",
+                        "name": "max_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Сортировка",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "Сколько товаров вернуть",
+                        "description": "Ограничение количества результатов",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "С какого начать (смещение)",
+                        "description": "Сдвиг для пагинации",
                         "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Сортировка: price_asc, price_desc, name_asc, name_desc, stock_asc, stock_desc",
-                        "name": "sort",
                         "in": "query"
                     }
                 ],
@@ -633,27 +748,24 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/chechnya-product_internal_models.Product"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
                     "500": {
-                        "description": "Ошибка получения товаров",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/products/{id}": {
+        "/api/products/{id}": {
             "get": {
-                "description": "Возвращает один товар по его ID",
+                "description": "Возвращает детали товара по его идентификатору",
                 "produces": [
                     "application/json"
-                ],
-                "tags": [
-                    "products"
                 ],
                 "summary": "Получить товар по ID",
                 "parameters": [
@@ -669,53 +781,56 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/chechnya-product_internal_models.Product"
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Товар не найден",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/register": {
+        "/api/register": {
             "post": {
-                "description": "Регистрирует нового пользователя по логину и паролю",
+                "description": "Создаёт нового пользователя",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "text/plain"
                 ],
-                "tags": [
-                    "users"
-                ],
                 "summary": "Регистрация пользователя",
                 "parameters": [
                     {
-                        "description": "Данные регистрации",
+                        "description": "Имя пользователя и пароль",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.RegisterRequest"
+                            "$ref": "#/definitions/handlers.RegisterRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Пользователь зарегистрирован",
+                        "description": "Пользователь успешно зарегистрирован",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Невалидный JSON или пользователь уже существует",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -723,7 +838,82 @@
         }
     },
     "definitions": {
-        "chechnya-product_internal_models.Product": {
+        "handlers.AddToCartRequest": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CartItem": {
+            "type": "object",
+            "properties": {
+                "cart_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Order": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "userID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Product": {
             "type": "object",
             "properties": {
                 "category": {
@@ -746,43 +936,6 @@
                 },
                 "stock": {
                     "type": "integer"
-                }
-            }
-        },
-        "internal_handlers.AddToCartRequest": {
-            "type": "object",
-            "properties": {
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "user_id": {
-                    "description": "временно напрямую",
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_handlers.LoginRequest": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers.RegisterRequest": {
-            "type": "object",
-            "properties": {
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         }

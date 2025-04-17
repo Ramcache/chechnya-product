@@ -26,6 +26,15 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+// Register
+// @Summary Регистрация пользователя
+// @Description Создаёт нового пользователя
+// @Accept json
+// @Produce plain
+// @Param input body RegisterRequest true "Имя пользователя и пароль"
+// @Success 201 {string} string "Пользователь успешно зарегистрирован"
+// @Failure 400 {object} ErrorResponse
+// @Router /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -42,6 +51,16 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User successfully registered"))
 }
 
+// Login
+// @Summary Авторизация пользователя
+// @Description Выполняет вход пользователя и возвращает JWT-токен
+// @Accept json
+// @Produce json
+// @Param input body LoginRequest true "Имя пользователя и пароль"
+// @Success 200 {object} object{token=string}
+// @Failure 401 {object} ErrorResponse
+// @Failure 400 {object} ErrorResponse
+// @Router /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -68,6 +87,15 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Me
+// @Summary Получить информацию о пользователе
+// @Description Возвращает профиль текущего пользователя
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} object{id=int, username=string, role=string}
+// @Failure 401 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /api/me [get]
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 

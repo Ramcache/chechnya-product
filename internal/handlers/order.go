@@ -18,6 +18,15 @@ func NewOrderHandler(service *services.OrderService) *OrderHandler {
 	return &OrderHandler{service: service}
 }
 
+// PlaceOrder
+// @Summary Оформить заказ
+// @Description Создаёт новый заказ из товаров в корзине пользователя
+// @Security BearerAuth
+// @Produce plain
+// @Success 200 {string} string "Заказ успешно создан"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/order [post]
 func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 
@@ -29,6 +38,15 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Order placed successfully"))
 }
 
+// GetUserOrders
+// @Summary Получить заказы пользователя
+// @Description Возвращает список заказов текущего пользователя
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.Order
+// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/orders [get]
 func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 
@@ -41,6 +59,16 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, orders)
 }
 
+// GetAllOrders
+// @Summary Получить все заказы (Админ)
+// @Description Возвращает список всех заказов (только для администратора)
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.Order
+// @Failure 500 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/admin/orders [get]
 func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
 	if err != nil {
@@ -51,6 +79,16 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, orders)
 }
 
+// ExportOrdersCSV
+// @Summary Экспортировать заказы в CSV (Админ)
+// @Description Экспортирует все заказы в формате CSV (только для администратора)
+// @Security BearerAuth
+// @Produce text/csv
+// @Success 200 {file} file "CSV-файл с заказами"
+// @Failure 500 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/admin/orders/export [get]
 func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
 	if err != nil {

@@ -1,6 +1,53 @@
-basePath: /api
 definitions:
-  chechnya-product_internal_models.Product:
+  handlers.AddToCartRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.CartItem:
+    properties:
+      cart_id:
+        type: integer
+      id:
+        type: integer
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  models.Order:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      total:
+        type: number
+      userID:
+        type: integer
+    type: object
+  models.Product:
     properties:
       category:
         type: string
@@ -17,40 +64,12 @@ definitions:
       stock:
         type: integer
     type: object
-  internal_handlers.AddToCartRequest:
-    properties:
-      product_id:
-        type: integer
-      quantity:
-        type: integer
-      user_id:
-        description: временно напрямую
-        type: integer
-    type: object
-  internal_handlers.LoginRequest:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-  internal_handlers.RegisterRequest:
-    properties:
-      password:
-        type: string
-      username:
-        type: string
-    type: object
-host: localhost:8080
 info:
   contact: {}
-  description: Онлайн-магазин для продажи продуктов
-  title: Chechnya Product API
-  version: "1.0"
 paths:
-  /admin/orders:
+  /api/admin/orders:
     get:
-      description: Возвращает список всех заказов в системе
+      description: Возвращает список всех заказов (только для администратора)
       produces:
       - application/json
       responses:
@@ -58,73 +77,85 @@ paths:
           description: OK
           schema:
             items:
-              type: object
+              $ref: '#/definitions/models.Order'
             type: array
-        "500":
-          description: Ошибка получения заказов
+        "401":
+          description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Все заказы (только для админа)
-      tags:
-      - admin-orders
-  /admin/orders/export:
+      summary: Получить все заказы (Админ)
+  /api/admin/orders/export:
     get:
-      description: Возвращает CSV-файл со всеми заказами (только для админа)
+      description: Экспортирует все заказы в формате CSV (только для администратора)
       produces:
       - text/csv
       responses:
         "200":
-          description: OK
-        "500":
-          description: Ошибка экспорта
+          description: CSV-файл с заказами
           schema:
-            type: string
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Экспорт заказов в CSV
-      tags:
-      - admin-orders
-  /admin/products:
+      summary: Экспортировать заказы в CSV (Админ)
+  /api/admin/products:
     post:
       consumes:
       - application/json
-      description: Создаёт новый товар (доступно только администратору)
+      description: Создаёт новый товар (только для администратора)
       parameters:
       - description: Данные товара
         in: body
-        name: product
+        name: input
         required: true
         schema:
-          $ref: '#/definitions/chechnya-product_internal_models.Product'
+          $ref: '#/definitions/models.Product'
       produces:
       - text/plain
       responses:
         "201":
-          description: Товар добавлен
+          description: Product added
           schema:
             type: string
         "400":
-          description: Невалидный JSON
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "403":
-          description: Нет доступа
+          description: Forbidden
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
-          description: Ошибка добавления товара
+          description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Добавить новый товар
-      tags:
-      - admin-products
-  /admin/products/{id}:
+      summary: Добавить товар (админ)
+  /api/admin/products/{id}:
     delete:
-      description: Удаляет товар по ID (доступно только администратору)
+      description: Удаляет товар по его ID (только для администратора)
       parameters:
       - description: ID товара
         in: path
@@ -135,30 +166,28 @@ paths:
       - text/plain
       responses:
         "200":
-          description: Товар удалён
+          description: Product deleted
           schema:
             type: string
         "400":
-          description: Некорректный ID
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "403":
-          description: Нет доступа
+          description: Forbidden
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
-          description: Ошибка удаления товара
+          description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Удалить товар
-      tags:
-      - admin-products
+      summary: Удалить товар (админ)
     put:
       consumes:
       - application/json
-      description: Обновляет данные товара по ID (доступно только администратору)
+      description: Обновляет существующий товар по его ID (только для администратора)
       parameters:
       - description: ID товара
         in: path
@@ -167,39 +196,35 @@ paths:
         type: integer
       - description: Новые данные товара
         in: body
-        name: product
+        name: input
         required: true
         schema:
-          $ref: '#/definitions/chechnya-product_internal_models.Product'
+          $ref: '#/definitions/models.Product'
       produces:
       - text/plain
       responses:
         "200":
-          description: Товар обновлён
+          description: Product updated
           schema:
             type: string
         "400":
-          description: Некорректный ID или JSON
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
-          description: Ошибка обновления товара
+          description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Обновить товар
-      tags:
-      - admin-products
-  /cart:
+      summary: Обновить товар (админ)
+  /api/cart:
     get:
-      description: Возвращает список товаров в корзине по user_id
-      parameters:
-      - description: ID пользователя
-        in: query
-        name: user_id
-        required: true
-        type: integer
+      description: Возвращает список товаров в корзине текущего пользователя
       produces:
       - application/json
       responses:
@@ -207,51 +232,51 @@ paths:
           description: OK
           schema:
             items:
-              type: object
+              $ref: '#/definitions/models.CartItem'
             type: array
-        "400":
-          description: Неверный user_id
+        "401":
+          description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "500":
-          description: Ошибка получения корзины
+          description: Internal Server Error
           schema:
-            type: string
-      summary: Получить корзину пользователя
-      tags:
-      - cart
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить корзину
     post:
       consumes:
       - application/json
-      description: Добавляет определённое количество товара в корзину пользователя
+      description: Добавляет выбранный товар в корзину пользователя
       parameters:
-      - description: Данные для добавления в корзину
+      - description: ID товара и количество
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.AddToCartRequest'
+          $ref: '#/definitions/handlers.AddToCartRequest'
       produces:
       - text/plain
       responses:
         "201":
-          description: Добавлено в корзину
+          description: Товар добавлен в корзину
           schema:
             type: string
         "400":
-          description: Невалидный запрос
+          description: Bad Request
           schema:
-            type: string
-        "500":
-          description: Ошибка добавления в корзину
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Добавить товар в корзину
-      tags:
-      - cart
-  /cart/{product_id}:
+  /api/cart/{product_id}:
     delete:
-      description: Удаляет указанный товар из корзины текущего пользователя
+      description: Удаляет указанный товар из корзины
       parameters:
       - description: ID товара
         in: path
@@ -265,119 +290,57 @@ paths:
           description: Товар удалён из корзины
           schema:
             type: string
-        "500":
-          description: Ошибка удаления
+        "401":
+          description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Удалить товар из корзины
-      tags:
-      - cart
     put:
       consumes:
       - application/json
-      description: Обновляет количество определённого товара в корзине текущего пользователя
+      description: Изменяет количество указанного товара в корзине
       parameters:
       - description: ID товара
         in: path
         name: product_id
         required: true
         type: integer
-      - description: Новое количество (quantity)
+      - description: Новое количество
         in: body
         name: input
         required: true
         schema:
-          additionalProperties:
-            type: integer
+          properties:
+            quantity:
+              type: integer
           type: object
       produces:
       - text/plain
       responses:
         "200":
-          description: Количество обновлено
+          description: Количество товара обновлено
           schema:
             type: string
         "400":
-          description: Невалидный JSON или ошибка
+          description: Bad Request
           schema:
-            type: string
-      summary: Обновить количество товара в корзине
-      tags:
-      - cart
-  /categories:
-    get:
-      description: Возвращает список всех уникальных категорий товаров
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "500":
-          description: Ошибка получения категорий
-          schema:
-            type: string
-      summary: Получить список категорий
-      tags:
-      - products
-  /login:
-    post:
-      consumes:
-      - application/json
-      description: Возвращает JWT токен при успешном входе
-      parameters:
-      - description: Данные входа
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/internal_handlers.LoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: JWT токен
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Невалидный JSON
-          schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
         "401":
-          description: Неверный логин или пароль
+          description: Unauthorized
           schema:
-            type: string
-      summary: Авторизация
-      tags:
-      - users
-  /me:
-    get:
-      description: Возвращает ID, имя пользователя и роль из JWT
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Пользователь не найден
-          schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Профиль текущего пользователя
-      tags:
-      - users
-  /order:
+      summary: Обновить количество товара в корзине
+  /api/cart/checkout:
     post:
-      description: Создаёт заказ на основе содержимого корзины пользователя
+      description: Завершает оформление заказа на основе текущей корзины
       produces:
       - text/plain
       responses:
@@ -385,18 +348,41 @@ paths:
           description: Заказ успешно оформлен
           schema:
             type: string
-        "400":
-          description: 'Ошибка: корзина пуста или товара не хватает'
+        "401":
+          description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Оформить заказ
-      tags:
-      - orders
-  /orders:
+  /api/cart/clear:
+    delete:
+      description: Удаляет все товары из корзины пользователя
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Корзина очищена
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Очистить корзину
+  /api/categories:
     get:
-      description: Возвращает список всех заказов текущего пользователя
+      description: Возвращает список категорий товаров
       produces:
       - application/json
       responses:
@@ -404,42 +390,148 @@ paths:
           description: OK
           schema:
             items:
-              type: object
+              type: string
             type: array
         "500":
-          description: Ошибка получения заказов
+          description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получить категории товаров
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет вход пользователя и возвращает JWT-токен
+      parameters:
+      - description: Имя пользователя и пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              token:
+                type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Авторизация пользователя
+  /api/me:
+    get:
+      description: Возвращает профиль текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              ' role':
+                type: string
+              ' username':
+                type: string
+              id:
+                type: integer
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: История заказов пользователя
-      tags:
-      - orders
-  /products:
+      summary: Получить информацию о пользователе
+  /api/order:
+    post:
+      description: Создаёт новый заказ из товаров в корзине пользователя
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Заказ успешно создан
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Оформить заказ
+  /api/orders:
     get:
-      description: Возвращает товары с фильтрацией по поиску и категории
+      description: Возвращает список заказов текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Order'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить заказы пользователя
+  /api/products:
+    get:
+      description: Получает список товаров с возможностью фильтрации
       parameters:
-      - description: Поиск
+      - description: Поиск по названию
         in: query
         name: search
         type: string
-      - description: Категория
+      - description: Фильтр по категории
         in: query
         name: category
         type: string
-      - description: Сколько товаров вернуть
+      - description: Минимальная цена
         in: query
-        name: limit
-        type: integer
-      - description: С какого начать (смещение)
+        name: min_price
+        type: number
+      - description: Максимальная цена
         in: query
-        name: offset
-        type: integer
-      - description: 'Сортировка: price_asc, price_desc, name_asc, name_desc, stock_asc,
-          stock_desc'
+        name: max_price
+        type: number
+      - description: Сортировка
         in: query
         name: sort
         type: string
+      - description: Ограничение количества результатов
+        in: query
+        name: limit
+        type: integer
+      - description: Сдвиг для пагинации
+        in: query
+        name: offset
+        type: integer
       produces:
       - application/json
       responses:
@@ -447,18 +539,16 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/chechnya-product_internal_models.Product'
+              $ref: '#/definitions/models.Product'
             type: array
         "500":
-          description: Ошибка получения товаров
+          description: Internal Server Error
           schema:
-            type: string
-      summary: Получить товары
-      tags:
-      - products
-  /products/{id}:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Получить список товаров
+  /api/products/{id}:
     get:
-      description: Возвращает один товар по его ID
+      description: Возвращает детали товара по его идентификатору
       parameters:
       - description: ID товара
         in: path
@@ -471,42 +561,40 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/chechnya-product_internal_models.Product'
-        "404":
-          description: Товар не найден
+            $ref: '#/definitions/models.Product'
+        "400":
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Получить товар по ID
-      tags:
-      - products
-  /register:
+  /api/register:
     post:
       consumes:
       - application/json
-      description: Регистрирует нового пользователя по логину и паролю
+      description: Создаёт нового пользователя
       parameters:
-      - description: Данные регистрации
+      - description: Имя пользователя и пароль
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers.RegisterRequest'
+          $ref: '#/definitions/handlers.RegisterRequest'
       produces:
       - text/plain
       responses:
         "201":
-          description: Пользователь зарегистрирован
+          description: Пользователь успешно зарегистрирован
           schema:
             type: string
         "400":
-          description: Невалидный JSON или пользователь уже существует
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/handlers.ErrorResponse'
       summary: Регистрация пользователя
-      tags:
-      - users
-schemes:
-- http
 securityDefinitions:
   BearerAuth:
     in: header

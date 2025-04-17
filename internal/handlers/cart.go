@@ -33,6 +33,17 @@ func (h *CartHandler) respondError(w http.ResponseWriter, status int, msg string
 	json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
 }
 
+// AddToCart
+// @Summary Добавить товар в корзину
+// @Description Добавляет выбранный товар в корзину пользователя
+// @Security BearerAuth
+// @Accept json
+// @Produce plain
+// @Param input body AddToCartRequest true "ID товара и количество"
+// @Success 201 {string} string "Товар добавлен в корзину"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart [post]
 func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	var req AddToCartRequest
@@ -54,6 +65,15 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Added to cart"))
 }
 
+// GetCart
+// @Summary Получить корзину
+// @Description Возвращает список товаров в корзине текущего пользователя
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.CartItem
+// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	items, err := h.service.GetCart(userID)
@@ -66,6 +86,18 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(items)
 }
 
+// UpdateItem
+// @Summary Обновить количество товара в корзине
+// @Description Изменяет количество указанного товара в корзине
+// @Security BearerAuth
+// @Accept json
+// @Produce plain
+// @Param product_id path int true "ID товара"
+// @Param input body object{quantity=int} true "Новое количество"
+// @Success 200 {string} string "Количество товара обновлено"
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart/{product_id} [put]
 func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
@@ -89,6 +121,16 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Quantity updated"))
 }
 
+// DeleteItem
+// @Summary Удалить товар из корзины
+// @Description Удаляет указанный товар из корзины
+// @Security BearerAuth
+// @Produce plain
+// @Param product_id path int true "ID товара"
+// @Success 200 {string} string "Товар удалён из корзины"
+// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart/{product_id} [delete]
 func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
@@ -104,6 +146,15 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Item deleted"))
 }
 
+// ClearCart
+// @Summary Очистить корзину
+// @Description Удаляет все товары из корзины пользователя
+// @Security BearerAuth
+// @Produce plain
+// @Success 200 {string} string "Корзина очищена"
+// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart/clear [delete]
 func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	if err := h.service.ClearCart(userID); err != nil {
@@ -115,6 +166,15 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Cart cleared"))
 }
 
+// Checkout
+// @Summary Оформить заказ
+// @Description Завершает оформление заказа на основе текущей корзины
+// @Security BearerAuth
+// @Produce plain
+// @Success 200 {string} string "Заказ успешно оформлен"
+// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /api/cart/checkout [post]
 func (h *CartHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r)
 	if err := h.service.Checkout(userID); err != nil {

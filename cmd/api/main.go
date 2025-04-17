@@ -57,7 +57,7 @@ func main() {
 	router.Use(middleware.LoggerMiddleware(logger))
 
 	// 📚 Swagger-документация
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	// 🔓 Публичные маршруты
 	public := router.PathPrefix("/api").Subrouter()
