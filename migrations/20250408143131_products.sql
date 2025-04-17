@@ -5,7 +5,9 @@ CREATE TABLE products (
                           description TEXT,
                           price NUMERIC(10,2) NOT NULL,
                           stock INT NOT NULL,
+                          category TEXT DEFAULT '',
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 -- +goose Down
 DROP TABLE IF EXISTS products;

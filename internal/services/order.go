@@ -14,43 +14,48 @@ type OrderService struct {
 }
 
 func NewOrderService(cartRepo repositories.CartRepository, orderRepo repositories.OrderRepository, productRepo repositories.ProductRepository) *OrderService {
-	return &OrderService{cartRepo: cartRepo, orderRepo: orderRepo, productRepo: productRepo}
+	return &OrderService{
+		cartRepo:    cartRepo,
+		orderRepo:   orderRepo,
+		productRepo: productRepo,
+	}
 }
 
 func (s *OrderService) PlaceOrder(userID int) error {
 	items, err := s.cartRepo.GetCartItems(userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get cart items: %w", err)
 	}
 	if len(items) == 0 {
-		return errors.New("корзина пуста")
+		return errors.New("cart is empty")
 	}
 
 	var total float64
 	for _, item := range items {
 		product, err := s.productRepo.GetByID(item.ProductID)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get product %d: %w", item.ProductID, err)
 		}
 		if product.Stock < item.Quantity {
-			return fmt.Errorf("товара \"%s\" недостаточно на складе", product.Name)
+			return fmt.Errorf("not enough stock for \"%s\"", product.Name)
 		}
 
 		total += float64(item.Quantity) * product.Price
 
-		// уменьшаем остатки
-		err = s.productRepo.DecreaseStock(item.ProductID, item.Quantity)
-		if err != nil {
-			return err
+		if err := s.productRepo.DecreaseStock(item.ProductID, item.Quantity); err != nil {
+			return fmt.Errorf("failed to decrease stock for %d: %w", item.ProductID, err)
 		}
 	}
 
-	err = s.orderRepo.CreateOrder(userID, total)
-	if err != nil {
-		return err
+	if err := s.orderRepo.CreateOrder(userID, total); err != nil {
+		return fmt.Errorf("failed to create order: %w", err)
 	}
 
-	return s.cartRepo.ClearCart(userID)
+	if err := s.cartRepo.ClearCart(userID); err != nil {
+		return fmt.Errorf("failed to clear cart: %w", err)
+	}
+
+	return nil
 }
 
 func (s *OrderService) GetOrders(userID int) ([]models.Order, error) {

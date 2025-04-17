@@ -1,8 +1,8 @@
 package config
 
 import (
+	"errors"
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 )
 
@@ -14,15 +14,14 @@ type Config struct {
 	DBName     string
 	Port       string
 	JWTSecret  string
+	Env        string // "development", "production", "test"
 }
 
-func LoadConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Ошибка загрузки .env")
-	}
+// LoadConfig загружает конфигурацию из переменных окружения.
+func LoadConfig() (*Config, error) {
+	_ = godotenv.Load() // .env не обязателен, но полезен в dev
 
-	return &Config{
+	cfg := &Config{
 		DBHost:     os.Getenv("DB_HOST"),
 		DBPort:     os.Getenv("DB_PORT"),
 		DBUser:     os.Getenv("DB_USER"),
@@ -30,5 +29,13 @@ func LoadConfig() *Config {
 		DBName:     os.Getenv("DB_NAME"),
 		Port:       os.Getenv("PORT"),
 		JWTSecret:  os.Getenv("JWT_SECRET"),
+		Env:        os.Getenv("ENV"),
 	}
+
+	// Минимальная валидация
+	if cfg.Port == "" || cfg.JWTSecret == "" {
+		return nil, errors.New("missing required environment variables (PORT, JWT_SECRET)")
+	}
+
+	return cfg, nil
 }
