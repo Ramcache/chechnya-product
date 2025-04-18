@@ -14,6 +14,7 @@ import (
 	"chechnya-product/internal/ws"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 	"net/http"
@@ -31,6 +32,7 @@ func getUserIdentifier(r *http.Request) string {
 }
 
 func main() {
+	//test
 	// 📋 Инициализация логгера
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
@@ -55,21 +57,20 @@ func main() {
 	cartRepo := repositories.NewCartRepo(database)
 	productRepo := repositories.NewProductRepo(database)
 	orderRepo := repositories.NewOrderRepo(database)
+	categoryRepo := repositories.NewCategoryRepo(database)
 
 	// 🧠 Сервисы
 	userService := services.NewUserService(userRepo)
 	cartService := services.NewCartService(cartRepo, productRepo)
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
+	categoryService := services.NewCategoryService(categoryRepo)
 
 	// 🎮 Обработчики
 	userHandler := handlers.NewUserHandler(userService)
 	cartHandler := handlers.NewCartHandler(cartService, logger)
 	productHandler := handlers.NewProductHandler(productService)
 	orderHandler := handlers.NewOrderHandler(orderService)
-
-	categoryRepo := repositories.NewCategoryRepo(database)
-	categoryService := services.NewCategoryService(categoryRepo)
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 
 	// 🚦 Роутер
@@ -103,15 +104,12 @@ func main() {
 	// 🔐 Приватные маршруты
 	private := router.PathPrefix("/api").Subrouter()
 	private.Use(middleware.JWTAuth(cfg.JWTSecret))
-
-	// 👤 Профиль
 	private.HandleFunc("/me", userHandler.Me).Methods("GET")
 
 	// 🛠️ Админ-панель
 	admin := router.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTAuth(cfg.JWTSecret))
 	admin.Use(middleware.OnlyAdmin())
-
 	admin.HandleFunc("/products", productHandler.Add).Methods("POST")
 	admin.HandleFunc("/products/{id}", productHandler.Delete).Methods("DELETE")
 	admin.HandleFunc("/products/{id}", productHandler.Update).Methods("PUT")
@@ -121,10 +119,18 @@ func main() {
 	admin.HandleFunc("/categories/{id}", categoryHandler.Update).Methods("PUT")
 	admin.HandleFunc("/categories/{id}", categoryHandler.Delete).Methods("DELETE")
 
-	// 🚀 Запуск сервера
+	// 🛡️ CORS Middleware
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+	})
+
+	// 🚀 Запуск сервера с CORS
 	logger.Sugar().Infow("Server is running", "port", cfg.Port, "env", cfg.Env)
 
-	if err := http.ListenAndServe(":"+cfg.Port, router); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, corsMiddleware.Handler(router)); err != nil {
 		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }
