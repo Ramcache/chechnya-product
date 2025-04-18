@@ -9,8 +9,8 @@ import (
 type contextKey string
 
 const (
-	ContextUserID contextKey = "userID"
-	ContextRole   contextKey = "role"
+	ContextUserID   contextKey = "userID"
+	ContextUserRole contextKey = "userRole"
 )
 
 func JWTAuth(secret string) func(http.Handler) http.Handler {
@@ -30,7 +30,7 @@ func JWTAuth(secret string) func(http.Handler) http.Handler {
 			}
 
 			ctx := context.WithValue(r.Context(), ContextUserID, userID)
-			ctx = context.WithValue(ctx, ContextRole, role)
+			ctx = context.WithValue(ctx, ContextUserRole, role)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -42,4 +42,20 @@ func GetUserID(r *http.Request) int {
 		return val
 	}
 	return 0
+}
+
+func GetUserRole(r *http.Request) string {
+	role, ok := r.Context().Value("role").(string)
+	if !ok {
+		return ""
+	}
+	return role
+}
+
+func GetUserIDOrZero(r *http.Request) int {
+	id, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		return 0
+	}
+	return id
 }

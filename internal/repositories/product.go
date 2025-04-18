@@ -15,7 +15,6 @@ type ProductRepository interface {
 	GetByID(id int) (*models.Product, error)
 	DecreaseStock(id int, quantity int) error
 	GetFiltered(search, category string, minPrice, maxPrice float64, limit, offset int, sort string) ([]models.Product, error)
-	GetCategories() ([]string, error)
 }
 
 type ProductRepo struct {
@@ -40,7 +39,7 @@ func (r *ProductRepo) Create(product *models.Product) error {
 		INSERT INTO products (name, description, price, stock, category)
 		VALUES ($1, $2, $3, $4, $5)
 	`
-	_, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.Category)
+	_, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID)
 	if err != nil {
 		return fmt.Errorf("failed to create product: %w", err)
 	}
@@ -65,7 +64,7 @@ func (r *ProductRepo) Update(id int, product *models.Product) error {
 		SET name = $1, description = $2, price = $3, stock = $4, category = $5
 		WHERE id = $6
 	`
-	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.Category, id)
+	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID, id)
 	if err != nil {
 		return fmt.Errorf("failed to update product: %w", err)
 	}
@@ -163,13 +162,4 @@ func (r *ProductRepo) GetFiltered(
 		return nil, fmt.Errorf("failed to filter products: %w", err)
 	}
 	return products, nil
-}
-
-func (r *ProductRepo) GetCategories() ([]string, error) {
-	var categories []string
-	err := r.db.Select(&categories, `SELECT DISTINCT category FROM products ORDER BY category ASC`)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch categories: %w", err)
-	}
-	return categories, nil
 }

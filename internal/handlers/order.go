@@ -20,18 +20,16 @@ func NewOrderHandler(service *services.OrderService) *OrderHandler {
 
 // PlaceOrder
 // @Summary Оформить заказ
-// @Description Создаёт новый заказ из товаров в корзине пользователя
+// @Description Оформляет заказ из текущей корзины owner_id
 // @Tags Заказ
-// @Security BearerAuth
 // @Produce plain
-// @Success 200 {string} string "Заказ успешно создан"
+// @Success 200 {string} string "Order placed successfully"
 // @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/order [post]
 func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
+	ownerID := middleware.GetOwnerID(w, r)
 
-	if err := h.service.PlaceOrder(userID); err != nil {
+	if err := h.service.PlaceOrder(ownerID); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -41,18 +39,16 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 
 // GetUserOrders
 // @Summary Получить заказы пользователя
-// @Description Возвращает список заказов текущего пользователя
+// @Description Возвращает список заказов для текущего owner_id
 // @Tags Заказ
-// @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
 // @Failure 500 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/orders [get]
 func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
+	ownerID := middleware.GetOwnerID(w, r)
 
-	orders, err := h.service.GetOrders(userID)
+	orders, err := h.service.GetOrders(ownerID)
 	if err != nil {
 		http.Error(w, "Failed to fetch user orders", http.StatusInternalServerError)
 		return
@@ -62,15 +58,13 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAllOrders
-// @Summary Получить все заказы (Админ)
-// @Description Возвращает список всех заказов (только для администратора)
-// @Tags Заказ
+// @Summary Получить все заказы (админ)
+// @Description Возвращает список всех заказов (только для админа)
+// @Tags Админ / Заказы
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
 // @Failure 500 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/admin/orders [get]
 func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
@@ -83,15 +77,13 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 // ExportOrdersCSV
-// @Summary Экспортировать заказы в CSV (Админ)
-// @Description Экспортирует все заказы в формате CSV (только для администратора)
-// @Tags Заказ
+// @Summary Экспорт заказов в CSV (админ)
+// @Description Экспортирует все заказы в формате CSV (только для админа)
+// @Tags Админ / Заказы
 // @Security BearerAuth
 // @Produce text/csv
-// @Success 200 {file} file "CSV-файл с заказами"
+// @Success 200 {string} string "CSV файл"
 // @Failure 500 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/admin/orders/export [get]
 func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
@@ -106,25 +98,23 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
-	writer.Write([]string{"Order ID", "User ID", "Total", "Created At"})
+	writer.Write([]string{"Order ID", "Owner ID", "Total", "Created At"})
 
 	for _, order := range orders {
 		writer.Write([]string{
 			strconv.Itoa(order.ID),
-			strconv.Itoa(order.UserID),
+			order.OwnerID,
 			formatFloat(order.Total),
 			order.CreatedAt.Format(time.RFC3339),
 		})
 	}
 }
 
-// writeJSON - универсальный хелпер для JSON-ответов
 func writeJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
 
-// formatFloat - вывод float с двумя знаками после запятой
 func formatFloat(f float64) string {
 	return strconv.FormatFloat(f, 'f', 2, 64)
 }

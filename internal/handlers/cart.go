@@ -35,30 +35,28 @@ func (h *CartHandler) respondError(w http.ResponseWriter, status int, msg string
 
 // AddToCart
 // @Summary Добавить товар в корзину
-// @Description Добавляет выбранный товар в корзину пользователя
+// @Description Добавляет товар в корзину по owner_id (user или ip)
 // @Tags Корзина
-// @Security BearerAuth
 // @Accept json
 // @Produce plain
 // @Param input body AddToCartRequest true "ID товара и количество"
-// @Success 201 {string} string "Товар добавлен в корзину"
+// @Success 201 {string} string "Added to cart"
 // @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart [post]
 func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
+	ownerID := middleware.GetOwnerID(w, r)
 	var req AddToCartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-	if err := h.service.AddToCart(userID, req.ProductID, req.Quantity); err != nil {
+	if err := h.service.AddToCart(ownerID, req.ProductID, req.Quantity); err != nil {
 		h.logger.Error("add to cart failed", zap.Error(err))
 		h.respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	h.logger.Info("Item added to cart",
-		zap.Int("user_id", userID),
+		zap.String("owner_id", ownerID),
 		zap.Int("product_id", req.ProductID),
 		zap.Int("quantity", req.Quantity),
 	)
@@ -67,18 +65,16 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetCart
-// @Summary Получить корзину
-// @Description Возвращает список товаров в корзине текущего пользователя
+// @Summary Получить содержимое корзины
+// @Description Возвращает список товаров в корзине для owner_id
 // @Tags Корзина
-// @Security BearerAuth
 // @Produce json
-// @Success 200 {array} models.CartItem
+// @Success 200 {array} services.CartItemResponse
 // @Failure 500 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
-	items, err := h.service.GetCart(userID)
+	ownerID := middleware.GetOwnerID(w, r)
+	items, err := h.service.GetCart(ownerID)
 	if err != nil {
 		h.logger.Error("get cart failed", zap.Error(err))
 		h.respondError(w, http.StatusInternalServerError, "Failed to get cart")
@@ -90,19 +86,17 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 
 // UpdateItem
 // @Summary Обновить количество товара в корзине
-// @Description Изменяет количество указанного товара в корзине
+// @Description Обновляет количество указанного товара для owner_id
 // @Tags Корзина
-// @Security BearerAuth
 // @Accept json
 // @Produce plain
 // @Param product_id path int true "ID товара"
 // @Param input body object{quantity=int} true "Новое количество"
-// @Success 200 {string} string "Количество товара обновлено"
+// @Success 200 {string} string "Quantity updated"
 // @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart/{product_id} [put]
 func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
+	ownerID := middleware.GetOwnerID(w, r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
 	var req struct {
 		Quantity int `json:"quantity"`
@@ -111,13 +105,13 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		h.respondError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
-	if err := h.service.UpdateItem(userID, productID, req.Quantity); err != nil {
+	if err := h.service.UpdateItem(ownerID, productID, req.Quantity); err != nil {
 		h.logger.Warn("update item failed", zap.Error(err))
 		h.respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	h.logger.Info("Cart item updated",
-		zap.Int("user_id", userID),
+		zap.String("owner_id", ownerID),
 		zap.Int("product_id", productID),
 		zap.Int("new_quantity", req.Quantity),
 	)
@@ -126,25 +120,23 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 // DeleteItem
 // @Summary Удалить товар из корзины
-// @Description Удаляет указанный товар из корзины
+// @Description Удаляет товар по ID из корзины owner_id
 // @Tags Корзина
-// @Security BearerAuth
 // @Produce plain
 // @Param product_id path int true "ID товара"
-// @Success 200 {string} string "Товар удалён из корзины"
+// @Success 200 {string} string "Item deleted"
 // @Failure 500 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart/{product_id} [delete]
 func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
+	ownerID := middleware.GetOwnerID(w, r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
-	if err := h.service.DeleteItem(userID, productID); err != nil {
+	if err := h.service.DeleteItem(ownerID, productID); err != nil {
 		h.logger.Error("delete item failed", zap.Error(err))
 		h.respondError(w, http.StatusInternalServerError, "Failed to delete item")
 		return
 	}
 	h.logger.Info("Cart item deleted",
-		zap.Int("user_id", userID),
+		zap.String("owner_id", ownerID),
 		zap.Int("product_id", productID),
 	)
 	w.Write([]byte("Item deleted"))
@@ -152,44 +144,38 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 // ClearCart
 // @Summary Очистить корзину
-// @Description Удаляет все товары из корзины пользователя
+// @Description Удаляет все товары из корзины owner_id
 // @Tags Корзина
-// @Security BearerAuth
 // @Produce plain
-// @Success 200 {string} string "Корзина очищена"
+// @Success 200 {string} string "Cart cleared"
 // @Failure 500 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart/clear [delete]
 func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
-	if err := h.service.ClearCart(userID); err != nil {
+	ownerID := middleware.GetOwnerID(w, r)
+	if err := h.service.ClearCart(ownerID); err != nil {
 		h.logger.Error("clear cart failed", zap.Error(err))
 		h.respondError(w, http.StatusInternalServerError, "Failed to clear cart")
 		return
 	}
-	h.logger.Info("Cart cleared", zap.Int("user_id", userID))
+	h.logger.Info("Cart cleared", zap.String("owner_id", ownerID))
 	w.Write([]byte("Cart cleared"))
 }
 
 // Checkout
 // @Summary Оформить заказ
-// @Description Завершает оформление заказа на основе текущей корзины
+// @Description Оформляет заказ из корзины и очищает её
 // @Tags Корзина
-// @Security BearerAuth
 // @Produce plain
-// @Success 200 {string} string "Заказ успешно оформлен"
+// @Success 200 {string} string "Checkout successful"
 // @Failure 500 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
 // @Router /api/cart/checkout [post]
 func (h *CartHandler) Checkout(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
-	if err := h.service.Checkout(userID); err != nil {
+	ownerID := middleware.GetOwnerID(w, r)
+	if err := h.service.Checkout(ownerID); err != nil {
 		h.logger.Error("checkout failed", zap.Error(err))
 		h.respondError(w, http.StatusInternalServerError, "Checkout failed")
 		return
 	}
-	h.logger.Info("Checkout completed",
-		zap.Int("user_id", userID),
-	)
+	h.logger.Info("Checkout completed", zap.String("owner_id", ownerID))
 	w.Write([]byte("Checkout successful"))
 }

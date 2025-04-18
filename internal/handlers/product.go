@@ -193,24 +193,6 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Product deleted"))
 }
 
-// GetCategories
-// @Summary Получить категории товаров
-// @Description Возвращает список категорий товаров
-// @Tags Товар
-// @Produce json
-// @Success 200 {array} string
-// @Failure 500 {object} ErrorResponse
-// @Router /api/categories [get]
-func (h *ProductHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.service.GetCategories()
-	if err != nil {
-		http.Error(w, "Failed to fetch categories", http.StatusInternalServerError)
-		return
-	}
-
-	writeJSON(w, categories)
-}
-
 func parseIntParam(param string) (int, error) {
 	return strconv.Atoi(param)
 }

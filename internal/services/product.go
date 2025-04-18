@@ -66,7 +66,3 @@ func (s *ProductService) GetFiltered(
 ) ([]models.Product, error) {
 	return s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
 }
-
-func (s *ProductService) GetCategories() ([]string, error) {
-	return s.repo.GetCategories()
-}

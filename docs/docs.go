@@ -15,6 +15,151 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/categories": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавляет новую категорию (только для администратора)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Категории"
+                ],
+                "summary": "Создать новую категорию",
+                "parameters": [
+                    {
+                        "description": "Название категории",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Category created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid body or duplicate name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/categories/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Изменяет название категории (только для администратора)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Категории"
+                ],
+                "summary": "Обновить категорию",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID категории",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новое имя категории",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category updated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or update failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет категорию по ID (только для администратора)",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Категории"
+                ],
+                "summary": "Удалить категорию",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID категории",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Удаление не удалось",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/orders": {
             "get": {
                 "security": [
@@ -22,14 +167,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает список всех заказов (только для администратора)",
+                "description": "Возвращает список всех заказов (только для админа)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Заказ"
+                    "Админ / Заказы"
                 ],
-                "summary": "Получить все заказы (Админ)",
+                "summary": "Получить все заказы (админ)",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -38,18 +183,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Order"
                             }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -68,31 +201,19 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Экспортирует все заказы в формате CSV (только для администратора)",
+                "description": "Экспортирует все заказы в формате CSV (только для админа)",
                 "produces": [
                     "text/csv"
                 ],
                 "tags": [
-                    "Заказ"
+                    "Админ / Заказы"
                 ],
-                "summary": "Экспортировать заказы в CSV (Админ)",
+                "summary": "Экспорт заказов в CSV (админ)",
                 "responses": {
                     "200": {
-                        "description": "CSV-файл с заказами",
+                        "description": "CSV файл",
                         "schema": {
-                            "type": "file"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "500": {
@@ -277,33 +398,22 @@ const docTemplate = `{
         },
         "/api/cart": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Возвращает список товаров в корзине текущего пользователя",
+                "description": "Возвращает список товаров в корзине для owner_id",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Корзина"
                 ],
-                "summary": "Получить корзину",
+                "summary": "Получить содержимое корзины",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.CartItem"
+                                "$ref": "#/definitions/services.CartItemResponse"
                             }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -315,12 +425,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Добавляет выбранный товар в корзину пользователя",
+                "description": "Добавляет товар в корзину по owner_id (user или ip)",
                 "consumes": [
                     "application/json"
                 ],
@@ -344,7 +449,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Товар добавлен в корзину",
+                        "description": "Added to cart",
                         "schema": {
                             "type": "string"
                         }
@@ -354,24 +459,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
                     }
                 }
             }
         },
         "/api/cart/checkout": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Завершает оформление заказа на основе текущей корзины",
+                "description": "Оформляет заказ из корзины и очищает её",
                 "produces": [
                     "text/plain"
                 ],
@@ -381,15 +475,9 @@ const docTemplate = `{
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
-                        "description": "Заказ успешно оформлен",
+                        "description": "Checkout successful",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -403,12 +491,7 @@ const docTemplate = `{
         },
         "/api/cart/clear": {
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Удаляет все товары из корзины пользователя",
+                "description": "Удаляет все товары из корзины owner_id",
                 "produces": [
                     "text/plain"
                 ],
@@ -418,15 +501,9 @@ const docTemplate = `{
                 "summary": "Очистить корзину",
                 "responses": {
                     "200": {
-                        "description": "Корзина очищена",
+                        "description": "Cart cleared",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -440,12 +517,7 @@ const docTemplate = `{
         },
         "/api/cart/{product_id}": {
             "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Изменяет количество указанного товара в корзине",
+                "description": "Обновляет количество указанного товара для owner_id",
                 "consumes": [
                     "application/json"
                 ],
@@ -481,7 +553,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Количество товара обновлено",
+                        "description": "Quantity updated",
                         "schema": {
                             "type": "string"
                         }
@@ -491,22 +563,11 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
                     }
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Удаляет указанный товар из корзины",
+                "description": "Удаляет товар по ID из корзины owner_id",
                 "produces": [
                     "text/plain"
                 ],
@@ -525,15 +586,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Товар удалён из корзины",
+                        "description": "Item deleted",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -547,14 +602,14 @@ const docTemplate = `{
         },
         "/api/categories": {
             "get": {
-                "description": "Возвращает список категорий товаров",
+                "description": "Возвращает все доступные категории товаров",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Товар"
+                    "Категории"
                 ],
-                "summary": "Получить категории товаров",
+                "summary": "Получить список категорий",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -675,12 +730,7 @@ const docTemplate = `{
         },
         "/api/order": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создаёт новый заказ из товаров в корзине пользователя",
+                "description": "Оформляет заказ из текущей корзины owner_id",
                 "produces": [
                     "text/plain"
                 ],
@@ -690,7 +740,7 @@ const docTemplate = `{
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
-                        "description": "Заказ успешно создан",
+                        "description": "Order placed successfully",
                         "schema": {
                             "type": "string"
                         }
@@ -700,24 +750,13 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
                     }
                 }
             }
         },
         "/api/orders": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Возвращает список заказов текущего пользователя",
+                "description": "Возвращает список заказов для текущего owner_id",
                 "produces": [
                     "application/json"
                 ],
@@ -733,12 +772,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Order"
                             }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     },
                     "500": {
@@ -903,6 +936,26 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/ws/orders": {
+            "get": {
+                "description": "Устанавливает WebSocket-соединение. Админы получают уведомления о новых заказах.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "WebSocket"
+                ],
+                "summary": "Подключение к WebSocket для уведомлений о заказах",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -947,23 +1000,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CartItem": {
-            "type": "object",
-            "properties": {
-                "cart_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
         "models.Order": {
             "type": "object",
             "properties": {
@@ -973,21 +1009,21 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "ownerID": {
+                    "type": "string"
+                },
                 "total": {
                     "type": "number"
-                },
-                "userID": {
-                    "type": "integer"
                 }
             }
         },
         "models.Product": {
             "type": "object",
             "properties": {
-                "category": {
-                    "type": "string"
+                "category_id": {
+                    "type": "integer"
                 },
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "description": {
@@ -1004,6 +1040,26 @@ const docTemplate = `{
                 },
                 "stock": {
                     "type": "integer"
+                }
+            }
+        },
+        "services.CartItemResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
                 }
             }
         }

@@ -3,26 +3,38 @@ package services
 import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
+	"chechnya-product/internal/ws"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 )
 
 type OrderService struct {
 	cartRepo    repositories.CartRepository
 	orderRepo   repositories.OrderRepository
 	productRepo repositories.ProductRepository
+	hub         *ws.Hub
 }
 
-func NewOrderService(cartRepo repositories.CartRepository, orderRepo repositories.OrderRepository, productRepo repositories.ProductRepository) *OrderService {
+func NewOrderService(
+	cartRepo repositories.CartRepository,
+	orderRepo repositories.OrderRepository,
+	productRepo repositories.ProductRepository,
+	hub *ws.Hub,
+) *OrderService {
 	return &OrderService{
 		cartRepo:    cartRepo,
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
+		hub:         hub,
 	}
 }
 
-func (s *OrderService) PlaceOrder(userID int) error {
-	items, err := s.cartRepo.GetCartItems(userID)
+func (s *OrderService) PlaceOrder(ownerID string) error {
+	items, err := s.cartRepo.GetCartItems(ownerID)
+	log.Println("[OWNER]", ownerID)
+
 	if err != nil {
 		return fmt.Errorf("failed to get cart items: %w", err)
 	}
@@ -47,19 +59,31 @@ func (s *OrderService) PlaceOrder(userID int) error {
 		}
 	}
 
-	if err := s.orderRepo.CreateOrder(userID, total); err != nil {
+	orderID, err := s.orderRepo.CreateOrder(ownerID, total)
+	if err != nil {
 		return fmt.Errorf("failed to create order: %w", err)
 	}
 
-	if err := s.cartRepo.ClearCart(userID); err != nil {
+	if err := s.cartRepo.ClearCart(ownerID); err != nil {
 		return fmt.Errorf("failed to clear cart: %w", err)
+	}
+
+	order := models.Order{
+		ID:        orderID,
+		OwnerID:   ownerID,
+		Total:     total,
+		CreatedAt: time.Now(), // опционально: получи из БД
+	}
+
+	if s.hub != nil {
+		s.hub.BroadcastNewOrder(order)
 	}
 
 	return nil
 }
 
-func (s *OrderService) GetOrders(userID int) ([]models.Order, error) {
-	return s.orderRepo.GetByUserID(userID)
+func (s *OrderService) GetOrders(ownerID string) ([]models.Order, error) {
+	return s.orderRepo.GetByOwnerID(ownerID)
 }
 
 func (s *OrderService) GetAllOrders() ([]models.Order, error) {

@@ -4,6 +4,7 @@ import (
 	"chechnya-product/internal/repositories"
 	"errors"
 	"fmt"
+	"log"
 )
 
 var (
@@ -30,15 +31,15 @@ func NewCartService(repo repositories.CartRepository, productRepo repositories.P
 }
 
 type CartServiceInterface interface {
-	AddToCart(userID, productID, quantity int) error
-	GetCart(userID int) ([]CartItemResponse, error)
-	UpdateItem(userID, productID, quantity int) error
-	DeleteItem(userID, productID int) error
-	ClearCart(userID int) error
-	Checkout(userID int) error
+	AddToCart(ownerID string, productID, quantity int) error
+	GetCart(ownerID string) ([]CartItemResponse, error)
+	UpdateItem(ownerID string, productID, quantity int) error
+	DeleteItem(ownerID string, productID int) error
+	ClearCart(ownerID string) error
+	Checkout(ownerID string) error
 }
 
-func (s *CartService) AddToCart(userID, productID, quantity int) error {
+func (s *CartService) AddToCart(ownerID string, productID, quantity int) error {
 	if quantity <= 0 {
 		return ErrInvalidCartQuantity
 	}
@@ -51,7 +52,7 @@ func (s *CartService) AddToCart(userID, productID, quantity int) error {
 		return ErrProductNotFound
 	}
 
-	item, err := s.repo.GetCartItem(userID, productID)
+	item, err := s.repo.GetCartItem(ownerID, productID)
 	if err != nil {
 		return fmt.Errorf("get cart item: %w", err)
 	}
@@ -64,11 +65,13 @@ func (s *CartService) AddToCart(userID, productID, quantity int) error {
 		return ErrProductOutOfStock
 	}
 
-	return s.repo.AddItem(userID, productID, quantity)
+	return s.repo.AddItem(ownerID, productID, quantity)
 }
 
-func (s *CartService) GetCart(userID int) ([]CartItemResponse, error) {
-	items, err := s.repo.GetCartItems(userID)
+func (s *CartService) GetCart(ownerID string) ([]CartItemResponse, error) {
+	items, err := s.repo.GetCartItems(ownerID)
+	log.Println("[OWNER]", ownerID)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch cart: %w", err)
 	}
@@ -92,7 +95,7 @@ func (s *CartService) GetCart(userID int) ([]CartItemResponse, error) {
 	return result, nil
 }
 
-func (s *CartService) UpdateItem(userID, productID, quantity int) error {
+func (s *CartService) UpdateItem(ownerID string, productID, quantity int) error {
 	if quantity < 0 {
 		return ErrInvalidCartQuantity
 	}
@@ -108,18 +111,17 @@ func (s *CartService) UpdateItem(userID, productID, quantity int) error {
 		return ErrProductOutOfStock
 	}
 
-	return s.repo.UpdateQuantity(userID, productID, quantity)
+	return s.repo.UpdateQuantity(ownerID, productID, quantity)
 }
 
-func (s *CartService) DeleteItem(userID, productID int) error {
-	return s.repo.DeleteItem(userID, productID)
+func (s *CartService) DeleteItem(ownerID string, productID int) error {
+	return s.repo.DeleteItem(ownerID, productID)
 }
 
-func (s *CartService) ClearCart(userID int) error {
-	return s.repo.ClearCart(userID)
+func (s *CartService) ClearCart(ownerID string) error {
+	return s.repo.ClearCart(ownerID)
 }
 
-func (s *CartService) Checkout(userID int) error {
-	// в будущем: списание товара, создание заказа и т.д.
-	return s.repo.Checkout(userID)
+func (s *CartService) Checkout(ownerID string) error {
+	return s.repo.Checkout(ownerID)
 }
