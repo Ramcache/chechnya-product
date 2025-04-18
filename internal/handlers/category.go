@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 
@@ -11,10 +12,11 @@ import (
 
 type CategoryHandler struct {
 	service *services.CategoryService
+	logger  *zap.Logger
 }
 
-func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
-	return &CategoryHandler{service: service}
+func NewCategoryHandler(service *services.CategoryService, logger *zap.Logger) *CategoryHandler {
+	return &CategoryHandler{service: service, logger: logger}
 }
 
 // GetAll
@@ -28,9 +30,11 @@ func NewCategoryHandler(service *services.CategoryService) *CategoryHandler {
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.service.GetAll()
 	if err != nil {
+		h.logger.Error("failed to fetch categories", zap.Error(err))
 		http.Error(w, "Failed to fetch categories", http.StatusInternalServerError)
 		return
 	}
+	h.logger.Info("categories fetched", zap.Int("count", len(categories)))
 	json.NewEncoder(w).Encode(categories)
 }
 
@@ -50,13 +54,16 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+		h.logger.Warn("invalid category creation request", zap.Error(err))
 		http.Error(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 	if err := h.service.Create(body.Name); err != nil {
+		h.logger.Warn("failed to create category", zap.String("name", body.Name), zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	h.logger.Info("category created", zap.String("name", body.Name))
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Category created"))
 }
@@ -79,13 +86,16 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+		h.logger.Warn("invalid update request", zap.Int("id", id), zap.Error(err))
 		http.Error(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 	if err := h.service.Update(id, body.Name); err != nil {
+		h.logger.Warn("failed to update category", zap.Int("id", id), zap.String("name", body.Name), zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name))
 	w.Write([]byte("Category updated"))
 }
 
@@ -102,8 +112,10 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	if err := h.service.Delete(id); err != nil {
+		h.logger.Error("failed to delete category", zap.Int("id", id), zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	h.logger.Info("category deleted", zap.Int("id", id))
 	w.Write([]byte("Category deleted"))
 }

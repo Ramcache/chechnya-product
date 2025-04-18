@@ -8,33 +8,26 @@ import (
 	_ "chechnya-product/docs"
 	"chechnya-product/internal/db"
 	"chechnya-product/internal/handlers"
+	"chechnya-product/internal/logger"
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/repositories"
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/ws"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
-	"strings"
 )
-
-// Получение идентификатора пользователя или IP
-func getUserIdentifier(r *http.Request) string {
-	userID := middleware.GetUserID(r)
-	if userID != 0 {
-		return fmt.Sprintf("user_%d", userID)
-	}
-	ip := strings.Split(r.RemoteAddr, ":")[0]
-	return fmt.Sprintf("ip_%s", ip)
-}
 
 func main() {
 	//test
 	// 📋 Инициализация логгера
-	logger, _ := zap.NewProduction()
+	logger, err := logger.NewLogger()
+	if err != nil {
+		log.Fatalf("failed to initialize logger: %v", err)
+	}
 	defer logger.Sync()
 
 	// 🔧 Загрузка конфигурации
@@ -49,7 +42,7 @@ func main() {
 	}
 	defer database.Close()
 
-	hub := ws.NewHub()
+	hub := ws.NewHub(logger)
 	go hub.Run()
 
 	// 🧱 Инициализация репозиториев
@@ -67,14 +60,17 @@ func main() {
 	categoryService := services.NewCategoryService(categoryRepo)
 
 	// 🎮 Обработчики
-	userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService, logger)
 	cartHandler := handlers.NewCartHandler(cartService, logger)
-	productHandler := handlers.NewProductHandler(productService)
-	orderHandler := handlers.NewOrderHandler(orderService)
-	categoryHandler := handlers.NewCategoryHandler(categoryService)
+	productHandler := handlers.NewProductHandler(productService, logger)
+	orderHandler := handlers.NewOrderHandler(orderService, logger)
+	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
+	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
 
 	// 🚦 Роутер
 	router := mux.NewRouter()
+
+	router.Use(middleware.RecoveryMiddleware(logger))
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 
@@ -118,6 +114,7 @@ func main() {
 	admin.HandleFunc("/categories", categoryHandler.Create).Methods("POST")
 	admin.HandleFunc("/categories/{id}", categoryHandler.Update).Methods("PUT")
 	admin.HandleFunc("/categories/{id}", categoryHandler.Delete).Methods("DELETE")
+	admin.HandleFunc("/logs", logHandler.GetLogs).Methods("GET")
 
 	// 🛡️ CORS Middleware
 	corsMiddleware := cors.New(cors.Options{

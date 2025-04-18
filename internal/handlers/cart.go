@@ -47,15 +47,16 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	var req AddToCartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("invalid AddToCart request", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 	if err := h.service.AddToCart(ownerID, req.ProductID, req.Quantity); err != nil {
-		h.logger.Error("add to cart failed", zap.Error(err))
+		h.logger.Error("add to cart failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("Item added to cart",
+	h.logger.Info("item added to cart",
 		zap.String("owner_id", ownerID),
 		zap.Int("product_id", req.ProductID),
 		zap.Int("quantity", req.Quantity),
@@ -76,10 +77,11 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	items, err := h.service.GetCart(ownerID)
 	if err != nil {
-		h.logger.Error("get cart failed", zap.Error(err))
+		h.logger.Error("get cart failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusInternalServerError, "Failed to get cart")
 		return
 	}
+	h.logger.Info("cart retrieved", zap.String("owner_id", ownerID), zap.Int("items_count", len(items)))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(items)
 }
@@ -102,15 +104,16 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		Quantity int `json:"quantity"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("invalid UpdateItem request", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 	if err := h.service.UpdateItem(ownerID, productID, req.Quantity); err != nil {
-		h.logger.Warn("update item failed", zap.Error(err))
+		h.logger.Warn("update item failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("Cart item updated",
+	h.logger.Info("cart item updated",
 		zap.String("owner_id", ownerID),
 		zap.Int("product_id", productID),
 		zap.Int("new_quantity", req.Quantity),
@@ -131,11 +134,11 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
 	if err := h.service.DeleteItem(ownerID, productID); err != nil {
-		h.logger.Error("delete item failed", zap.Error(err))
+		h.logger.Error("delete item failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusInternalServerError, "Failed to delete item")
 		return
 	}
-	h.logger.Info("Cart item deleted",
+	h.logger.Info("cart item deleted",
 		zap.String("owner_id", ownerID),
 		zap.Int("product_id", productID),
 	)
@@ -153,11 +156,11 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	if err := h.service.ClearCart(ownerID); err != nil {
-		h.logger.Error("clear cart failed", zap.Error(err))
+		h.logger.Error("clear cart failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusInternalServerError, "Failed to clear cart")
 		return
 	}
-	h.logger.Info("Cart cleared", zap.String("owner_id", ownerID))
+	h.logger.Info("cart cleared", zap.String("owner_id", ownerID))
 	w.Write([]byte("Cart cleared"))
 }
 
@@ -172,10 +175,10 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 func (h *CartHandler) Checkout(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	if err := h.service.Checkout(ownerID); err != nil {
-		h.logger.Error("checkout failed", zap.Error(err))
+		h.logger.Error("checkout failed", zap.Error(err), zap.String("owner_id", ownerID))
 		h.respondError(w, http.StatusInternalServerError, "Checkout failed")
 		return
 	}
-	h.logger.Info("Checkout completed", zap.String("owner_id", ownerID))
+	h.logger.Info("checkout completed", zap.String("owner_id", ownerID))
 	w.Write([]byte("Checkout successful"))
 }

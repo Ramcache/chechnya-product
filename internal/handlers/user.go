@@ -5,15 +5,17 @@ import (
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
 	"encoding/json"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type UserHandler struct {
 	service *services.UserService
+	logger  *zap.Logger
 }
 
-func NewUserHandler(service *services.UserService) *UserHandler {
-	return &UserHandler{service: service}
+func NewUserHandler(service *services.UserService, logger *zap.Logger) *UserHandler {
+	return &UserHandler{service: service, logger: logger}
 }
 
 type RegisterRequest struct {
@@ -39,15 +41,18 @@ type LoginRequest struct {
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("invalid register JSON", zap.Error(err))
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.service.Register(req.Username, req.Password); err != nil {
+		h.logger.Warn("registration failed", zap.String("username", req.Username), zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	h.logger.Info("user registered", zap.String("username", req.Username))
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User successfully registered"))
 }
@@ -66,24 +71,27 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("invalid login JSON", zap.Error(err))
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.Login(req.Username, req.Password)
 	if err != nil {
+		h.logger.Warn("login failed", zap.String("username", req.Username), zap.Error(err))
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	cfg, _ := config.LoadConfig()
-
 	token, err := middleware.GenerateJWT(user.ID, user.Role, cfg.JWTSecret)
 	if err != nil {
+		h.logger.Error("token generation failed", zap.Int("user_id", user.ID), zap.Error(err))
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
+	h.logger.Info("user logged in", zap.String("username", user.Username), zap.String("role", user.Role))
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": token,
 	})
@@ -104,10 +112,12 @@ func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.GetByID(userID)
 	if err != nil || user == nil {
+		h.logger.Warn("user not found", zap.Int("user_id", userID))
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
+	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("username", user.Username))
 	writeJSON(w, map[string]interface{}{
 		"id":       user.ID,
 		"username": user.Username,

@@ -3,6 +3,7 @@ package ws
 import (
 	"chechnya-product/internal/models"
 	"encoding/json"
+	"go.uber.org/zap"
 	"io"
 	"sync"
 )
@@ -36,15 +37,17 @@ type Hub struct {
 	unregister  chan *Client
 	broadcastCh chan OrderMessage
 	mu          sync.Mutex
+	logger      *zap.Logger // 👈 логгер
 }
 
 // NewHub создаёт новый экземпляр Hub
-func NewHub() *Hub {
+func NewHub(logger *zap.Logger) *Hub {
 	return &Hub{
 		clients:     make(map[*Client]bool),
 		register:    make(chan *Client),
 		unregister:  make(chan *Client),
 		broadcastCh: make(chan OrderMessage),
+		logger:      logger,
 	}
 }
 
@@ -56,6 +59,10 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			h.clients[client] = true
 			h.mu.Unlock()
+			h.logger.Info("WebSocket client connected",
+				zap.Int("user_id", client.ID),
+				zap.String("role", client.Role),
+			)
 
 		case client := <-h.unregister:
 			h.mu.Lock()
@@ -63,6 +70,10 @@ func (h *Hub) Run() {
 				delete(h.clients, client)
 				close(client.Send)
 				client.Conn.Close()
+				h.logger.Info("WebSocket client disconnected",
+					zap.Int("user_id", client.ID),
+					zap.String("role", client.Role),
+				)
 			}
 			h.mu.Unlock()
 
@@ -70,9 +81,11 @@ func (h *Hub) Run() {
 			data, _ := json.Marshal(msg)
 
 			h.mu.Lock()
+			sent := 0
 			for client := range h.clients {
 				select {
 				case client.Send <- data:
+					sent++
 				default:
 					close(client.Send)
 					delete(h.clients, client)
@@ -81,6 +94,11 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 
+			h.logger.Info("WebSocket broadcast",
+				zap.String("type", msg.Type),
+				zap.Int("order_id", msg.Order.ID),
+				zap.Int("clients_sent", sent),
+			)
 		}
 	}
 }
