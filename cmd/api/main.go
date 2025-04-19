@@ -68,7 +68,7 @@ func main() {
 	orderHandler := handlers.NewOrderHandler(orderService, logger)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
-	handler := handlers.NewVerificationHandler(verificationService)
+	handler := handlers.NewVerificationHandler(verificationService, logger)
 
 	// 🚦 Роутер
 	router := mux.NewRouter()

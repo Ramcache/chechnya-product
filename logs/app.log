@@ -1,3 +1,4 @@
 {"level":"INFO","time":"2025-04-19T22:08:40.222+0300","caller":"api/main.go:134","message":"Server is running","port":"8080","env":"development"}
 {"level":"INFO","time":"2025-04-19T22:09:59.895+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:52095","user_agent":"PostmanRuntime/7.43.2","owner_id":"guest_c56760a0-3a24-4551-8bc4-4d545277188b","duration":47163400}
 {"level":"INFO","time":"2025-04-19T22:11:05.874+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:52172","user_agent":"PostmanRuntime/7.43.2","owner_id":"guest_c56760a0-3a24-4551-8bc4-4d545277188b","duration":152634100}
+{"level":"INFO","time":"2025-04-19T23:01:44.542+0300","caller":"api/main.go:134","message":"Server is running","port":"8080","env":"development"}
