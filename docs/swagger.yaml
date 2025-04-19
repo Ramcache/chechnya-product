@@ -6,6 +6,15 @@ definitions:
       quantity:
         type: integer
     type: object
+  handlers.ConfirmRequest:
+    properties:
+      code:
+        example: "123456"
+        type: string
+      phone:
+        example: "+79991234567"
+        type: string
+    type: object
   handlers.ErrorResponse:
     properties:
       error:
@@ -23,6 +32,18 @@ definitions:
       password:
         type: string
       username:
+        type: string
+    type: object
+  handlers.StartRequest:
+    properties:
+      phone:
+        example: "+79991234567"
+        type: string
+    type: object
+  handlers.StartResponse:
+    properties:
+      whatsapp_link:
+        example: https://wa.me/79991234567?text=Мой%20код%20подтверждения%3A%20123456
         type: string
     type: object
   models.Order:
@@ -237,38 +258,6 @@ paths:
       tags:
       - Товар
   /api/admin/products/{id}:
-    delete:
-      description: Удаляет товар по его ID (только для администратора)
-      parameters:
-      - description: ID товара
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: Product deleted
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Удалить товар (админ)
-      tags:
-      - Товар
     put:
       consumes:
       - application/json
@@ -407,23 +396,6 @@ paths:
           schema:
             $ref: '#/definitions/handlers.ErrorResponse'
       summary: Обновить количество товара в корзине
-      tags:
-      - Корзина
-  /api/cart/checkout:
-    post:
-      description: Оформляет заказ из корзины и очищает её
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: Checkout successful
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Оформить заказ
       tags:
       - Корзина
   /api/cart/clear:
@@ -662,6 +634,62 @@ paths:
       summary: Регистрация пользователя
       tags:
       - Пользователь
+  /verify/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет код подтверждения, подтверждает номер телефона
+      parameters:
+      - description: Телефон и код
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ConfirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Phone confirmed
+          schema:
+            type: string
+        "400":
+          description: Invalid request or code
+          schema:
+            type: string
+      summary: Подтвердить код
+      tags:
+      - verification
+  /verify/start:
+    post:
+      consumes:
+      - application/json
+      description: Генерирует код и возвращает ссылку на WhatsApp с готовым сообщением
+      parameters:
+      - description: Телефон пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StartRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.StartResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Failed to start verification
+          schema:
+            type: string
+      summary: Начать подтверждение телефона
+      tags:
+      - verification
   /ws/orders:
     get:
       description: Устанавливает WebSocket-соединение. Админы получают уведомления

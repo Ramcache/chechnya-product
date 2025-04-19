@@ -16,13 +16,23 @@ func NewProductService(repo repositories.ProductRepository) *ProductService {
 }
 
 func (s *ProductService) GetAll() ([]models.Product, error) {
-	return s.repo.GetAll()
+	products, err := s.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if products == nil {
+		return []models.Product{}, nil
+	}
+	return products, nil
 }
 
 func (s *ProductService) GetByID(id int) (*models.Product, error) {
 	product, err := s.repo.GetByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("product not found: %w", err)
+		return nil, fmt.Errorf("failed to fetch product: %w", err)
+	}
+	if product == nil {
+		return nil, fmt.Errorf("product not found")
 	}
 	return product, nil
 }
@@ -64,5 +74,12 @@ func (s *ProductService) GetFiltered(
 	limit, offset int,
 	sort string,
 ) ([]models.Product, error) {
-	return s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
+	products, err := s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
+	if err != nil {
+		return nil, err
+	}
+	if products == nil {
+		return []models.Product{}, nil
+	}
+	return products, nil
 }

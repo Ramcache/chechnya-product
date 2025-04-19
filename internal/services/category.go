@@ -15,7 +15,8 @@ func (s *CategoryService) GetAll() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var names []string
+
+	names := make([]string, 0)
 	for _, c := range categories {
 		names = append(names, c.Name)
 	}

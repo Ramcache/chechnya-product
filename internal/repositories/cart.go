@@ -85,8 +85,3 @@ func (r *CartRepo) ClearCart(ownerID string) error {
 	`, ownerID)
 	return err
 }
-
-func (r *CartRepo) Checkout(ownerID string) error {
-	// В будущем — логика оформления заказа
-	return r.ClearCart(ownerID)
-}

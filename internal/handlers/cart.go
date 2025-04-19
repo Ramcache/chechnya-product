@@ -163,22 +163,3 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("cart cleared", zap.String("owner_id", ownerID))
 	w.Write([]byte("Cart cleared"))
 }
-
-// Checkout
-// @Summary Оформить заказ
-// @Description Оформляет заказ из корзины и очищает её
-// @Tags Корзина
-// @Produce plain
-// @Success 200 {string} string "Checkout successful"
-// @Failure 500 {object} ErrorResponse
-// @Router /api/cart/checkout [post]
-func (h *CartHandler) Checkout(w http.ResponseWriter, r *http.Request) {
-	ownerID := middleware.GetOwnerID(w, r)
-	if err := h.service.Checkout(ownerID); err != nil {
-		h.logger.Error("checkout failed", zap.Error(err), zap.String("owner_id", ownerID))
-		h.respondError(w, http.StatusInternalServerError, "Checkout failed")
-		return
-	}
-	h.logger.Info("checkout completed", zap.String("owner_id", ownerID))
-	w.Write([]byte("Checkout successful"))
-}

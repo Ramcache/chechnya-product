@@ -76,11 +76,12 @@ func (s *CartService) GetCart(ownerID string) ([]CartItemResponse, error) {
 		return nil, fmt.Errorf("failed to fetch cart: %w", err)
 	}
 
-	var result []CartItemResponse
+	result := make([]CartItemResponse, 0)
+
 	for _, item := range items {
 		product, err := s.productRepo.GetByID(item.ProductID)
 		if err != nil || product == nil {
-			continue // или логируем, или пропускаем
+			continue
 		}
 
 		response := CartItemResponse{
@@ -120,8 +121,4 @@ func (s *CartService) DeleteItem(ownerID string, productID int) error {
 
 func (s *CartService) ClearCart(ownerID string) error {
 	return s.repo.ClearCart(ownerID)
-}
-
-func (s *CartService) Checkout(ownerID string) error {
-	return s.repo.Checkout(ownerID)
 }

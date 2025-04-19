@@ -83,9 +83,23 @@ func (s *OrderService) PlaceOrder(ownerID string) error {
 }
 
 func (s *OrderService) GetOrders(ownerID string) ([]models.Order, error) {
-	return s.orderRepo.GetByOwnerID(ownerID)
+	orders, err := s.orderRepo.GetByOwnerID(ownerID)
+	if err != nil {
+		return nil, err
+	}
+	if orders == nil {
+		return []models.Order{}, nil
+	}
+	return orders, nil
 }
 
 func (s *OrderService) GetAllOrders() ([]models.Order, error) {
-	return s.orderRepo.GetAll()
+	orders, err := s.orderRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	if orders == nil {
+		return []models.Order{}, nil
+	}
+	return orders, nil
 }
