@@ -5,7 +5,7 @@ CREATE TABLE products (
                           description TEXT,
                           price NUMERIC(10,2) NOT NULL,
                           stock INT NOT NULL,
-                          category TEXT DEFAULT '',
+                          category_id INT REFERENCES categories(id) ON DELETE SET NULL,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

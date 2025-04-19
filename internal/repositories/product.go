@@ -4,6 +4,7 @@ import (
 	"chechnya-product/internal/models"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ type ProductRepository interface {
 	GetByID(id int) (*models.Product, error)
 	DecreaseStock(id int, quantity int) error
 	GetFiltered(search, category string, minPrice, maxPrice float64, limit, offset int, sort string) ([]models.Product, error)
+	GetCategories() ([]string, error)
 }
 
 type ProductRepo struct {
@@ -36,7 +38,7 @@ func (r *ProductRepo) GetAll() ([]models.Product, error) {
 
 func (r *ProductRepo) Create(product *models.Product) error {
 	query := `
-		INSERT INTO products (name, description, price, stock, category)
+		INSERT INTO products (name, description, price, stock, category_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID)
@@ -61,7 +63,7 @@ func (r *ProductRepo) Delete(id int) error {
 func (r *ProductRepo) Update(id int, product *models.Product) error {
 	query := `
 		UPDATE products
-		SET name = $1, description = $2, price = $3, stock = $4, category = $5
+		SET name = $1, description = $2, price = $3, stock = $4, category_id = $5
 		WHERE id = $6
 	`
 	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID, id)
@@ -117,10 +119,15 @@ func (r *ProductRepo) GetFiltered(
 		i++
 	}
 	if category != "" {
-		query += fmt.Sprintf(" AND LOWER(category) = $%d", i)
-		args = append(args, strings.ToLower(category))
+		query += fmt.Sprintf(" AND category_id = $%d", i)
+		categoryID, err := strconv.Atoi(category) // если нужно из строки
+		if err != nil {
+			return nil, fmt.Errorf("invalid category ID")
+		}
+		args = append(args, categoryID)
 		i++
 	}
+
 	if minPrice > 0 {
 		query += fmt.Sprintf(" AND price >= $%d", i)
 		args = append(args, minPrice)
@@ -162,4 +169,13 @@ func (r *ProductRepo) GetFiltered(
 		return nil, fmt.Errorf("failed to filter products: %w", err)
 	}
 	return products, nil
+}
+
+func (r *ProductRepo) GetCategories() ([]string, error) {
+	var names []string
+	err := r.db.Select(&names, `SELECT name FROM categories ORDER BY name ASC`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch categories: %w", err)
+	}
+	return names, nil
 }

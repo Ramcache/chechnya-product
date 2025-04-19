@@ -51,6 +51,7 @@ func main() {
 	productRepo := repositories.NewProductRepo(database)
 	orderRepo := repositories.NewOrderRepo(database)
 	categoryRepo := repositories.NewCategoryRepo(database)
+	verificationRepo := repositories.NewVerificationRepository(database)
 
 	// 🧠 Сервисы
 	userService := services.NewUserService(userRepo)
@@ -58,6 +59,7 @@ func main() {
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo)
+	verificationService := services.NewVerificationService(verificationRepo, "79298974969") // твой номер без +
 
 	// 🎮 Обработчики
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -66,6 +68,7 @@ func main() {
 	orderHandler := handlers.NewOrderHandler(orderService, logger)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
+	handler := handlers.NewVerificationHandler(verificationService)
 
 	// 🚦 Роутер
 	router := mux.NewRouter()
@@ -73,6 +76,9 @@ func main() {
 	router.Use(middleware.RecoveryMiddleware(logger))
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
+
+	router.HandleFunc("/verify/start", handler.StartVerification).Methods("POST")
+	router.HandleFunc("/verify/confirm", handler.ConfirmCode).Methods("POST")
 
 	// 📚 Swagger-документация
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
