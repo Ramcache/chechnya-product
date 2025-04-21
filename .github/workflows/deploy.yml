@@ -39,6 +39,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DB_URL
           script: |
             cd /chechnya-product
 
@@ -48,3 +49,4 @@ jobs:
             echo "🔁 Restarting Go app..."
             pkill main || true
             nohup ./main > main.log 2>&1 &
+      
