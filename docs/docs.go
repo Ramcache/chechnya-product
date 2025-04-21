@@ -849,6 +849,92 @@ const docTemplate = `{
                 }
             }
         },
+        "/verify/confirm": {
+            "post": {
+                "description": "Проверяет код и помечает номер как подтверждённый",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Подтверждение"
+                ],
+                "summary": "Подтвердить код",
+                "parameters": [
+                    {
+                        "description": "Номер телефона и код подтверждения",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ConfirmRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Phone verified successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired code",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to verify user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/verify/start": {
+            "post": {
+                "description": "Генерирует и отправляет код подтверждения на указанный номер телефона через WhatsApp",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Подтверждение"
+                ],
+                "summary": "Отправить код подтверждения",
+                "parameters": [
+                    {
+                        "description": "Номер телефона для подтверждения",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.StartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent via WhatsApp",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/ws/orders": {
             "get": {
                 "description": "Устанавливает WebSocket-соединение. Админы получают уведомления о новых заказах.",
@@ -879,6 +965,17 @@ const docTemplate = `{
                 },
                 "quantity": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.ConfirmRequest": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },
@@ -914,6 +1011,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.StartRequest": {
+            "type": "object",
+            "properties": {
+                "phone": {
                     "type": "string"
                 }
             }

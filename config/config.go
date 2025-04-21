@@ -15,9 +15,6 @@ type Config struct {
 	Port       string
 	JWTSecret  string
 	Env        string
-
-	RedisAddr string
-	RedisPass string
 }
 
 func LoadConfig() (*Config, error) {
@@ -32,12 +29,9 @@ func LoadConfig() (*Config, error) {
 		Port:       os.Getenv("PORT"),
 		JWTSecret:  os.Getenv("JWT_SECRET"),
 		Env:        os.Getenv("ENV"),
-
-		RedisAddr: os.Getenv("REDIS_ADDR"),
-		RedisPass: os.Getenv("REDIS_PASS"),
 	}
 
-	if cfg.Port == "" || cfg.JWTSecret == "" || cfg.RedisAddr == "" {
+	if cfg.Port == "" || cfg.JWTSecret == "" {
 		return nil, errors.New("missing required environment variables (PORT, JWT_SECRET, REDIS_ADDR)")
 	}
 

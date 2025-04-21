@@ -44,3 +44,4 @@
 {"level":"INFO","time":"2025-04-21T17:03:08.640+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"5882"}
 {"level":"INFO","time":"2025-04-21T17:03:08.643+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:64959","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":29140200}
 {"level":"INFO","time":"2025-04-21T17:05:17.736+0300","caller":"api/main.go:51","message":"Server is running","port":"8080"}
+{"level":"FATAL","time":"2025-04-21T18:08:30.992+0300","caller":"api/main.go:23","message":"Failed to load config","error":"missing required environment variables (PORT, JWT_SECRET, REDIS_ADDR)"}

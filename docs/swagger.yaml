@@ -6,6 +6,13 @@ definitions:
       quantity:
         type: integer
     type: object
+  handlers.ConfirmRequest:
+    properties:
+      code:
+        type: string
+      phone:
+        type: string
+    type: object
   handlers.ErrorResponse:
     properties:
       error:
@@ -27,6 +34,11 @@ definitions:
       phone:
         type: string
       username:
+        type: string
+    type: object
+  handlers.StartRequest:
+    properties:
+      phone:
         type: string
     type: object
   models.Order:
@@ -610,6 +622,63 @@ paths:
       summary: Register new user
       tags:
       - auth
+  /verify/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет код и помечает номер как подтверждённый
+      parameters:
+      - description: Номер телефона и код подтверждения
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ConfirmRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Phone verified successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid or expired code
+          schema:
+            type: string
+        "500":
+          description: Failed to verify user
+          schema:
+            type: string
+      summary: Подтвердить код
+      tags:
+      - Подтверждение
+  /verify/start:
+    post:
+      consumes:
+      - application/json
+      description: Генерирует и отправляет код подтверждения на указанный номер телефона
+        через WhatsApp
+      parameters:
+      - description: Номер телефона для подтверждения
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StartRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Verification code sent via WhatsApp
+          schema:
+            type: string
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+      summary: Отправить код подтверждения
+      tags:
+      - Подтверждение
   /ws/orders:
     get:
       description: Устанавливает WebSocket-соединение. Админы получают уведомления
