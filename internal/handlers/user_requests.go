@@ -10,6 +10,6 @@ type RegisterRequest struct {
 
 // Запрос на вход
 type LoginRequest struct {
-	Phone    string `json:"phone"`
-	Password string `json:"password"`
+	Identifier string `json:"identifier"` // может быть phone, email или username
+	Password   string `json:"password"`
 }

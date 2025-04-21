@@ -2,6 +2,7 @@ package app
 
 import (
 	"chechnya-product/config"
+	_ "chechnya-product/docs"
 	"chechnya-product/internal/db"
 	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/middleware"
@@ -34,7 +35,6 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	productRepo := repositories.NewProductRepo(dbConn)
 	orderRepo := repositories.NewOrderRepo(dbConn)
 	categoryRepo := repositories.NewCategoryRepo(dbConn)
-	verificationRepo := repositories.NewVerificationRepository(dbConn)
 
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
@@ -45,7 +45,6 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo)
-	verificationService := services.NewVerificationService(verificationRepo, "79298974969")
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -54,7 +53,6 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	orderHandler := handlers.NewOrderHandler(orderService, logger)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
-	verificationHandler := handlers.NewVerificationHandler(verificationService, logger)
 
 	// --- Router ---
 	router := mux.NewRouter()
@@ -62,8 +60,6 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
-	router.HandleFunc("/verify/start", verificationHandler.StartVerification).Methods("POST")
-	router.HandleFunc("/verify/confirm", verificationHandler.ConfirmCode).Methods("POST")
 	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
 	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, jwtManager)

@@ -41,8 +41,8 @@ type RegisterRequest struct {
 
 // Запрос на вход
 type LoginRequest struct {
-	Phone    string
-	Password string
+	Identifier string // username, phone или email
+	Password   string
 }
 
 // Регистрация пользователя по номеру телефона
@@ -81,9 +81,21 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 
 // Авторизация по номеру телефона
 func (s *UserService) Login(req LoginRequest) (string, error) {
-	user, err := s.repo.GetByPhone(req.Phone)
+	var user *models.User
+	var err error
+
+	// Определяем тип идентификатора
+	switch {
+	case isValidEmail(req.Identifier):
+		user, err = s.repo.GetByEmail(req.Identifier)
+	case isValidPhone(req.Identifier):
+		user, err = s.repo.GetByPhone(req.Identifier)
+	default:
+		user, err = s.repo.GetByUsername(req.Identifier)
+	}
+
 	if err != nil || user == nil {
-		return "", errors.New("invalid phone or password")
+		return "", errors.New("invalid credentials")
 	}
 
 	if !user.IsVerified {
@@ -91,7 +103,7 @@ func (s *UserService) Login(req LoginRequest) (string, error) {
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return "", errors.New("invalid phone or password")
+		return "", errors.New("invalid credentials")
 	}
 
 	token, err := s.jwt.Generate(user.ID, user.Role)
@@ -125,4 +137,13 @@ func validateRegisterRequest(req RegisterRequest) error {
 		return errors.New("password must be at least 6 characters")
 	}
 	return nil
+}
+
+func isValidEmail(s string) bool {
+	return strings.Contains(s, "@")
+}
+
+func isValidPhone(s string) bool {
+	// Простейшая проверка: начинается с "+" и длина от 10
+	return strings.HasPrefix(s, "+") && len(s) >= 10
 }

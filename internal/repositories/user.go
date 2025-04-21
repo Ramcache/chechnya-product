@@ -12,6 +12,8 @@ type UserRepository interface {
 	Create(user *models.User) error
 	GetByID(id int) (*models.User, error)
 	GetByPhone(phone string) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
+	GetByUsername(username string) (*models.User, error)
 	GetByOwnerID(ownerID string) (*models.User, error)
 }
 
@@ -68,6 +70,30 @@ func (r *UserRepo) GetByPhone(phone string) (*models.User, error) {
 func (r *UserRepo) GetByOwnerID(ownerID string) (*models.User, error) {
 	var user models.User
 	err := r.db.Get(&user, "SELECT * FROM users WHERE owner_id = $1", ownerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) GetByEmail(email string) (*models.User, error) {
+	var user models.User
+	err := r.db.Get(&user, "SELECT * FROM users WHERE email = $1", email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) GetByUsername(username string) (*models.User, error) {
+	var user models.User
+	err := r.db.Get(&user, "SELECT * FROM users WHERE username = $1", username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

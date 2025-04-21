@@ -98,12 +98,16 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	identifier := req.Identifier
+	password := req.Password
+
+	// Вызов сервиса логина
 	token, err := h.service.Login(services.LoginRequest{
-		Phone:    req.Phone,
-		Password: req.Password,
+		Identifier: identifier,
+		Password:   password,
 	})
 	if err != nil {
-		h.logger.Warn("login failed", zap.String("phone", req.Phone), zap.Error(err))
+		h.logger.Warn("login failed", zap.String("identifier", identifier), zap.Error(err))
 
 		if err.Error() == "phone not verified" {
 			http.Error(w, "Please verify your phone number first", http.StatusForbidden)
@@ -113,7 +117,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info("user logged in", zap.String("phone", req.Phone))
+	h.logger.Info("user logged in", zap.String("identifier", identifier))
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
 
