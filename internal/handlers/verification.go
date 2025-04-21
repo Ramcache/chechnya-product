@@ -25,7 +25,16 @@ type ConfirmRequest struct {
 	Code  string `json:"code"`
 }
 
-// POST /verify/start
+// StartVerification отправляет код подтверждения на WhatsApp
+// @Summary Отправить код подтверждения
+// @Description Генерирует и отправляет код подтверждения на указанный номер телефона через WhatsApp
+// @Tags Подтверждение
+// @Accept json
+// @Produce plain
+// @Param input body StartRequest true "Номер телефона для подтверждения"
+// @Success 200 {string} string "Verification code sent via WhatsApp"
+// @Failure 400 {string} string "Invalid request"
+// @Router /verify/start [post]
 func (h *VerificationHandler) StartVerification(w http.ResponseWriter, r *http.Request) {
 	var req StartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -41,7 +50,17 @@ func (h *VerificationHandler) StartVerification(w http.ResponseWriter, r *http.R
 	w.Write([]byte("Verification code sent via WhatsApp"))
 }
 
-// POST /verify/confirm
+// ConfirmCode подтверждает код, введённый пользователем
+// @Summary Подтвердить код
+// @Description Проверяет код и помечает номер как подтверждённый
+// @Tags Подтверждение
+// @Accept json
+// @Produce plain
+// @Param input body ConfirmRequest true "Номер телефона и код подтверждения"
+// @Success 200 {string} string "Phone verified successfully"
+// @Failure 400 {string} string "Invalid or expired code"
+// @Failure 500 {string} string "Failed to verify user"
+// @Router /verify/confirm [post]
 func (h *VerificationHandler) ConfirmCode(w http.ResponseWriter, r *http.Request) {
 	var req ConfirmRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

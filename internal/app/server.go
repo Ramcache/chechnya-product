@@ -10,8 +10,6 @@ import (
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"chechnya-product/internal/ws"
-	"github.com/redis/go-redis/v9"
-
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -20,7 +18,7 @@ import (
 	"time"
 )
 
-func NewServer(cfg *config.Config, logger *zap.Logger, redis *redis.Client) *http.Server {
+func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	dbConn, err := db.NewPostgresDB(cfg)
 	if err != nil {
 		logger.Fatal("Failed to connect to database", zap.Error(err))

@@ -1,53 +1,53 @@
-#name: 🚀 Deploy Go App to Ubuntu
-#
-#on:
-#  push:
-#    branches:
-#      - main
-#
-#jobs:
-#  build-and-deploy:
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: 📥 Checkout repo
-#        uses: actions/checkout@v3
-#
-#      - name: 🛠 Set up Go
-#        uses: actions/setup-go@v4
-#        with:
-#          go-version: '1.21'
-#
-#      - name: 🔨 Build Go app
-#        run: |
-#          cd cmd/api
-#          go build -o ../../main
-#          cd ../../
-#          ls -al
-#          ls -al migrations
-#
-#      - name: 📤 Copy binary and migrations
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.SSH_HOST }}
-#          username: ${{ secrets.SSH_USER }}
-#          key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          source: "main,migrations,whatsapp-bot"
-#          target: /chechnya-product/
-#
-#      - name: 🧬 Run migrations & restart app
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.SSH_HOST }}
-#          username: ${{ secrets.SSH_USER }}
-#          key: ${{ secrets.SSH_PRIVATE_KEY }}
-#          envs: DB_URL
-#          script: |
-#            cd /chechnya-product
-#
-#            echo "⏫ Running migrations..."
-#            migrate -path ./migrations -database "$DB_URL" up
-#
-#            echo "🔁 Restarting app..."
-#            pkill main || true
-#            nohup ./main > main.log 2>&1 &
+name: 🚀 Deploy Go App to Ubuntu
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🛠 Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: 🔨 Build Go app
+        run: |
+          cd cmd/api
+          go build -o ../../main
+          cd ../../
+          ls -al
+          ls -al migrations
+
+      - name: 📤 Copy binary and migrations
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "main,migrations"
+          target: /chechnya-product/
+
+      - name: 🧬 Run migrations & restart app
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DB_URL
+          script: |
+            cd /chechnya-product
+
+            echo "⏫ Running migrations..."
+            migrate -path ./migrations -database "$DB_URL" up
+
+            echo "🔁 Restarting app..."
+            pkill main || true
+            nohup ./main > main.log 2>&1 &
