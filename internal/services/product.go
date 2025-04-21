@@ -7,6 +7,20 @@ import (
 	"strings"
 )
 
+type ProductServiceInterface interface {
+	GetAll() ([]models.Product, error)
+	GetByID(id int) (*models.Product, error)
+	AddProduct(product *models.Product) error
+	UpdateProduct(id int, product *models.Product) error
+	DeleteProduct(id int) error
+	GetFiltered(
+		search, category string,
+		minPrice, maxPrice float64,
+		limit, offset int,
+		sort string,
+	) ([]models.Product, error)
+}
+
 type ProductService struct {
 	repo repositories.ProductRepository
 }

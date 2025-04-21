@@ -10,6 +10,14 @@ import (
 	"strconv"
 )
 
+type CartHandlerInterface interface {
+	AddToCart(w http.ResponseWriter, r *http.Request)
+	GetCart(w http.ResponseWriter, r *http.Request)
+	UpdateItem(w http.ResponseWriter, r *http.Request)
+	DeleteItem(w http.ResponseWriter, r *http.Request)
+	ClearCart(w http.ResponseWriter, r *http.Request)
+}
+
 type CartHandler struct {
 	service services.CartServiceInterface
 	logger  *zap.Logger

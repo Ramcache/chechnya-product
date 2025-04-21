@@ -10,12 +10,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type CategoryHandlerInterface interface {
+	GetAll(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
+}
+
 type CategoryHandler struct {
-	service *services.CategoryService
+	service services.CategoryServiceInterface
 	logger  *zap.Logger
 }
 
-func NewCategoryHandler(service *services.CategoryService, logger *zap.Logger) *CategoryHandler {
+func NewCategoryHandler(service services.CategoryServiceInterface, logger *zap.Logger) *CategoryHandler {
 	return &CategoryHandler{service: service, logger: logger}
 }
 

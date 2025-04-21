@@ -3,81 +3,116 @@ package services
 import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
+	"chechnya-product/internal/utils"
+	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"strings"
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+type UserServiceInterface interface {
+	Register(req RegisterRequest) (*models.User, error)
+	Login(req LoginRequest) (string, error)
+	GetByID(userID int) (*models.User, error)
+	GetByOwnerID(ownerID string) (*models.User, error)
+}
 
 type UserService struct {
 	repo repositories.UserRepository
+	jwt  utils.JWTManagerInterface
 }
 
-func NewUserService(repo repositories.UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo repositories.UserRepository, jwt utils.JWTManagerInterface) *UserService {
+	return &UserService{repo: repo, jwt: jwt}
 }
 
-// Register registers a new user with validation and password hashing.
-func (s *UserService) Register(username, password string) error {
-	if err := validateCredentials(username, password); err != nil {
-		return err
+// Запрос на регистрацию
+type RegisterRequest struct {
+	Phone    string
+	Password string
+	Username string
+	Email    *string
+	OwnerID  string
+}
+
+// Запрос на вход
+type LoginRequest struct {
+	Phone    string
+	Password string
+}
+
+// Регистрация пользователя по номеру телефона
+func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
+	if err := validateRegisterRequest(req); err != nil {
+		return nil, err
 	}
 
-	existing, _ := s.repo.GetByUsername(username)
+	existing, _ := s.repo.GetByPhone(req.Phone)
 	if existing != nil {
-		return fmt.Errorf("username already taken")
+		return nil, errors.New("user with this phone already exists")
 	}
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("failed to hash password: %w", err)
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user := &models.User{
-		Username: username,
-		Password: string(hashed),
-		Role:     "user",
+		Username:     req.Username,
+		Phone:        req.Phone,
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+		Role:         models.UserRoleUser,
+		IsVerified:   false,
+		OwnerID:      req.OwnerID,
+		CreatedAt:    time.Now(),
 	}
 
 	if err := s.repo.Create(user); err != nil {
-		return fmt.Errorf("failed to create user: %w", err)
-	}
-
-	return nil
-}
-
-// Login authenticates a user by username and password.
-func (s *UserService) Login(username, password string) (*models.User, error) {
-	user, err := s.repo.GetByUsername(username)
-	if err != nil || user == nil {
-		return nil, fmt.Errorf("invalid username or password")
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return nil, fmt.Errorf("invalid username or password")
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	return user, nil
 }
 
-// GetByID retrieves user by ID.
-func (s *UserService) GetByID(id int) (*models.User, error) {
-	return s.repo.GetByID(id)
+// Авторизация по номеру телефона
+func (s *UserService) Login(req LoginRequest) (string, error) {
+	user, err := s.repo.GetByPhone(req.Phone)
+	if err != nil || user == nil {
+		return "", errors.New("invalid phone or password")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return "", errors.New("invalid phone or password")
+	}
+
+	token, err := s.jwt.Generate(user.ID, user.Role)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return token, nil
 }
 
-// Validation helper
-func validateCredentials(username, password string) error {
-	if strings.TrimSpace(username) == "" {
-		return fmt.Errorf("username is required")
+// Получить пользователя по owner_id
+func (s *UserService) GetByOwnerID(ownerID string) (*models.User, error) {
+	return s.repo.GetByOwnerID(ownerID)
+}
+
+// Получить пользователя по ID
+func (s *UserService) GetByID(userID int) (*models.User, error) {
+	return s.repo.GetByID(userID)
+}
+
+// Валидация регистрации
+func validateRegisterRequest(req RegisterRequest) error {
+	if strings.TrimSpace(req.Phone) == "" || len(req.Phone) < 10 {
+		return errors.New("invalid phone number")
 	}
-	if len(username) < 3 {
-		return fmt.Errorf("username must be at least 3 characters")
-	}
-	if strings.TrimSpace(password) == "" {
-		return fmt.Errorf("password is required")
-	}
-	if len(password) < 6 {
-		return fmt.Errorf("password must be at least 6 characters")
+	if len(req.Password) < 6 {
+		return errors.New("password must be at least 6 characters")
 	}
 	return nil
 }

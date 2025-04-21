@@ -2,6 +2,13 @@ package services
 
 import "chechnya-product/internal/repositories"
 
+type CategoryServiceInterface interface {
+	GetAll() ([]string, error)
+	Create(name string) error
+	Update(id int, name string) error
+	Delete(id int) error
+}
+
 type CategoryService struct {
 	repo repositories.CategoryRepository
 }

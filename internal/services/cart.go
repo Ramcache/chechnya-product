@@ -7,6 +7,14 @@ import (
 	"log"
 )
 
+type CartServiceInterface interface {
+	AddToCart(ownerID string, productID, quantity int) error
+	GetCart(ownerID string) ([]CartItemResponse, error)
+	UpdateItem(ownerID string, productID, quantity int) error
+	DeleteItem(ownerID string, productID int) error
+	ClearCart(ownerID string) error
+}
+
 var (
 	ErrProductNotFound     = errors.New("product not found")
 	ErrProductOutOfStock   = errors.New("not enough stock available")
@@ -28,15 +36,6 @@ type CartItemResponse struct {
 
 func NewCartService(repo repositories.CartRepository, productRepo repositories.ProductRepository) *CartService {
 	return &CartService{repo: repo, productRepo: productRepo}
-}
-
-type CartServiceInterface interface {
-	AddToCart(ownerID string, productID, quantity int) error
-	GetCart(ownerID string) ([]CartItemResponse, error)
-	UpdateItem(ownerID string, productID, quantity int) error
-	DeleteItem(ownerID string, productID int) error
-	ClearCart(ownerID string) error
-	Checkout(ownerID string) error
 }
 
 func (s *CartService) AddToCart(ownerID string, productID, quantity int) error {

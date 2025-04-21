@@ -1,43 +1,39 @@
 package handlers
 
 import (
-	"chechnya-product/config"
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
 	"encoding/json"
-	"go.uber.org/zap"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
+type UserHandlerInterface interface {
+	Register(w http.ResponseWriter, r *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
+	Me(w http.ResponseWriter, r *http.Request)
+}
+
 type UserHandler struct {
-	service *services.UserService
+	service services.UserServiceInterface
 	logger  *zap.Logger
 }
 
-func NewUserHandler(service *services.UserService, logger *zap.Logger) *UserHandler {
+func NewUserHandler(service services.UserServiceInterface, logger *zap.Logger) *UserHandler {
 	return &UserHandler{service: service, logger: logger}
 }
 
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// Register
-// @Summary Регистрация пользователя
-// @Description Создаёт нового пользователя
-// @Tags Пользователь
-// @Accept json
-// @Produce plain
-// @Param input body RegisterRequest true "Имя пользователя и пароль"
-// @Success 201 {string} string "Пользователь успешно зарегистрирован"
-// @Failure 400 {object} ErrorResponse
-// @Router /api/register [post]
+// Register handles user registration
+// @Summary      Register new user
+// @Description  Registers a new user with phone, password, username and email
+// @Tags         auth
+// @Accept       json
+// @Produce      plain
+// @Param        register body RegisterRequest true "User registration data"
+// @Success      201 {string} string "Registration successful"
+// @Failure      400 {string} string "Invalid JSON or registration error"
+// @Router       /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -46,28 +42,37 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Register(req.Username, req.Password); err != nil {
-		h.logger.Warn("registration failed", zap.String("username", req.Username), zap.Error(err))
+	ownerID := middleware.GetOwnerID(w, r)
+
+	user, err := h.service.Register(services.RegisterRequest{
+		Phone:    req.Phone,
+		Password: req.Password,
+		Username: req.Username,
+		Email:    req.Email,
+		OwnerID:  ownerID,
+	})
+	if err != nil {
+		h.logger.Warn("registration failed", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	h.logger.Info("user registered", zap.String("username", req.Username))
+	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User successfully registered"))
+	w.Write([]byte("Registration successful"))
 }
 
-// Login
-// @Summary Авторизация пользователя
-// @Description Выполняет вход пользователя и возвращает JWT-токен
-// @Tags Пользователь
-// @Accept json
-// @Produce json
-// @Param input body LoginRequest true "Имя пользователя и пароль"
-// @Success 200 {object} object{token=string}
-// @Failure 401 {object} ErrorResponse
-// @Failure 400 {object} ErrorResponse
-// @Router /api/login [post]
+// Login authenticates a user and returns JWT token
+// @Summary      User login
+// @Description  Logs in a user and returns JWT token on success
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        login body LoginRequest true "Phone and password"
+// @Success      200 {object} map[string]string "token"
+// @Failure      400 {string} string "Invalid JSON"
+// @Failure      401 {string} string "Invalid credentials"
+// @Router       /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -76,51 +81,52 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.Login(req.Username, req.Password)
-	if err != nil {
-		h.logger.Warn("login failed", zap.String("username", req.Username), zap.Error(err))
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-	}
-
-	cfg, _ := config.LoadConfig()
-	token, err := middleware.GenerateJWT(user.ID, user.Role, cfg.JWTSecret)
-	if err != nil {
-		h.logger.Error("token generation failed", zap.Int("user_id", user.ID), zap.Error(err))
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
-		return
-	}
-
-	h.logger.Info("user logged in", zap.String("username", user.Username), zap.String("role", user.Role))
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": token,
+	token, err := h.service.Login(services.LoginRequest{
+		Phone:    req.Phone,
+		Password: req.Password,
 	})
+	if err != nil {
+		h.logger.Warn("login failed", zap.String("phone", req.Phone), zap.Error(err))
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	h.logger.Info("user logged in", zap.String("phone", req.Phone))
+	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
 
-// Me
-// @Summary Получить информацию о пользователе
-// @Description Возвращает профиль текущего пользователя
-// @Tags Пользователь
-// @Security BearerAuth
-// @Produce json
-// @Success 200 {object} object{id=int, username=string, role=string}
-// @Failure 401 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
-// @Router /api/me [get]
+// Me returns current user profile
+// @Summary      Get current user
+// @Description  Returns profile info of authenticated user
+// @Tags         users
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200 {object} map[string]interface{}
+// @Failure      401 {string} string "Unauthorized"
+// @Failure      404 {string} string "User not found"
+// @Router       /api/me [get]
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
-	userID := middleware.GetUserID(r)
-
-	user, err := h.service.GetByID(userID)
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	user, err := h.service.GetByID(claims.UserID)
 	if err != nil || user == nil {
-		h.logger.Warn("user not found", zap.Int("user_id", userID))
+		h.logger.Warn("user not found", zap.Int("user_id", claims.UserID))
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("username", user.Username))
-	writeJSON(w, map[string]interface{}{
-		"id":       user.ID,
-		"username": user.Username,
-		"role":     user.Role,
+	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("phone", user.Phone))
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"id":         user.ID,
+		"username":   user.Username,
+		"email":      user.Email,
+		"phone":      user.Phone,
+		"role":       user.Role,
+		"isVerified": user.IsVerified,
+		"owner_id":   user.OwnerID,
 	})
 }

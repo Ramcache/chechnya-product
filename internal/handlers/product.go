@@ -11,12 +11,20 @@ import (
 	"chechnya-product/internal/services"
 )
 
+type ProductHandlerInterface interface {
+	GetAll(w http.ResponseWriter, r *http.Request)
+	GetByID(w http.ResponseWriter, r *http.Request)
+	Add(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
+}
+
 type ProductHandler struct {
-	service *services.ProductService
+	service services.ProductServiceInterface
 	logger  *zap.Logger
 }
 
-func NewProductHandler(service *services.ProductService, logger *zap.Logger) *ProductHandler {
+func NewProductHandler(service services.ProductServiceInterface, logger *zap.Logger) *ProductHandler {
 	return &ProductHandler{service: service, logger: logger}
 }
 

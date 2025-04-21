@@ -11,12 +11,19 @@ import (
 	"time"
 )
 
+type OrderHandlerInterface interface {
+	PlaceOrder(w http.ResponseWriter, r *http.Request)
+	GetUserOrders(w http.ResponseWriter, r *http.Request)
+	GetAllOrders(w http.ResponseWriter, r *http.Request)
+	ExportOrdersCSV(w http.ResponseWriter, r *http.Request)
+}
+
 type OrderHandler struct {
-	service *services.OrderService
+	service services.OrderServiceInterface
 	logger  *zap.Logger
 }
 
-func NewOrderHandler(service *services.OrderService, logger *zap.Logger) *OrderHandler {
+func NewOrderHandler(service services.OrderServiceInterface, logger *zap.Logger) *OrderHandler {
 	return &OrderHandler{service: service, logger: logger}
 }
 

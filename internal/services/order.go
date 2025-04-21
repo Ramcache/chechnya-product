@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+type OrderServiceInterface interface {
+	PlaceOrder(ownerID string) error
+	GetOrders(ownerID string) ([]models.Order, error)
+	GetAllOrders() ([]models.Order, error)
+}
+
 type OrderService struct {
 	cartRepo    repositories.CartRepository
 	orderRepo   repositories.OrderRepository

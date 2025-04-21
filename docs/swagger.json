@@ -544,7 +544,7 @@
         },
         "/api/login": {
             "post": {
-                "description": "Выполняет вход пользователя и возвращает JWT-токен",
+                "description": "Logs in a user and returns JWT token on success",
                 "consumes": [
                     "application/json"
                 ],
@@ -552,13 +552,13 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Пользователь"
+                    "auth"
                 ],
-                "summary": "Авторизация пользователя",
+                "summary": "User login",
                 "parameters": [
                     {
-                        "description": "Имя пользователя и пароль",
-                        "name": "input",
+                        "description": "Phone and password",
+                        "name": "login",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -568,26 +568,24 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "token",
                         "schema": {
                             "type": "object",
-                            "properties": {
-                                "token": {
-                                    "type": "string"
-                                }
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid JSON",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Invalid credentials",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "type": "string"
                         }
                     }
                 }
@@ -600,42 +598,32 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает профиль текущего пользователя",
+                "description": "Returns profile info of authenticated user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Пользователь"
+                    "users"
                 ],
-                "summary": "Получить информацию о пользователе",
+                "summary": "Get current user",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "object",
-                            "properties": {
-                                " role": {
-                                    "type": "string"
-                                },
-                                " username": {
-                                    "type": "string"
-                                },
-                                "id": {
-                                    "type": "integer"
-                                }
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "type": "string"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "type": "string"
                         }
                     }
                 }
@@ -812,7 +800,7 @@
         },
         "/api/register": {
             "post": {
-                "description": "Создаёт нового пользователя",
+                "description": "Registers a new user with phone, password, username and email",
                 "consumes": [
                     "application/json"
                 ],
@@ -820,13 +808,13 @@
                     "text/plain"
                 ],
                 "tags": [
-                    "Пользователь"
+                    "auth"
                 ],
-                "summary": "Регистрация пользователя",
+                "summary": "Register new user",
                 "parameters": [
                     {
-                        "description": "Имя пользователя и пароль",
-                        "name": "input",
+                        "description": "User registration data",
+                        "name": "register",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -836,99 +824,13 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Пользователь успешно зарегистрирован",
+                        "description": "Registration successful",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/verify/confirm": {
-            "post": {
-                "description": "Проверяет код подтверждения, подтверждает номер телефона",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "verification"
-                ],
-                "summary": "Подтвердить код",
-                "parameters": [
-                    {
-                        "description": "Телефон и код",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ConfirmRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Phone confirmed",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request or code",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/verify/start": {
-            "post": {
-                "description": "Генерирует код и возвращает ссылку на WhatsApp с готовым сообщением",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "verification"
-                ],
-                "summary": "Начать подтверждение телефона",
-                "parameters": [
-                    {
-                        "description": "Телефон пользователя",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.StartRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.StartResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to start verification",
+                        "description": "Invalid JSON or registration error",
                         "schema": {
                             "type": "string"
                         }
@@ -969,19 +871,6 @@
                 }
             }
         },
-        "handlers.ConfirmRequest": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "123456"
-                },
-                "phone": {
-                    "type": "string",
-                    "example": "+79991234567"
-                }
-            }
-        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -996,7 +885,7 @@
                 "password": {
                     "type": "string"
                 },
-                "username": {
+                "phone": {
                     "type": "string"
                 }
             }
@@ -1004,29 +893,17 @@
         "handlers.RegisterRequest": {
             "type": "object",
             "properties": {
+                "email": {
+                    "type": "string"
+                },
                 "password": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "handlers.StartRequest": {
-            "type": "object",
-            "properties": {
-                "phone": {
-                    "type": "string",
-                    "example": "+79991234567"
-                }
-            }
-        },
-        "handlers.StartResponse": {
-            "type": "object",
-            "properties": {
-                "whatsapp_link": {
-                    "type": "string",
-                    "example": "https://wa.me/79991234567?text=Мой%20код%20подтверждения%3A%20123456"
                 }
             }
         },
@@ -1092,13 +969,6 @@
                     "type": "number"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }

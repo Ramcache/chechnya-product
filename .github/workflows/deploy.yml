@@ -22,22 +22,29 @@ jobs:
       - name: 🔨 Build Go app
         run: go build -o main cmd/api/main.go
 
-      - name: 📤 Copy binary to server
+      - name: 📤 Copy binary and migrations to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: main
+          source: |
+            main
+            migrations/
           target: /chechnya-product/
 
-      - name: 🚀 Restart app
+      - name: 🧬 Run migrations & restart app
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            pkill main || true
             cd /chechnya-product
+
+            echo "⏫ Running migrations..."
+            migrate -path ./migrations -database "$DB_URL" up
+
+            echo "🔁 Restarting Go app..."
+            pkill main || true
             nohup ./main > main.log 2>&1 &

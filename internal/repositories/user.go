@@ -10,8 +10,9 @@ import (
 
 type UserRepository interface {
 	Create(user *models.User) error
-	GetByUsername(username string) (*models.User, error)
 	GetByID(id int) (*models.User, error)
+	GetByPhone(phone string) (*models.User, error)
+	GetByOwnerID(ownerID string) (*models.User, error)
 }
 
 type UserRepo struct {
@@ -23,36 +24,55 @@ func NewUserRepo(db *sqlx.DB) *UserRepo {
 }
 
 func (r *UserRepo) Create(user *models.User) error {
-	query := `INSERT INTO users (username, password, role) VALUES ($1, $2, $3)`
-	_, err := r.db.Exec(query, user.Username, user.Password, user.Role)
+	query := `INSERT INTO users (username, email, phone, password_hash, role, is_verified, owner_id)
+	          VALUES (:username, :email, :phone, :password_hash, :role, :is_verified, :owner_id)
+	          RETURNING id, created_at`
+	rows, err := r.db.NamedQuery(query, user)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		if err := rows.Scan(&user.ID, &user.CreatedAt); err != nil {
+			return fmt.Errorf("failed to scan user data: %w", err)
+		}
 	}
 	return nil
 }
 
-func (r *UserRepo) GetByUsername(username string) (*models.User, error) {
+func (r *UserRepo) GetByID(id int) (*models.User, error) {
 	var user models.User
-	query := `SELECT * FROM users WHERE username = $1`
-	err := r.db.Get(&user, query, username)
+	err := r.db.Get(&user, "SELECT * FROM users WHERE id = $1", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user by username: %w", err)
+		return nil, err
 	}
 	return &user, nil
 }
 
-func (r *UserRepo) GetByID(id int) (*models.User, error) {
+func (r *UserRepo) GetByPhone(phone string) (*models.User, error) {
 	var user models.User
-	query := `SELECT * FROM users WHERE id = $1`
-	err := r.db.Get(&user, query, id)
+	err := r.db.Get(&user, "SELECT * FROM users WHERE phone = $1", phone)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("failed to get user by id: %w", err)
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepo) GetByOwnerID(ownerID string) (*models.User, error) {
+	var user models.User
+	err := r.db.Get(&user, "SELECT * FROM users WHERE owner_id = $1", ownerID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 	return &user, nil
 }

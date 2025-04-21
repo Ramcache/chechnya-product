@@ -1,43 +1,51 @@
 package middleware
 
 import (
-	"errors"
-	"github.com/golang-jwt/jwt/v5"
+	"chechnya-product/internal/utils"
+	"context"
+	"net/http"
 	"strings"
-	"time"
 )
 
-func GenerateJWT(userID int, role string, secret string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
-		"role":    role,
-		"exp":     time.Now().Add(72 * time.Hour).Unix(),
-	})
-	return token.SignedString([]byte(secret))
+// JWTMiddleware добавляет claims в context
+func JWTMiddleware(jwt utils.JWTManagerInterface) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			auth := r.Header.Get("Authorization")
+			if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
+				http.Error(w, "Missing or invalid Authorization header", http.StatusUnauthorized)
+				return
+			}
+
+			tokenStr := strings.TrimPrefix(auth, "Bearer ")
+			claims, err := jwt.Verify(tokenStr)
+			if err != nil {
+				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userClaimsKey, claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
-func ParseJWT(authHeader string, secret string) (int, string, error) {
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return 0, "", errors.New("invalid Authorization header")
+func OnlyAdmin() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims := GetUserClaims(r)
+			if claims == nil || claims.Role != "admin" {
+				http.Error(w, "Access denied", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
-	tokenStr := parts[1]
+}
 
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
-	})
-
-	if err != nil || !token.Valid {
-		return 0, "", errors.New("invalid token")
+func GetUserIDOrZero(r *http.Request) int {
+	if claims := GetUserClaims(r); claims != nil {
+		return claims.UserID
 	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, "", errors.New("invalid claims")
-	}
-
-	userID := int(claims["user_id"].(float64))
-	role := claims["role"].(string)
-
-	return userID, role, nil
+	return 0
 }

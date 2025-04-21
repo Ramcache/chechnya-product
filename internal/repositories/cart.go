@@ -15,7 +15,6 @@ type CartRepository interface {
 	UpdateQuantity(ownerID string, productID, quantity int) error
 	DeleteItem(ownerID string, productID int) error
 	ClearCart(ownerID string) error
-	Checkout(ownerID string) error
 }
 
 type CartRepo struct {

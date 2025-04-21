@@ -6,15 +6,6 @@ definitions:
       quantity:
         type: integer
     type: object
-  handlers.ConfirmRequest:
-    properties:
-      code:
-        example: "123456"
-        type: string
-      phone:
-        example: "+79991234567"
-        type: string
-    type: object
   handlers.ErrorResponse:
     properties:
       error:
@@ -24,26 +15,18 @@ definitions:
     properties:
       password:
         type: string
-      username:
+      phone:
         type: string
     type: object
   handlers.RegisterRequest:
     properties:
+      email:
+        type: string
       password:
         type: string
-      username:
-        type: string
-    type: object
-  handlers.StartRequest:
-    properties:
       phone:
-        example: "+79991234567"
         type: string
-    type: object
-  handlers.StartResponse:
-    properties:
-      whatsapp_link:
-        example: https://wa.me/79991234567?text=Мой%20код%20подтверждения%3A%20123456
+      username:
         type: string
     type: object
   models.Order:
@@ -438,11 +421,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Выполняет вход пользователя и возвращает JWT-токен
+      description: Logs in a user and returns JWT token on success
       parameters:
-      - description: Имя пользователя и пароль
+      - description: Phone and password
         in: body
-        name: input
+        name: login
         required: true
         schema:
           $ref: '#/definitions/handlers.LoginRequest'
@@ -450,53 +433,46 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: token
           schema:
-            properties:
-              token:
-                type: string
+            additionalProperties:
+              type: string
             type: object
         "400":
-          description: Bad Request
+          description: Invalid JSON
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            type: string
         "401":
-          description: Unauthorized
+          description: Invalid credentials
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Авторизация пользователя
+            type: string
+      summary: User login
       tags:
-      - Пользователь
+      - auth
   /api/me:
     get:
-      description: Возвращает профиль текущего пользователя
+      description: Returns profile info of authenticated user
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            properties:
-              ' role':
-                type: string
-              ' username':
-                type: string
-              id:
-                type: integer
+            additionalProperties: true
             type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            type: string
         "404":
-          description: Not Found
+          description: User not found
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
+            type: string
       security:
       - BearerAuth: []
-      summary: Получить информацию о пользователе
+      summary: Get current user
       tags:
-      - Пользователь
+      - users
   /api/order:
     post:
       description: Оформляет заказ из текущей корзины owner_id
@@ -612,11 +588,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Создаёт нового пользователя
+      description: Registers a new user with phone, password, username and email
       parameters:
-      - description: Имя пользователя и пароль
+      - description: User registration data
         in: body
-        name: input
+        name: register
         required: true
         schema:
           $ref: '#/definitions/handlers.RegisterRequest'
@@ -624,72 +600,16 @@ paths:
       - text/plain
       responses:
         "201":
-          description: Пользователь успешно зарегистрирован
+          description: Registration successful
           schema:
             type: string
         "400":
-          description: Bad Request
+          description: Invalid JSON or registration error
           schema:
-            $ref: '#/definitions/handlers.ErrorResponse'
-      summary: Регистрация пользователя
+            type: string
+      summary: Register new user
       tags:
-      - Пользователь
-  /verify/confirm:
-    post:
-      consumes:
-      - application/json
-      description: Проверяет код подтверждения, подтверждает номер телефона
-      parameters:
-      - description: Телефон и код
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.ConfirmRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Phone confirmed
-          schema:
-            type: string
-        "400":
-          description: Invalid request or code
-          schema:
-            type: string
-      summary: Подтвердить код
-      tags:
-      - verification
-  /verify/start:
-    post:
-      consumes:
-      - application/json
-      description: Генерирует код и возвращает ссылку на WhatsApp с готовым сообщением
-      parameters:
-      - description: Телефон пользователя
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.StartRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.StartResponse'
-        "400":
-          description: Invalid request
-          schema:
-            type: string
-        "500":
-          description: Failed to start verification
-          schema:
-            type: string
-      summary: Начать подтверждение телефона
-      tags:
-      - verification
+      - auth
   /ws/orders:
     get:
       description: Устанавливает WebSocket-соединение. Админы получают уведомления
@@ -704,9 +624,4 @@ paths:
       summary: Подключение к WebSocket для уведомлений о заказах
       tags:
       - WebSocket
-securityDefinitions:
-  BearerAuth:
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

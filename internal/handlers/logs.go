@@ -8,6 +8,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type LogHandlerInterface interface {
+	GetLogs(w http.ResponseWriter, r *http.Request)
+}
+
 type LogHandler struct {
 	logger  *zap.Logger
 	logPath string
