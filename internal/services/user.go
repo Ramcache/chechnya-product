@@ -17,15 +17,17 @@ type UserServiceInterface interface {
 	Login(req LoginRequest) (string, error)
 	GetByID(userID int) (*models.User, error)
 	GetByOwnerID(ownerID string) (*models.User, error)
+	TransferCart(oldOwnerID, newOwnerID string) error
 }
 
 type UserService struct {
-	repo repositories.UserRepository
-	jwt  utils.JWTManagerInterface
+	repo        repositories.UserRepository
+	jwt         utils.JWTManagerInterface
+	cartService CartServiceInterface
 }
 
-func NewUserService(repo repositories.UserRepository, jwt utils.JWTManagerInterface) *UserService {
-	return &UserService{repo: repo, jwt: jwt}
+func NewUserService(repo repositories.UserRepository, jwt utils.JWTManagerInterface, cart CartServiceInterface) *UserService {
+	return &UserService{repo: repo, jwt: jwt, cartService: cart}
 }
 
 // Запрос на регистрацию
@@ -84,6 +86,10 @@ func (s *UserService) Login(req LoginRequest) (string, error) {
 		return "", errors.New("invalid phone or password")
 	}
 
+	if !user.IsVerified {
+		return "", errors.New("phone not verified")
+	}
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		return "", errors.New("invalid phone or password")
 	}
@@ -104,6 +110,10 @@ func (s *UserService) GetByOwnerID(ownerID string) (*models.User, error) {
 // Получить пользователя по ID
 func (s *UserService) GetByID(userID int) (*models.User, error) {
 	return s.repo.GetByID(userID)
+}
+
+func (s *UserService) TransferCart(oldOwnerID, newOwnerID string) error {
+	return s.cartService.TransferCart(oldOwnerID, newOwnerID)
 }
 
 // Валидация регистрации

@@ -42,14 +42,16 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ownerID := middleware.GetOwnerID(w, r)
+	// 👇 сохраняем старый guest ID до регистрации
+	oldOwnerID := middleware.GetOwnerID(w, r)
 
+	// 🧾 создаём пользователя
 	user, err := h.service.Register(services.RegisterRequest{
 		Phone:    req.Phone,
 		Password: req.Password,
 		Username: req.Username,
 		Email:    req.Email,
-		OwnerID:  ownerID,
+		OwnerID:  oldOwnerID,
 	})
 	if err != nil {
 		h.logger.Warn("registration failed", zap.Error(err))
@@ -57,7 +59,22 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
+	// ✅ переносим корзину на новый owner_id
+	newOwnerID := user.OwnerID
+	if cartErr := h.service.TransferCart(oldOwnerID, newOwnerID); cartErr != nil {
+		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", newOwnerID), zap.Error(cartErr))
+	}
+
+	// 🧹 удаляем старый owner_id из куки
+	http.SetCookie(w, &http.Cookie{
+		Name:   middleware.OwnerCookieName,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
+
+	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", newOwnerID))
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Registration successful"))
 }
@@ -87,7 +104,12 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		h.logger.Warn("login failed", zap.String("phone", req.Phone), zap.Error(err))
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+
+		if err.Error() == "phone not verified" {
+			http.Error(w, "Please verify your phone number first", http.StatusForbidden)
+		} else {
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		}
 		return
 	}
 

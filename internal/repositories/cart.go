@@ -15,6 +15,7 @@ type CartRepository interface {
 	UpdateQuantity(ownerID string, productID, quantity int) error
 	DeleteItem(ownerID string, productID int) error
 	ClearCart(ownerID string) error
+	TransferOwnership(from, to string) error
 }
 
 type CartRepo struct {
@@ -82,5 +83,10 @@ func (r *CartRepo) ClearCart(ownerID string) error {
 		DELETE FROM cart_items
 		WHERE owner_id = $1
 	`, ownerID)
+	return err
+}
+
+func (r *CartRepo) TransferOwnership(from, to string) error {
+	_, err := r.db.Exec(`UPDATE cart_items SET owner_id = $2 WHERE owner_id = $1`, from, to)
 	return err
 }

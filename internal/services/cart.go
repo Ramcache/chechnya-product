@@ -13,6 +13,7 @@ type CartServiceInterface interface {
 	UpdateItem(ownerID string, productID, quantity int) error
 	DeleteItem(ownerID string, productID int) error
 	ClearCart(ownerID string) error
+	TransferCart(fromOwnerID, toOwnerID string) error
 }
 
 var (
@@ -120,4 +121,8 @@ func (s *CartService) DeleteItem(ownerID string, productID int) error {
 
 func (s *CartService) ClearCart(ownerID string) error {
 	return s.repo.ClearCart(ownerID)
+}
+
+func (s *CartService) TransferCart(fromOwnerID, toOwnerID string) error {
+	return s.repo.TransferOwnership(fromOwnerID, toOwnerID)
 }

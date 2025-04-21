@@ -14,12 +14,14 @@ type Config struct {
 	DBName     string
 	Port       string
 	JWTSecret  string
-	Env        string // "development", "production", "test"
+	Env        string
+
+	RedisAddr string
+	RedisPass string
 }
 
-// LoadConfig загружает конфигурацию из переменных окружения.
 func LoadConfig() (*Config, error) {
-	_ = godotenv.Load() // .env не обязателен, но полезен в dev
+	_ = godotenv.Load()
 
 	cfg := &Config{
 		DBHost:     os.Getenv("DB_HOST"),
@@ -30,11 +32,13 @@ func LoadConfig() (*Config, error) {
 		Port:       os.Getenv("PORT"),
 		JWTSecret:  os.Getenv("JWT_SECRET"),
 		Env:        os.Getenv("ENV"),
+
+		RedisAddr: os.Getenv("REDIS_ADDR"),
+		RedisPass: os.Getenv("REDIS_PASS"),
 	}
 
-	// Минимальная валидация
-	if cfg.Port == "" || cfg.JWTSecret == "" {
-		return nil, errors.New("missing required environment variables (PORT, JWT_SECRET)")
+	if cfg.Port == "" || cfg.JWTSecret == "" || cfg.RedisAddr == "" {
+		return nil, errors.New("missing required environment variables (PORT, JWT_SECRET, REDIS_ADDR)")
 	}
 
 	return cfg, nil

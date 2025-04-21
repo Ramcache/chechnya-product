@@ -15,3 +15,32 @@
 {"level":"INFO","time":"2025-04-21T15:21:41.442+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/login","ip":"[::1]:57261","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":106334000}
 {"level":"INFO","time":"2025-04-21T15:21:50.280+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/admin/logs","ip":"[::1]:57261","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":27000}
 {"level":"INFO","time":"2025-04-21T15:21:56.345+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories","ip":"[::1]:57261","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":0}
+{"level":"INFO","time":"2025-04-21T16:01:47.060+0300","caller":"api/main.go:97","message":"Server is running","port":"8080","env":"development"}
+{"level":"INFO","time":"2025-04-21T16:07:32.498+0300","caller":"api/main.go:37","message":"Server is running","port":"8080","env":"development"}
+{"level":"INFO","time":"2025-04-21T16:07:43.955+0300","caller":"api/main.go:47","message":"Shutting down server..."}
+{"level":"INFO","time":"2025-04-21T16:07:43.956+0300","caller":"api/main.go:52","message":"Server exited cleanly"}
+{"level":"INFO","time":"2025-04-21T16:21:29.079+0300","caller":"api/main.go:38","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T16:44:15.855+0300","caller":"api/main.go:38","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T16:44:34.087+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:63668","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":2602900}
+{"level":"INFO","time":"2025-04-21T16:45:40.092+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"7989"}
+{"level":"INFO","time":"2025-04-21T16:45:40.093+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:63756","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":91276200}
+{"level":"INFO","time":"2025-04-21T16:46:24.263+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:63756","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":98552600}
+{"level":"INFO","time":"2025-04-21T16:46:33.856+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:63756","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":541800}
+{"level":"INFO","time":"2025-04-21T16:49:24.399+0300","caller":"api/main.go:38","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T16:49:38.918+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"2166"}
+{"level":"INFO","time":"2025-04-21T16:49:38.919+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:63988","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":100980100}
+{"level":"INFO","time":"2025-04-21T16:50:01.745+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:63988","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":96292600}
+{"level":"INFO","time":"2025-04-21T16:52:57.843+0300","caller":"api/main.go:38","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T16:53:14.527+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"4018"}
+{"level":"INFO","time":"2025-04-21T16:53:14.528+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:64269","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":92624000}
+{"level":"WARN","time":"2025-04-21T16:53:43.454+0300","caller":"handlers/verification.go:53","message":"code verification failed","phone":"79388945877","code":"4018"}
+{"level":"INFO","time":"2025-04-21T16:53:43.454+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:64269","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":92898600}
+{"level":"INFO","time":"2025-04-21T16:56:50.585+0300","caller":"api/main.go:38","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T16:56:57.366+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"9604"}
+{"level":"INFO","time":"2025-04-21T16:56:57.367+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:64559","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":24250900}
+{"level":"INFO","time":"2025-04-21T16:57:16.423+0300","caller":"handlers/verification.go:64","message":"Phone number verified","phone":"79388945877"}
+{"level":"INFO","time":"2025-04-21T16:57:16.424+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/confirm","ip":"[::1]:64559","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":32659600}
+{"level":"INFO","time":"2025-04-21T17:01:17.292+0300","caller":"api/main.go:51","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-21T17:03:08.640+0300","caller":"handlers/verification.go:39","message":"Verification code sent","phone":"79388945877","code":"5882"}
+{"level":"INFO","time":"2025-04-21T17:03:08.643+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/verify/start","ip":"[::1]:64959","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_53ef5d74-557e-4d62-9270-542a6effd7d0","duration":29140200}
+{"level":"INFO","time":"2025-04-21T17:05:17.736+0300","caller":"api/main.go:51","message":"Server is running","port":"8080"}
