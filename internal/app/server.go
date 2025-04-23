@@ -35,6 +35,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	productRepo := repositories.NewProductRepo(dbConn)
 	orderRepo := repositories.NewOrderRepo(dbConn)
 	categoryRepo := repositories.NewCategoryRepo(dbConn)
+	dashboardRepo := repositories.NewDashboardRepository(dbConn)
 
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
@@ -45,6 +46,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	productService := services.NewProductService(productRepo)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo)
+	dashboardService := services.NewDashboardService(dashboardRepo)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -53,6 +55,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	orderHandler := handlers.NewOrderHandler(orderService, logger)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
+	dashboardHandler := handlers.NewDashboardHandler(dashboardService, logger)
 
 	// --- Router ---
 	router := mux.NewRouter()
@@ -62,7 +65,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
-	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, jwtManager)
+	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager)
 
 	// --- CORS ---
 	corsMiddleware := cors.New(cors.Options{

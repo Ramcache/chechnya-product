@@ -31,7 +31,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "main"
+          source: |
+            main
+            migrations
           target: /chechnya-product/
 
       - name: 🧬 Run migrations & restart app
@@ -42,6 +44,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /chechnya-product
+
+            echo "📈 Running migrations..."
+            goose -dir ./migrations postgres "host=localhost port=5432 user=postgres password=625325 dbname=myshop sslmode=disable" up
 
             echo "🔁 Restarting app..."
             pkill main || true

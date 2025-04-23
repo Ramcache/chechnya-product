@@ -38,6 +38,7 @@ func RegisterPublicRoutes(
 	// Заказы
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders", order.GetUserOrders).Methods(http.MethodGet)
+
 }
 
 func RegisterPrivateRoutes(
@@ -56,6 +57,7 @@ func RegisterAdminRoutes(
 	order handlers.OrderHandlerInterface,
 	category handlers.CategoryHandlerInterface,
 	logs handlers.LogHandlerInterface,
+	dashboard handlers.DashboardHandlerInterface,
 	jwt utils.JWTManagerInterface,
 ) {
 	admin := r.PathPrefix("/api/admin").Subrouter()
@@ -78,4 +80,7 @@ func RegisterAdminRoutes(
 
 	// Просмотр логов
 	admin.HandleFunc("/logs", logs.GetLogs).Methods(http.MethodGet)
+
+	// Дэшборд
+	admin.HandleFunc("/dashboard", dashboard.GetDashboard).Methods(http.MethodGet)
 }
