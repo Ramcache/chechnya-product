@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/utils"
 	"encoding/json"
@@ -110,7 +111,8 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/products [post]
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
-	if r.Context().Value("role") != "admin" {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil || claims.Role != "admin" {
 		h.logger.Warn("unauthorized access to add product")
 		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
