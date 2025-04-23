@@ -13,17 +13,6 @@ jobs:
       - name: 📥 Checkout repo
         uses: actions/checkout@v3
 
-      - name: 🔍 Pre-cache cleanup
-        run: |
-          echo "🧹 Cleaning Go build cache"
-          rm -rf /github/home/.cache/go-build || echo "No previous cache"
-
-      - name: 💾 Restore Go build cache
-        uses: actions/cache@v3
-        with:
-          path: /github/home/.cache/go-build
-          key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
-
       - name: 🛠 Set up Go
         uses: actions/setup-go@v4
         with:
@@ -31,21 +20,11 @@ jobs:
 
       - name: 🔨 Build Go app
         run: |
-          echo "📦 Building Go binary"
           cd cmd/api
           go build -o ../../main
           cd ../../
-
-      - name: 🔍 Проверка файлов перед копированием
-        run: |
-          echo "📁 Проверка содержимого директории:"
           ls -al
-          echo ""
-          echo "📂 migrations:"
-          ls -al migrations || echo "❌ migrations не найдена"
-          echo ""
-          echo "📄 main:"
-          [ -f main ] && echo "✅ main найден" || (echo "❌ main не найден" && exit 1)
+          ls -al migrations
 
       - name: 📤 Copy binary and migrations
         uses: appleboy/scp-action@v0.1.7
@@ -53,9 +32,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: |
-            main
-            migrations
+          source: "main,migrations"
           target: /chechnya-product/
 
       - name: 🧬 Run migrations & restart app
@@ -64,23 +41,13 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: DB_URL
           script: |
-            set -e
             cd /chechnya-product
 
-            echo "📥 Проверка наличия goose..."
-            if ! command -v goose &> /dev/null; then
-              echo "🔧 Установка goose..."
-              curl -fsSL https://raw.githubusercontent.com/pressly/goose/master/install.sh | sh
-              sudo mv ./bin/goose /usr/local/bin/goose
-            fi
+            echo "⏫ Running migrations..."
+            migrate -path ./migrations -database "$DB_URL" up
 
-            echo "📈 Применение миграций..."
-            goose -dir ./migrations postgres "host=localhost port=5432 user=postgres password=625325 dbname=myshop sslmode=disable" up
-
-            echo "🔁 Перезапуск приложения..."
+            echo "🔁 Restarting app..."
             pkill main || true
             nohup ./main > main.log 2>&1 &
-
-      - name: 🎉 Done!
-        run: echo "✅ Deployment complete"
