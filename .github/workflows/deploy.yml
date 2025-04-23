@@ -13,6 +13,17 @@ jobs:
       - name: 📥 Checkout repo
         uses: actions/checkout@v3
 
+      - name: 🔍 Pre-cache cleanup
+        run: |
+          echo "🧹 Cleaning Go build cache"
+          rm -rf /github/home/.cache/go-build || echo "No previous cache"
+
+      - name: 💾 Restore Go build cache
+        uses: actions/cache@v3
+        with:
+          path: /github/home/.cache/go-build
+          key: ${{ runner.os }}-golang-${{ hashFiles('**/go.sum') }}
+
       - name: 🛠 Set up Go
         uses: actions/setup-go@v4
         with:
@@ -20,27 +31,21 @@ jobs:
 
       - name: 🔨 Build Go app
         run: |
+          echo "📦 Building Go binary"
           cd cmd/api
           go build -o ../../main
           cd ../../
-          ls -al
 
-      - name: 🔍 Check files before upload
-        run: |
-          echo "📦 Содержимое корня проекта:"
-          ls -al
-          echo "📁 Содержимое папки migrations:"
-          ls -al migrations
       - name: 🔍 Проверка файлов перед копированием
         run: |
-          echo "✅ Ожидаемые файлы:"
+          echo "📁 Проверка содержимого директории:"
           ls -al
           echo ""
-          echo "📁 migrations:"
+          echo "📂 migrations:"
           ls -al migrations || echo "❌ migrations не найдена"
           echo ""
-          echo "📦 main:"
-          [ -f main ] && echo "✅ main найден" || echo "❌ main не найден"
+          echo "📄 main:"
+          [ -f main ] && echo "✅ main найден" || (echo "❌ main не найден" && exit 1)
 
       - name: 📤 Copy binary and migrations
         uses: appleboy/scp-action@v0.1.7
@@ -63,17 +68,17 @@ jobs:
             set -e
             cd /chechnya-product
 
-            echo "📥 Checking goose installation..."
+            echo "📥 Проверка наличия goose..."
             if ! command -v goose &> /dev/null; then
-              echo "🔧 Installing goose..."
+              echo "🔧 Установка goose..."
               curl -fsSL https://raw.githubusercontent.com/pressly/goose/master/install.sh | sh
               sudo mv ./bin/goose /usr/local/bin/goose
             fi
 
-            echo "📈 Running migrations..."
+            echo "📈 Применение миграций..."
             goose -dir ./migrations postgres "host=localhost port=5432 user=postgres password=625325 dbname=myshop sslmode=disable" up
 
-            echo "🔁 Restarting app..."
+            echo "🔁 Перезапуск приложения..."
             pkill main || true
             nohup ./main > main.log 2>&1 &
 
