@@ -150,8 +150,9 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/products/{id} [put]
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Context().Value("role") != "admin" {
-		h.logger.Warn("unauthorized access to update product")
+	claims := middleware.GetUserClaims(r)
+	if claims == nil || claims.Role != "admin" {
+		h.logger.Warn("unauthorized access to add product")
 		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
 	}
