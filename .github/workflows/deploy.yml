@@ -25,6 +25,13 @@ jobs:
           cd ../../
           ls -al
 
+      - name: 🔍 Check files before upload
+        run: |
+          echo "📦 Содержимое корня проекта:"
+          ls -al
+          echo "📁 Содержимое папки migrations:"
+          ls -al migrations
+
       - name: 📤 Copy binary and migrations
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -43,7 +50,15 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /chechnya-product
+
+            echo "📥 Checking goose installation..."
+            if ! command -v goose &> /dev/null; then
+              echo "🔧 Installing goose..."
+              curl -fsSL https://raw.githubusercontent.com/pressly/goose/master/install.sh | sh
+              sudo mv ./bin/goose /usr/local/bin/goose
+            fi
 
             echo "📈 Running migrations..."
             goose -dir ./migrations postgres "host=localhost port=5432 user=postgres password=625325 dbname=myshop sslmode=disable" up
