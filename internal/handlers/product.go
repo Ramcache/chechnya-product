@@ -42,7 +42,7 @@ func NewProductHandler(service services.ProductServiceInterface, logger *zap.Log
 // @Param limit query int false "Ограничение количества результатов"
 // @Param offset query int false "Сдвиг для пагинации"
 // @Success 200 {array} models.Product
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -73,8 +73,8 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path int true "ID товара"
 // @Success 200 {object} models.Product
-// @Failure 400 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
 // @Router /api/products/{id} [get]
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
@@ -102,12 +102,12 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Tags Товар
 // @Security BearerAuth
 // @Accept json
-// @Produce plain
+// @Produce json
 // @Param input body models.Product true "Данные товара"
-// @Success 201 {string} string "Product added"
-// @Failure 400 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 201 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 403 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/products [post]
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {
@@ -143,9 +143,9 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 // @Param id path int true "ID товара"
 // @Param input body models.Product true "Новые данные товара"
 // @Success 200 {string} string "Product updated"
-// @Failure 400 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 403 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/products/{id} [put]
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {
@@ -187,9 +187,9 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Produce plain
 // @Param id path int true "ID товара"
 // @Success 200 {string} string "Product deleted"
-// @Failure 400 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 403 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/products/{id} [delete]
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {

@@ -40,12 +40,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/utils.CategoryRequest"
                         }
                     }
                 ],
@@ -77,7 +72,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Категории"
@@ -86,7 +81,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID категории",
+                        "description": "Идентификатор категории",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -97,26 +92,21 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "name": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/utils.CategoryRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Category updated",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid input or update failed",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -160,6 +150,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает содержимое лог-файла (только для администратора)",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Логи"
+                ],
+                "summary": "Получить лог-файл",
+                "responses": {
+                    "200": {
+                        "description": "Содержимое лог-файла",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/orders": {
             "get": {
                 "security": [
@@ -188,7 +209,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -213,13 +234,13 @@ const docTemplate = `{
                     "200": {
                         "description": "CSV файл",
                         "schema": {
-                            "type": "string"
+                            "type": "file"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -237,7 +258,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Товар"
@@ -256,27 +277,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Product added",
+                        "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -328,19 +349,69 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удаляет товар по его ID (только для администратора)",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Товар"
+                ],
+                "summary": "Удалить товар (админ)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID товара",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -369,7 +440,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -407,7 +478,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -433,7 +504,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -466,12 +537,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "quantity": {
-                                    "type": "integer"
-                                }
-                            }
+                            "$ref": "#/definitions/utils.UpdateItemRequest"
                         }
                     }
                 ],
@@ -485,7 +551,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -502,7 +568,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ID товара",
+                        "description": "Идентификатор товара, который нужно удалить или обновить",
                         "name": "product_id",
                         "in": "path",
                         "required": true
@@ -518,7 +584,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -547,7 +613,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -579,24 +645,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "token",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/handlers.LoginResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid JSON",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
+                        "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -621,8 +684,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handlers.UserProfileResponse"
                         }
                     },
                     "401": {
@@ -644,7 +706,7 @@ const docTemplate = `{
             "post": {
                 "description": "Оформляет заказ из текущей корзины owner_id",
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Заказ"
@@ -652,15 +714,15 @@ const docTemplate = `{
                 "summary": "Оформить заказ",
                 "responses": {
                     "200": {
-                        "description": "Order placed successfully",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -689,7 +751,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -762,7 +824,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -797,13 +859,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -816,7 +878,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "auth"
@@ -835,101 +897,15 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Registration successful",
+                        "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid JSON or registration error",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/verify/confirm": {
-            "post": {
-                "description": "Проверяет код и помечает номер как подтверждённый",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "Подтверждение"
-                ],
-                "summary": "Подтвердить код",
-                "parameters": [
-                    {
-                        "description": "Номер телефона и код подтверждения",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ConfirmRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Phone verified successfully",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid or expired code",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to verify user",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/verify/start": {
-            "post": {
-                "description": "Генерирует и отправляет код подтверждения на указанный номер телефона через WhatsApp",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "Подтверждение"
-                ],
-                "summary": "Отправить код подтверждения",
-                "parameters": [
-                    {
-                        "description": "Номер телефона для подтверждения",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.StartRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Verification code sent via WhatsApp",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -968,32 +944,21 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.ConfirmRequest": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.LoginRequest": {
             "type": "object",
             "properties": {
-                "password": {
+                "identifier": {
                     "type": "string"
                 },
-                "phone": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }
@@ -1015,10 +980,28 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.StartRequest": {
+        "handlers.UserProfileResponse": {
             "type": "object",
             "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "isVerified": {
+                    "type": "boolean"
+                },
+                "owner_id": {
+                    "type": "string"
+                },
                 "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1083,6 +1066,39 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "number"
+                }
+            }
+        },
+        "utils.CategoryRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.UpdateItemRequest": {
+            "type": "object",
+            "properties": {
+                "quantity": {
+                    "type": "integer"
                 }
             }
         }

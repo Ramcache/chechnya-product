@@ -31,9 +31,9 @@ func NewOrderHandler(service services.OrderServiceInterface, logger *zap.Logger)
 // @Summary Оформить заказ
 // @Description Оформляет заказ из текущей корзины owner_id
 // @Tags Заказ
-// @Produce plain
-// @Success 200 {string} string "Order placed successfully"
-// @Failure 400 {object} ErrorResponse
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
 // @Router /api/order [post]
 func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -54,7 +54,7 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 // @Tags Заказ
 // @Produce json
 // @Success 200 {array} models.Order
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/orders [get]
 func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -77,7 +77,7 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/orders [get]
 func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
@@ -97,8 +97,8 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 // @Tags Админ / Заказы
 // @Security BearerAuth
 // @Produce text/csv
-// @Success 200 {string} string "CSV файл"
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {file} file "CSV файл"
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/orders/export [get]
 func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()

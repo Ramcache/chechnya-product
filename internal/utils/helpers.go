@@ -6,6 +6,14 @@ import (
 	"strconv"
 )
 
+type UpdateItemRequest struct {
+	Quantity int `json:"quantity"`
+}
+
+type CategoryRequest struct {
+	Name string `json:"name"`
+}
+
 type SuccessResponse struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`

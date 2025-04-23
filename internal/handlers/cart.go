@@ -41,7 +41,7 @@ type AddToCartRequest struct {
 // @Produce plain
 // @Param input body AddToCartRequest true "ID товара и количество"
 // @Success 201 {string} string "Added to cart"
-// @Failure 400 {object} ErrorResponse
+// @Failure 400 {object} utils.ErrorResponse
 // @Router /api/cart [post]
 func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -71,7 +71,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 // @Tags Корзина
 // @Produce json
 // @Success 200 {array} services.CartItemResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -97,9 +97,9 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce plain
 // @Param product_id path int true "ID товара"
-// @Param input body object{quantity=int} true "Новое количество"
+// @Param input body utils.UpdateItemRequest true "Новое количество"
 // @Success 200 {string} string "Quantity updated"
-// @Failure 400 {object} ErrorResponse
+// @Failure 400 {object} utils.ErrorResponse
 // @Router /api/cart/{product_id} [put]
 func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -130,9 +130,9 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 // @Description Удаляет товар по ID из корзины owner_id
 // @Tags Корзина
 // @Produce plain
-// @Param product_id path int true "ID товара"
+// @Param product_id path int true "Идентификатор товара, который нужно удалить или обновить"
 // @Success 200 {string} string "Item deleted"
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart/{product_id} [delete]
 func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
@@ -157,7 +157,7 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 // @Tags Корзина
 // @Produce plain
 // @Success 200 {string} string "Cart cleared"
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart/clear [delete]
 func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)

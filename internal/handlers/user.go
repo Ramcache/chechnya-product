@@ -30,10 +30,10 @@ func NewUserHandler(service services.UserServiceInterface, logger *zap.Logger) *
 // @Description  Registers a new user with phone, password, username and email
 // @Tags         auth
 // @Accept       json
-// @Produce      plain
 // @Param        register body RegisterRequest true "User registration data"
-// @Success      201 {string} string "Registration successful"
-// @Failure      400 {string} string "Invalid JSON or registration error"
+// @Produce json
+// @Success 201 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
 // @Router       /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
@@ -80,9 +80,9 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        login body LoginRequest true "Phone and password"
-// @Success      200 {object} map[string]string "token"
-// @Failure      400 {string} string "Invalid JSON"
-// @Failure      401 {string} string "Invalid credentials"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
 // @Router       /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
@@ -116,7 +116,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 // @Tags         users
 // @Security     BearerAuth
 // @Produce      json
-// @Success      200 {object} map[string]interface{}
+// @Success 200 {object} UserProfileResponse
 // @Failure      401 {string} string "Unauthorized"
 // @Failure      404 {string} string "User not found"
 // @Router       /api/me [get]

@@ -22,7 +22,15 @@ func NewLogHandler(logger *zap.Logger, logPath string) *LogHandler {
 	return &LogHandler{logger: logger, logPath: logPath}
 }
 
-// GetLogs — возвращает содержимое лог-файла
+// GetLogs
+// @Summary Получить лог-файл
+// @Description Возвращает содержимое лог-файла (только для администратора)
+// @Tags Логи
+// @Security BearerAuth
+// @Produce plain
+// @Success 200 {string} string "Содержимое лог-файла"
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/admin/logs [get]
 func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	file, err := os.Open(h.logPath)
 	if err != nil {
@@ -32,6 +40,7 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	utils.JSONResponse(w, http.StatusOK, "Log file", nil)
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
 	io.Copy(w, file)
 }

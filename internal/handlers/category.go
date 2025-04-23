@@ -33,7 +33,7 @@ func NewCategoryHandler(service services.CategoryServiceInterface, logger *zap.L
 // @Tags Категории
 // @Produce json
 // @Success 200 {array} string
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/categories [get]
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.service.GetAll()
@@ -53,7 +53,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Accept json
 // @Produce plain
-// @Param input body object{name=string} true "Название категории"
+// @Param input body utils.CategoryRequest true "Название категории"
 // @Success 201 {string} string "Category created"
 // @Failure 400 {string} string "Invalid body or duplicate name"
 // @Router /api/admin/categories [post]
@@ -81,11 +81,11 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Tags Категории
 // @Security BearerAuth
 // @Accept json
-// @Produce plain
-// @Param id path int true "ID категории"
-// @Param input body object{name=string} true "Новое имя категории"
-// @Success 200 {string} string "Category updated"
-// @Failure 400 {string} string "Invalid input or update failed"
+// @Produce json
+// @Param id path int true "Идентификатор категории"
+// @Param input body utils.CategoryRequest true "Новое имя категории"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
 // @Router /api/admin/categories/{id} [put]
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
