@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"chechnya-product/internal/models"
+	"chechnya-product/internal/utils"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -57,12 +58,12 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	products, err := h.service.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
 	if err != nil {
 		h.logger.Error("failed to fetch products", zap.Error(err))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")
 		return
 	}
 
 	h.logger.Info("products fetched", zap.Int("count", len(products)))
-	JSONResponse(w, http.StatusOK, "Products fetched", products)
+	utils.JSONResponse(w, http.StatusOK, "Products fetched", products)
 }
 
 // GetByID
@@ -77,22 +78,22 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Router /api/products/{id} [get]
 func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
-	id, err := parseIntParam(idStr)
+	id, err := utils.ParseIntParam(idStr)
 	if err != nil {
 		h.logger.Warn("invalid product ID", zap.String("id", idStr))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	product, err := h.service.GetByID(id)
 	if err != nil {
 		h.logger.Warn("product not found", zap.Int("id", id))
-		ErrorJSON(w, http.StatusNotFound, "Product not found")
+		utils.ErrorJSON(w, http.StatusNotFound, "Product not found")
 		return
 	}
 
 	h.logger.Info("product fetched", zap.Int("id", id))
-	JSONResponse(w, http.StatusOK, "Product fetched", product)
+	utils.JSONResponse(w, http.StatusOK, "Product fetched", product)
 }
 
 // Add
@@ -111,25 +112,25 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {
 		h.logger.Warn("unauthorized access to add product")
-		ErrorJSON(w, http.StatusForbidden, "Access denied")
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
 	}
 
 	var product models.Product
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		h.logger.Warn("invalid product JSON", zap.Error(err))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if err := h.service.AddProduct(&product); err != nil {
 		h.logger.Error("failed to add product", zap.String("name", product.Name), zap.Error(err))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to add product")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to add product")
 		return
 	}
 
 	h.logger.Info("product added", zap.String("name", product.Name))
-	JSONResponse(w, http.StatusCreated, "Product added", nil)
+	utils.JSONResponse(w, http.StatusCreated, "Product added", nil)
 }
 
 // Update
@@ -149,33 +150,33 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {
 		h.logger.Warn("unauthorized access to update product")
-		ErrorJSON(w, http.StatusForbidden, "Access denied")
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
 	}
 
 	idStr := mux.Vars(r)["id"]
-	id, err := parseIntParam(idStr)
+	id, err := utils.ParseIntParam(idStr)
 	if err != nil {
 		h.logger.Warn("invalid product ID for update", zap.String("id", idStr))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	var product models.Product
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		h.logger.Warn("invalid update JSON", zap.Error(err))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if err := h.service.UpdateProduct(id, &product); err != nil {
 		h.logger.Error("failed to update product", zap.Int("id", id), zap.Error(err))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
 		return
 	}
 
 	h.logger.Info("product updated", zap.Int("id", id))
-	JSONResponse(w, http.StatusOK, "Product updated", nil)
+	utils.JSONResponse(w, http.StatusOK, "Product updated", nil)
 }
 
 // Delete
@@ -193,24 +194,24 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Context().Value("role") != "admin" {
 		h.logger.Warn("unauthorized access to delete product")
-		ErrorJSON(w, http.StatusForbidden, "Access denied")
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
 	}
 
 	idStr := mux.Vars(r)["id"]
-	id, err := parseIntParam(idStr)
+	id, err := utils.ParseIntParam(idStr)
 	if err != nil {
 		h.logger.Warn("invalid product ID for deletion", zap.String("id", idStr))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
 		return
 	}
 
 	if err := h.service.DeleteProduct(id); err != nil {
 		h.logger.Error("failed to delete product", zap.Int("id", id), zap.Error(err))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to delete product")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to delete product")
 		return
 	}
 
 	h.logger.Info("product deleted", zap.Int("id", id))
-	JSONResponse(w, http.StatusOK, "Product deleted", nil)
+	utils.JSONResponse(w, http.StatusOK, "Product deleted", nil)
 }

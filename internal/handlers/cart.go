@@ -3,6 +3,7 @@ package handlers
 import (
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
+	"chechnya-product/internal/utils"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -47,12 +48,12 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	var req AddToCartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid AddToCart request", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid request body")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 	if err := h.service.AddToCart(ownerID, req.ProductID, req.Quantity); err != nil {
 		h.logger.Error("add to cart failed", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusBadRequest, err.Error())
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	h.logger.Info("item added to cart",
@@ -60,7 +61,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 		zap.Int("product_id", req.ProductID),
 		zap.Int("quantity", req.Quantity),
 	)
-	JSONResponse(w, http.StatusCreated, "Added to cart", nil)
+	utils.JSONResponse(w, http.StatusCreated, "Added to cart", nil)
 
 }
 
@@ -77,7 +78,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	items, err := h.service.GetCart(ownerID)
 	if err != nil {
 		h.logger.Error("get cart failed", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to get cart")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to get cart")
 		return
 	}
 
@@ -86,7 +87,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info("cart retrieved", zap.String("owner_id", ownerID), zap.Int("items_count", len(items)))
-	JSONResponse(w, http.StatusOK, "Cart retrieved", items)
+	utils.JSONResponse(w, http.StatusOK, "Cart retrieved", items)
 }
 
 // UpdateItem
@@ -108,12 +109,12 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid UpdateItem request", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 	if err := h.service.UpdateItem(ownerID, productID, req.Quantity); err != nil {
 		h.logger.Warn("update item failed", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusBadRequest, err.Error())
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	h.logger.Info("cart item updated",
@@ -121,7 +122,7 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 		zap.Int("product_id", productID),
 		zap.Int("new_quantity", req.Quantity),
 	)
-	JSONResponse(w, http.StatusOK, "Quantity updated", nil)
+	utils.JSONResponse(w, http.StatusOK, "Quantity updated", nil)
 }
 
 // DeleteItem
@@ -138,7 +139,7 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
 	if err := h.service.DeleteItem(ownerID, productID); err != nil {
 		h.logger.Error("delete item failed", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to delete item")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to delete item")
 		return
 	}
 	h.logger.Info("cart item deleted",
@@ -146,7 +147,7 @@ func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 		zap.Int("product_id", productID),
 	)
 
-	JSONResponse(w, http.StatusOK, "Item deleted", nil)
+	utils.JSONResponse(w, http.StatusOK, "Item deleted", nil)
 
 }
 
@@ -162,10 +163,10 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	if err := h.service.ClearCart(ownerID); err != nil {
 		h.logger.Error("clear cart failed", zap.Error(err), zap.String("owner_id", ownerID))
-		ErrorJSON(w, http.StatusInternalServerError, "Failed to clear cart")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to clear cart")
 		return
 	}
 	h.logger.Info("cart cleared", zap.String("owner_id", ownerID))
 
-	JSONResponse(w, http.StatusOK, "Cart cleared", nil)
+	utils.JSONResponse(w, http.StatusOK, "Cart cleared", nil)
 }

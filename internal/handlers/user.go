@@ -3,6 +3,7 @@ package handlers
 import (
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
+	"chechnya-product/internal/utils"
 	"encoding/json"
 	"net/http"
 
@@ -38,7 +39,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid register JSON", zap.Error(err))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -53,7 +54,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		h.logger.Warn("registration failed", zap.Error(err))
-		ErrorJSON(w, http.StatusBadRequest, err.Error())
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
-	JSONResponse(w, http.StatusCreated, "Registration successful", nil)
+	utils.JSONResponse(w, http.StatusCreated, "Registration successful", nil)
 }
 
 // Login authenticates a user and returns JWT token
@@ -87,7 +88,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid login JSON", zap.Error(err))
-		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -98,15 +99,15 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.logger.Warn("login failed", zap.String("identifier", req.Identifier), zap.Error(err))
 		if err.Error() == "phone not verified" {
-			ErrorJSON(w, http.StatusForbidden, "Please verify your phone number first")
+			utils.ErrorJSON(w, http.StatusForbidden, "Please verify your phone number first")
 		} else {
-			ErrorJSON(w, http.StatusUnauthorized, "Invalid credentials")
+			utils.ErrorJSON(w, http.StatusUnauthorized, "Invalid credentials")
 		}
 		return
 	}
 
 	h.logger.Info("user logged in", zap.String("identifier", req.Identifier))
-	JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
+	utils.JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
 }
 
 // Me returns current user profile
@@ -122,19 +123,19 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		ErrorJSON(w, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorJSON(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	user, err := h.service.GetByID(claims.UserID)
 	if err != nil || user == nil {
 		h.logger.Warn("user not found", zap.Int("user_id", claims.UserID))
-		ErrorJSON(w, http.StatusNotFound, "User not found")
+		utils.ErrorJSON(w, http.StatusNotFound, "User not found")
 		return
 	}
 
 	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("phone", user.Phone))
-	JSONResponse(w, http.StatusOK, "User profile", map[string]interface{}{
+	utils.JSONResponse(w, http.StatusOK, "User profile", map[string]interface{}{
 		"id":         user.ID,
 		"username":   user.Username,
 		"email":      user.Email,

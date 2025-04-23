@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"chechnya-product/internal/utils"
 	"io"
 	"net/http"
 	"os"
@@ -26,11 +27,11 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	file, err := os.Open(h.logPath)
 	if err != nil {
 		h.logger.Error("failed to open log file", zap.Error(err))
-		ErrorJSON(w, http.StatusInternalServerError, "Could not open log file")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Could not open log file")
 		return
 	}
 	defer file.Close()
 
-	JSONResponse(w, http.StatusOK, "Log file", nil)
+	utils.JSONResponse(w, http.StatusOK, "Log file", nil)
 	io.Copy(w, file)
 }

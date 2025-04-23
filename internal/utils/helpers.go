@@ -1,4 +1,4 @@
-package handlers
+package utils
 
 import (
 	"encoding/json"
@@ -32,10 +32,10 @@ func ErrorJSON(w http.ResponseWriter, status int, message string) {
 	})
 }
 
-func formatFloat(f float64) string {
+func FormatFloat(f float64) string {
 	return strconv.FormatFloat(f, 'f', 2, 64)
 }
 
-func parseIntParam(param string) (int, error) {
+func ParseIntParam(param string) (int, error) {
 	return strconv.Atoi(param)
 }

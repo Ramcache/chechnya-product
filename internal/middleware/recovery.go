@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"chechnya-product/internal/handlers"
+	"chechnya-product/internal/utils"
 	"net/http"
 	"runtime/debug"
 
@@ -25,7 +25,7 @@ func RecoveryMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
 						zap.String("stack", string(debug.Stack())),
 					)
 
-					handlers.ErrorJSON(w, http.StatusInternalServerError, "Internal Server Error")
+					utils.ErrorJSON(w, http.StatusInternalServerError, "Internal Server Error")
 				}
 			}()
 
