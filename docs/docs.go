@@ -150,6 +150,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает метрики: заказы, выручка, топ товары, продажи по дням",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Админ / Дэшборд"
+                ],
+                "summary": "Дэшборд администратора",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DashboardData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/logs": {
             "get": {
                 "security": [
@@ -1006,6 +1037,43 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DailySales": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "orders": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.DashboardData": {
+            "type": "object",
+            "properties": {
+                "sales_by_day": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DailySales"
+                    }
+                },
+                "top_products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TopProduct"
+                    }
+                },
+                "total_orders": {
+                    "type": "integer"
+                },
+                "total_revenue": {
+                    "type": "number"
+                }
+            }
+        },
         "models.Order": {
             "type": "object",
             "properties": {
@@ -1045,6 +1113,20 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "stock": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TopProduct": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "sold": {
                     "type": "integer"
                 }
             }

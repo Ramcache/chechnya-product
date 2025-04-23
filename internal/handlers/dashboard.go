@@ -27,7 +27,7 @@ func NewDashboardHandler(service services.DashboardServiceInterface, logger *zap
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} models.DashboardData
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/dashboard [get]
 func (h *DashboardHandler) GetDashboard(w http.ResponseWriter, r *http.Request) {
 	data, err := h.service.GetDashboardData(r.Context())

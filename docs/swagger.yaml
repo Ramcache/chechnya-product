@@ -46,6 +46,30 @@ definitions:
       username:
         type: string
     type: object
+  models.DailySales:
+    properties:
+      date:
+        type: string
+      orders:
+        type: integer
+      revenue:
+        type: number
+    type: object
+  models.DashboardData:
+    properties:
+      sales_by_day:
+        items:
+          $ref: '#/definitions/models.DailySales'
+        type: array
+      top_products:
+        items:
+          $ref: '#/definitions/models.TopProduct'
+        type: array
+      total_orders:
+        type: integer
+      total_revenue:
+        type: number
+    type: object
   models.Order:
     properties:
       createdAt:
@@ -72,6 +96,15 @@ definitions:
       price:
         type: number
       stock:
+        type: integer
+    type: object
+  models.TopProduct:
+    properties:
+      name:
+        type: string
+      product_id:
+        type: integer
+      sold:
         type: integer
     type: object
   services.CartItemResponse:
@@ -196,6 +229,25 @@ paths:
       summary: Обновить категорию
       tags:
       - Категории
+  /api/admin/dashboard:
+    get:
+      description: 'Возвращает метрики: заказы, выручка, топ товары, продажи по дням'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DashboardData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Дэшборд администратора
+      tags:
+      - Админ / Дэшборд
   /api/admin/logs:
     get:
       description: Возвращает содержимое лог-файла (только для администратора)

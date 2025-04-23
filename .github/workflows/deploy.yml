@@ -31,6 +31,16 @@ jobs:
           ls -al
           echo "📁 Содержимое папки migrations:"
           ls -al migrations
+      - name: 🔍 Проверка файлов перед копированием
+        run: |
+          echo "✅ Ожидаемые файлы:"
+          ls -al
+          echo ""
+          echo "📁 migrations:"
+          ls -al migrations || echo "❌ migrations не найдена"
+          echo ""
+          echo "📦 main:"
+          [ -f main ] && echo "✅ main найден" || echo "❌ main не найден"
 
       - name: 📤 Copy binary and migrations
         uses: appleboy/scp-action@v0.1.7
