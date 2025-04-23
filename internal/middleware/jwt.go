@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/utils"
 	"context"
 	"net/http"
@@ -13,14 +14,14 @@ func JWTMiddleware(jwt utils.JWTManagerInterface) func(http.Handler) http.Handle
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			auth := r.Header.Get("Authorization")
 			if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-				http.Error(w, "Missing or invalid Authorization header", http.StatusUnauthorized)
+				handlers.ErrorJSON(w, http.StatusUnauthorized, "Missing or invalid Authorization header")
 				return
 			}
 
 			tokenStr := strings.TrimPrefix(auth, "Bearer ")
 			claims, err := jwt.Verify(tokenStr)
 			if err != nil {
-				http.Error(w, "Invalid token", http.StatusUnauthorized)
+				handlers.ErrorJSON(w, http.StatusUnauthorized, "Invalid token")
 				return
 			}
 
@@ -35,7 +36,7 @@ func OnlyAdmin() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims := GetUserClaims(r)
 			if claims == nil || claims.Role != "admin" {
-				http.Error(w, "Access denied", http.StatusForbidden)
+				handlers.ErrorJSON(w, http.StatusForbidden, "Access denied")
 				return
 			}
 			next.ServeHTTP(w, r)

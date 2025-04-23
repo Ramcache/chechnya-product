@@ -38,14 +38,12 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid register JSON", zap.Error(err))
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	// 👇 сохраняем старый guest ID до регистрации
 	oldOwnerID := middleware.GetOwnerID(w, r)
 
-	// 🧾 создаём пользователя
 	user, err := h.service.Register(services.RegisterRequest{
 		Phone:    req.Phone,
 		Password: req.Password,
@@ -55,17 +53,14 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		h.logger.Warn("registration failed", zap.Error(err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// ✅ переносим корзину на новый owner_id
-	newOwnerID := user.OwnerID
-	if cartErr := h.service.TransferCart(oldOwnerID, newOwnerID); cartErr != nil {
-		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", newOwnerID), zap.Error(cartErr))
+	if cartErr := h.service.TransferCart(oldOwnerID, user.OwnerID); cartErr != nil {
+		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
 	}
 
-	// 🧹 удаляем старый owner_id из куки
 	http.SetCookie(w, &http.Cookie{
 		Name:   middleware.OwnerCookieName,
 		Value:  "",
@@ -73,10 +68,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	})
 
-	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", newOwnerID))
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Registration successful"))
+	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
+	JSONResponse(w, http.StatusCreated, "Registration successful", nil)
 }
 
 // Login authenticates a user and returns JWT token
@@ -94,31 +87,26 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid login JSON", zap.Error(err))
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	identifier := req.Identifier
-	password := req.Password
-
-	// Вызов сервиса логина
 	token, err := h.service.Login(services.LoginRequest{
-		Identifier: identifier,
-		Password:   password,
+		Identifier: req.Identifier,
+		Password:   req.Password,
 	})
 	if err != nil {
-		h.logger.Warn("login failed", zap.String("identifier", identifier), zap.Error(err))
-
+		h.logger.Warn("login failed", zap.String("identifier", req.Identifier), zap.Error(err))
 		if err.Error() == "phone not verified" {
-			http.Error(w, "Please verify your phone number first", http.StatusForbidden)
+			ErrorJSON(w, http.StatusForbidden, "Please verify your phone number first")
 		} else {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			ErrorJSON(w, http.StatusUnauthorized, "Invalid credentials")
 		}
 		return
 	}
 
-	h.logger.Info("user logged in", zap.String("identifier", identifier))
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	h.logger.Info("user logged in", zap.String("identifier", req.Identifier))
+	JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
 }
 
 // Me returns current user profile
@@ -134,19 +122,19 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		ErrorJSON(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
+
 	user, err := h.service.GetByID(claims.UserID)
 	if err != nil || user == nil {
 		h.logger.Warn("user not found", zap.Int("user_id", claims.UserID))
-		http.Error(w, "User not found", http.StatusNotFound)
+		ErrorJSON(w, http.StatusNotFound, "User not found")
 		return
 	}
 
 	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("phone", user.Phone))
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	JSONResponse(w, http.StatusOK, "User profile", map[string]interface{}{
 		"id":         user.ID,
 		"username":   user.Username,
 		"email":      user.Email,

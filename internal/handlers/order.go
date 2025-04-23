@@ -4,7 +4,6 @@ import (
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
 	"encoding/csv"
-	"encoding/json"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
@@ -40,12 +39,12 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.PlaceOrder(ownerID); err != nil {
 		h.logger.Warn("failed to place order", zap.String("owner_id", ownerID), zap.Error(err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		ErrorJSON(w, http.StatusBadRequest, "Failed to place order")
 		return
 	}
 
 	h.logger.Info("order placed", zap.String("owner_id", ownerID))
-	w.Write([]byte("Order placed successfully"))
+	JSONResponse(w, http.StatusOK, "Order placed successfully", nil)
 }
 
 // GetUserOrders
@@ -62,12 +61,12 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetOrders(ownerID)
 	if err != nil {
 		h.logger.Error("failed to get user orders", zap.String("owner_id", ownerID), zap.Error(err))
-		http.Error(w, "Failed to fetch user orders", http.StatusInternalServerError)
+		ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch user orders")
 		return
 	}
 
 	h.logger.Info("user orders retrieved", zap.String("owner_id", ownerID), zap.Int("orders_count", len(orders)))
-	writeJSON(w, orders)
+	JSONResponse(w, http.StatusOK, "User orders retrieved", orders)
 }
 
 // GetAllOrders
@@ -83,12 +82,12 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
 	if err != nil {
 		h.logger.Error("failed to get all orders", zap.Error(err))
-		http.Error(w, "Failed to fetch all orders", http.StatusInternalServerError)
+		ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch all orders")
 		return
 	}
 
 	h.logger.Info("all orders retrieved", zap.Int("orders_count", len(orders)))
-	writeJSON(w, orders)
+	JSONResponse(w, http.StatusOK, "All orders retrieved", orders)
 }
 
 // ExportOrdersCSV
@@ -104,7 +103,7 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	orders, err := h.service.GetAllOrders()
 	if err != nil {
 		h.logger.Error("failed to export orders to CSV", zap.Error(err))
-		http.Error(w, "Failed to fetch orders", http.StatusInternalServerError)
+		ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch orders")
 		return
 	}
 
@@ -126,13 +125,4 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 			order.CreatedAt.Format(time.RFC3339),
 		})
 	}
-}
-
-func writeJSON(w http.ResponseWriter, data any) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-}
-
-func formatFloat(f float64) string {
-	return strconv.FormatFloat(f, 'f', 2, 64)
 }

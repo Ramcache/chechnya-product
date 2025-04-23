@@ -26,11 +26,11 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	file, err := os.Open(h.logPath)
 	if err != nil {
 		h.logger.Error("failed to open log file", zap.Error(err))
-		http.Error(w, "Could not read logs", http.StatusInternalServerError)
+		ErrorJSON(w, http.StatusInternalServerError, "Could not open log file")
 		return
 	}
 	defer file.Close()
 
-	w.Header().Set("Content-Type", "text/plain")
+	JSONResponse(w, http.StatusOK, "Log file", nil)
 	io.Copy(w, file)
 }
