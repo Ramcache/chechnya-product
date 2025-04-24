@@ -40,9 +40,11 @@ func GetOwnerID(w http.ResponseWriter, r *http.Request) string {
 // setOwnerCookie сохраняет owner_id в cookie
 func setOwnerCookie(w http.ResponseWriter, value string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:  OwnerCookieName,
-		Value: value,
-		Path:  "/",
+		Name:     OwnerCookieName,
+		Value:    value,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
 }
 

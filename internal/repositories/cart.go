@@ -4,7 +4,6 @@ import (
 	"chechnya-product/internal/models"
 	"database/sql"
 	"errors"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -80,8 +79,8 @@ func (r *CartRepo) DeleteItem(ownerID string, productID int) error {
 
 func (r *CartRepo) ClearCart(ownerID string) error {
 	_, err := r.db.Exec(`
-		DELETE FROM cart_items
-		WHERE owner_id = $1
+	DELETE FROM cart_items
+	WHERE owner_id = $1
 	`, ownerID)
 	return err
 }

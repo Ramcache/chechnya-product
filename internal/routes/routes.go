@@ -31,9 +31,9 @@ func RegisterPublicRoutes(
 	// Корзина
 	public.HandleFunc("/cart", cart.AddToCart).Methods(http.MethodPost)
 	public.HandleFunc("/cart", cart.GetCart).Methods(http.MethodGet)
+	public.HandleFunc("/cart/clear", cart.ClearCart).Methods(http.MethodDelete)
 	public.HandleFunc("/cart/{product_id}", cart.UpdateItem).Methods(http.MethodPut)
 	public.HandleFunc("/cart/{product_id}", cart.DeleteItem).Methods(http.MethodDelete)
-	public.HandleFunc("/cart/clear", cart.ClearCart).Methods(http.MethodDelete)
 
 	// Заказы
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)

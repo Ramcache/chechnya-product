@@ -104,6 +104,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
+
 	var req struct {
 		Quantity int `json:"quantity"`
 	}
@@ -136,19 +137,27 @@ func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 // @Router /api/cart/{product_id} [delete]
 func (h *CartHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
-	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
+
+	productIDStr := mux.Vars(r)["product_id"]
+	productID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		h.logger.Warn("invalid product_id", zap.String("raw", productIDStr))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		return
+	}
+
 	if err := h.service.DeleteItem(ownerID, productID); err != nil {
 		h.logger.Error("delete item failed", zap.Error(err), zap.String("owner_id", ownerID))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to delete item")
 		return
 	}
+
 	h.logger.Info("cart item deleted",
 		zap.String("owner_id", ownerID),
 		zap.Int("product_id", productID),
 	)
 
 	utils.JSONResponse(w, http.StatusOK, "Item deleted", nil)
-
 }
 
 // ClearCart
