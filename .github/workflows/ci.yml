@@ -1,0 +1,28 @@
+name: CI - Go App Docker Build
+
+on:
+  push:
+    branches:
+      - develop
+      - feature/**
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run Go tests
+        run: |
+          go test ./...
+
+      - name: Docker build
+        run: |
+          docker build -t chechnya-api:latest .

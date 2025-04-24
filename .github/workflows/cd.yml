@@ -1,0 +1,47 @@
+name: CD - Deploy Go App with Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t chechnya-api:latest .
+
+      - name: Save Docker image
+        run: |
+          docker save chechnya-api:latest -o chechnya-api.tar
+
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "chechnya-api.tar,docker-compose.yml,.env,migrations"
+          target: "/chechnya-product/"
+
+      - name: Load Docker image & restart container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /chechnya-product
+            
+            # Load Docker image
+            docker load -i chechnya-api.tar
+
+            # Перезапускаем приложение с новой версией образа
+            docker-compose down
+            docker-compose up -d
