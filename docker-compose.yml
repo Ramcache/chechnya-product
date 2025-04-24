@@ -20,7 +20,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["./main", "migrate"]
+    command: ["migrate"]  # <-- теперь будет передано в ./main
     env_file:
       - .env
     volumes:

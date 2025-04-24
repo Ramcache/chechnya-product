@@ -8,10 +8,10 @@ RUN go mod download
 
 COPY . .
 
-# 🛠 добавляем ОС-сборку
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -o main ./cmd/api
 
+# ------------------- Runtime -------------------
 FROM alpine:latest
 
 WORKDIR /app
@@ -19,4 +19,6 @@ WORKDIR /app
 COPY --from=builder /app/main .
 COPY migrations ./migrations
 
-CMD ["./main"]
+# 🧠 Убедимся, что передаются аргументы из docker-compose
+ENTRYPOINT ["/bin/sh", "-c", "./main $0 $@"]
+CMD [""]
