@@ -20,8 +20,9 @@ jobs:
       - name: Save Docker image
         run: |
           docker save chechnya-api:latest -o chechnya-api.tar
+          chmod 644 chechnya-api.tar  # <-- Добавляем права доступа
 
-      - name: Copy Docker image to server
+      - name: Copy Docker image and configs to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -38,10 +39,12 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /chechnya-product
-            
-            # Load Docker image
+
+            echo "📦 Загрузка Docker-образа..."
             docker load -i chechnya-api.tar
 
-            # Перезапускаем приложение с новой версией образа
+            echo "🔁 Перезапуск контейнеров..."
             docker-compose down
             docker-compose up -d
+
+            echo "✅ Готово!"
