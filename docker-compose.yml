@@ -16,6 +16,19 @@ services:
     volumes:
       - ./migrations:/app/migrations
 
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["./main", "migrate"]
+    env_file:
+      - .env
+    volumes:
+      - ./migrations:/app/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     container_name: postgres
     image: postgres:15

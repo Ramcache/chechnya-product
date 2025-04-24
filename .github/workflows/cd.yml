@@ -20,7 +20,7 @@ jobs:
       - name: Save Docker image
         run: |
           docker save chechnya-api:latest -o chechnya-api.tar
-          chmod 644 chechnya-api.tar  # <-- Добавляем права доступа
+          chmod 644 chechnya-api.tar
 
       - name: Copy Docker image and configs to server
         uses: appleboy/scp-action@v0.1.7
@@ -31,7 +31,7 @@ jobs:
           source: "chechnya-api.tar,docker-compose.yml,.env,migrations,Dockerfile"
           target: "/chechnya-product/"
 
-      - name: Load Docker image & restart container
+      - name: Load Docker image, apply migrations & restart app
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -40,11 +40,16 @@ jobs:
           script: |
             cd /chechnya-product
 
-            echo "📦 Загрузка Docker-образа..."
+            echo "📦 Загружаем Docker-образ..."
             docker load -i chechnya-api.tar
 
-            echo "🔁 Перезапуск контейнеров..."
+            echo "🧹 Останавливаем старые контейнеры..."
             docker-compose down
-            docker-compose up -d
+
+            echo "🧬 Запускаем миграции..."
+            docker-compose run --rm migrate
+
+            echo "🚀 Запускаем сервер..."
+            docker-compose up -d app
 
             echo "✅ Готово!"
