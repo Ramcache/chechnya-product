@@ -1,11 +1,14 @@
 package services
 
-import "chechnya-product/internal/repositories"
+import (
+	"chechnya-product/internal/models"
+	"chechnya-product/internal/repositories"
+)
 
 type CategoryServiceInterface interface {
-	GetAll() ([]string, error)
-	Create(name string) error
-	Update(id int, name string) error
+	GetAll() ([]models.Category, error)
+	Create(name string, sortOrder int) error
+	Update(id int, name string, sortOrder int) error
 	Delete(id int) error
 }
 
@@ -17,25 +20,16 @@ func NewCategoryService(repo repositories.CategoryRepository) *CategoryService {
 	return &CategoryService{repo: repo}
 }
 
-func (s *CategoryService) GetAll() ([]string, error) {
-	categories, err := s.repo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-
-	names := make([]string, 0)
-	for _, c := range categories {
-		names = append(names, c.Name)
-	}
-	return names, nil
+func (s *CategoryService) GetAll() ([]models.Category, error) {
+	return s.repo.GetAll()
 }
 
-func (s *CategoryService) Create(name string) error {
-	return s.repo.Create(name)
+func (s *CategoryService) Create(name string, sortOrder int) error {
+	return s.repo.Create(name, sortOrder)
 }
 
-func (s *CategoryService) Update(id int, name string) error {
-	return s.repo.Update(id, name)
+func (s *CategoryService) Update(id int, name string, sortOrder int) error {
+	return s.repo.Update(id, name, sortOrder)
 }
 
 func (s *CategoryService) Delete(id int) error {

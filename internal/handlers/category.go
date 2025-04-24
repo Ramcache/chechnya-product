@@ -59,19 +59,20 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Router /api/admin/categories [post]
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Name string `json:"name"`
+		Name      string `json:"name"`
+		SortOrder int    `json:"sortOrder"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		h.logger.Warn("invalid category creation request", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Create(body.Name); err != nil {
+	if err := h.service.Create(body.Name, body.SortOrder); err != nil {
 		h.logger.Warn("failed to create category", zap.String("name", body.Name), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category created", zap.String("name", body.Name))
+	h.logger.Info("category created", zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
 	utils.JSONResponse(w, http.StatusCreated, "Category created", nil)
 }
 
@@ -90,19 +91,20 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	var body struct {
-		Name string `json:"name"`
+		Name      string `json:"name"`
+		SortOrder int    `json:"sortOrder"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		h.logger.Warn("invalid update request", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Update(id, body.Name); err != nil {
+	if err := h.service.Update(id, body.Name, body.SortOrder); err != nil {
 		h.logger.Warn("failed to update category", zap.Int("id", id), zap.String("name", body.Name), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name))
+	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
 	utils.JSONResponse(w, http.StatusOK, "Category updated", nil)
 }
 
