@@ -28,7 +28,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "chechnya-api.tar,docker-compose.yml,.env,migrations"
+          source: "chechnya-api.tar,docker-compose.yml,.env,migrations,Dockerfile"
           target: "/chechnya-product/"
 
       - name: Load Docker image & restart container
