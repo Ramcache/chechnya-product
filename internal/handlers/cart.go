@@ -103,7 +103,13 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 // @Router /api/cart/{product_id} [put]
 func (h *CartHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
-	productID, _ := strconv.Atoi(mux.Vars(r)["product_id"])
+	productIDStr := mux.Vars(r)["product_id"]
+	productID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		h.logger.Warn("invalid product_id", zap.String("raw", productIDStr))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		return
+	}
 
 	var req struct {
 		Quantity int `json:"quantity"`
