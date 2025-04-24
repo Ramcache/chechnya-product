@@ -145,3 +145,4 @@
 {"level":"INFO","time":"2025-04-24T12:55:20.977+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/cart","ip":"[::1]:61668","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":1924900}
 {"level":"FATAL","time":"2025-04-24T20:11:14.686+0300","caller":"api/main.go:31","message":"Failed to connect to database","error":"dial tcp: lookup db: no such host"}
 {"level":"INFO","time":"2025-04-24T20:13:53.484+0300","caller":"api/main.go:42","message":"Server is running","port":"8080"}
+{"level":"FATAL","time":"2025-04-24T22:05:24.609+0300","caller":"api/main.go:32","message":"Failed to connect to database","error":"dial tcp: lookup db: no such host"}

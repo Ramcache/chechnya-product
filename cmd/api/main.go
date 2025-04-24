@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -32,9 +33,14 @@ func main() {
 	}
 	defer dbConn.Close()
 
-	// 🐥 Применяем миграции через goose
-	if err := goose.Up(dbConn.DB, "migrations"); err != nil {
-		logger.Fatal("Failed to apply migrations", zap.Error(err))
+	// ✅ Проверка аргументов
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		logger.Sugar().Info("Running goose migrations...")
+		if err := goose.Up(dbConn.DB, "migrations"); err != nil {
+			logger.Fatal("Failed to apply migrations", zap.Error(err))
+		}
+		logger.Sugar().Info("Migrations completed.")
+		return
 	}
 
 	// 🚀 Запуск сервера
