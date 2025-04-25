@@ -83,6 +83,21 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 
+		case msg := <-h.broadcastCh:
+			data, _ := json.Marshal(msg)
+			h.mu.Lock()
+			for client := range h.clients {
+				select {
+				case client.Send <- data:
+				default:
+					close(client.Send)
+					delete(h.clients, client)
+					client.Conn.Close()
+				}
+			}
+			h.mu.Unlock()
+			h.logger.Info("Broadcast order message", zap.String("type", msg.Type), zap.Int("order_id", msg.Order.ID))
+
 		case msg := <-h.broadcastAnnouncements:
 			data, _ := json.Marshal(msg)
 			h.mu.Lock()
@@ -97,7 +112,6 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 			h.logger.Info("Broadcast announcement", zap.String("title", msg.Announcement.Title))
-
 		}
 	}
 }
@@ -114,5 +128,12 @@ func (h *Hub) BroadcastAnnouncement(announcement models.Announcement) {
 	h.broadcastAnnouncements <- AnnouncementMessage{
 		Type:         "announcement",
 		Announcement: announcement,
+	}
+}
+
+func (h *Hub) BroadcastStatusUpdate(order models.Order) {
+	h.broadcastCh <- OrderMessage{
+		Type:  "status_update",
+		Order: order,
 	}
 }

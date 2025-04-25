@@ -259,3 +259,4 @@
 {"level":"INFO","time":"2025-04-25T14:55:39.186+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
 {"level":"INFO","time":"2025-04-25T15:22:24.693+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
 {"level":"INFO","time":"2025-04-25T15:30:35.723+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T17:18:25.177+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}

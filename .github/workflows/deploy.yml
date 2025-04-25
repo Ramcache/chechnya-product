@@ -33,7 +33,7 @@ jobs:
           source: "main,migrations"
           target: /chechnya-product/
 
-      - name: 🧬 Run migrations and restart app
+      - name: 🧬 Run Goose migrations and restart app
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -42,8 +42,9 @@ jobs:
           envs: DB_URL
           script: |
             cd /chechnya-product
-            echo "⏫ Running migrations..."
-            migrate -path ./migrations -database "$DB_URL" up
+
+            echo "⏫ Running Goose migrations..."
+            goose -dir ./migrations postgres "$DB_URL" up
 
             echo "🔁 Restarting app..."
             pkill main || true
