@@ -37,7 +37,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	// --- Services ---
 	cartService := services.NewCartService(cartRepo, productRepo)
 	userService := services.NewUserService(userRepo, jwtManager, cartService)
-	productService := services.NewProductService(productRepo)
+	productService := services.NewProductService(productRepo, logger)
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo)
 	dashboardService := services.NewDashboardService(dashboardRepo)

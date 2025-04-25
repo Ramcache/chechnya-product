@@ -19,6 +19,7 @@ type ProductHandlerInterface interface {
 	Add(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
+	AddBulk(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -42,7 +43,7 @@ func NewProductHandler(service services.ProductServiceInterface, logger *zap.Log
 // @Param sort query string false "Сортировка"
 // @Param limit query int false "Ограничение количества результатов"
 // @Param offset query int false "Сдвиг для пагинации"
-// @Success 200 {array} models.Product
+// @Success 200 {array} models.ProductResponse
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +63,6 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")
 		return
 	}
-
 	h.logger.Info("products fetched", zap.Int("count", len(products)))
 	utils.JSONResponse(w, http.StatusOK, "Products fetched", products)
 }
@@ -73,7 +73,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Tags Товар
 // @Produce json
 // @Param id path int true "ID товара"
-// @Success 200 {object} models.Product
+// @Success 200 {object} models.ProductResponse
 // @Failure 400 {object} utils.ErrorResponse
 // @Failure 404 {object} utils.ErrorResponse
 // @Router /api/products/{id} [get]
@@ -144,7 +144,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 // @Produce plain
 // @Param id path int true "ID товара"
 // @Param input body models.Product true "Новые данные товара"
-// @Success 200 {string} string "Product updated"
+// @Success 200 {object} models.ProductResponse
 // @Failure 400 {object} utils.ErrorResponse
 // @Failure 403 {object} utils.ErrorResponse
 // @Failure 500 {object} utils.ErrorResponse
@@ -172,14 +172,15 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateProduct(id, &product); err != nil {
+	response, err := h.service.UpdateProduct(id, &product)
+	if err != nil {
 		h.logger.Error("failed to update product", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
 		return
 	}
 
 	h.logger.Info("product updated", zap.Int("id", id))
-	utils.JSONResponse(w, http.StatusOK, "Product updated", nil)
+	utils.JSONResponse(w, http.StatusOK, "Product updated", response)
 }
 
 // Delete
@@ -218,4 +219,44 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("product deleted", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Product deleted", nil)
+}
+
+// AddBulk
+// @Summary Массовое добавление товаров (админ)
+// @Description Добавляет несколько товаров сразу (только для администратора)
+// @Tags Товар
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param input body []models.Product true "Массив товаров"
+// @Success 201 {array} models.ProductResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 403 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/admin/products/bulk [post]
+func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil || claims.Role != "admin" {
+		h.logger.Warn("unauthorized access to bulk add products")
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
+		return
+	}
+
+	var products []models.Product
+	if err := json.NewDecoder(r.Body).Decode(&products); err != nil || len(products) == 0 {
+		h.logger.Warn("invalid bulk product JSON", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON or empty array")
+		return
+	}
+
+	responses, err := h.service.AddProductsBulk(products)
+	if err != nil {
+		h.logger.Error("failed to bulk add products", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to add products")
+		return
+	}
+
+	h.logger.Info("bulk products added", zap.Int("count", len(responses)))
+	utils.JSONResponse(w, http.StatusCreated, "Products added", responses)
+
 }

@@ -9,6 +9,7 @@ import (
 )
 
 type ProductRepository interface {
+	BeginTx() (*sqlx.Tx, error)
 	GetAll() ([]models.Product, error)
 	Create(product *models.Product) error
 	Delete(id int) error
@@ -17,6 +18,14 @@ type ProductRepository interface {
 	DecreaseStock(id int, quantity int) error
 	GetFiltered(search, category string, minPrice, maxPrice float64, limit, offset int, sort string) ([]models.Product, error)
 	GetCategories() ([]string, error)
+	GetCategoryNameByID(categoryID int) (string, error)
+	GetByName(name string) (*models.Product, error)
+	AddStock(id, additionalStock int) error
+	CreateTx(tx *sqlx.Tx, p *models.Product) error
+	AddStockTx(tx *sqlx.Tx, id, amount int) error
+	GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error)
+	GetByIDTx(tx *sqlx.Tx, id int) (*models.Product, error)
+	GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string, error)
 }
 
 type ProductRepo struct {
@@ -25,6 +34,10 @@ type ProductRepo struct {
 
 func NewProductRepo(db *sqlx.DB) *ProductRepo {
 	return &ProductRepo{db: db}
+}
+
+func (r *ProductRepo) BeginTx() (*sqlx.Tx, error) {
+	return r.db.Beginx()
 }
 
 func (r *ProductRepo) GetAll() ([]models.Product, error) {
@@ -40,8 +53,16 @@ func (r *ProductRepo) Create(product *models.Product) error {
 	query := `
 		INSERT INTO products (name, description, price, stock, category_id)
 		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
 	`
-	_, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID)
+	err := r.db.QueryRow(query,
+		product.Name,
+		product.Description,
+		product.Price,
+		product.Stock,
+		product.CategoryID,
+	).Scan(&product.ID)
+
 	if err != nil {
 		return fmt.Errorf("failed to create product: %w", err)
 	}
@@ -178,4 +199,59 @@ func (r *ProductRepo) GetCategories() ([]string, error) {
 		return nil, fmt.Errorf("failed to fetch categories: %w", err)
 	}
 	return names, nil
+}
+
+func (r *ProductRepo) GetCategoryNameByID(categoryID int) (string, error) {
+	var name string
+	err := r.db.Get(&name, `SELECT name FROM categories WHERE id = $1`, categoryID)
+	return name, err
+}
+
+func (r *ProductRepo) GetByName(name string) (*models.Product, error) {
+	var product models.Product
+	err := r.db.Get(&product, `SELECT * FROM products WHERE name = $1`, name)
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
+}
+
+func (r *ProductRepo) AddStock(id, additionalStock int) error {
+	_, err := r.db.Exec(`UPDATE products SET stock = stock + $1 WHERE id = $2`, additionalStock, id)
+	return err
+}
+
+func (r *ProductRepo) CreateTx(tx *sqlx.Tx, p *models.Product) error {
+	query := `INSERT INTO products (name, description, price, stock, category_id)
+			  VALUES ($1, $2, $3, $4, $5)
+			  RETURNING id`
+	return tx.QueryRow(query, p.Name, p.Description, p.Price, p.Stock, p.CategoryID).Scan(&p.ID)
+}
+
+func (r *ProductRepo) AddStockTx(tx *sqlx.Tx, id, amount int) error {
+	_, err := tx.Exec(`UPDATE products SET stock = stock + $1 WHERE id = $2`, amount, id)
+	return err
+}
+
+func (r *ProductRepo) GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error) {
+	var p models.Product
+	err := tx.Get(&p, `SELECT * FROM products WHERE name = $1`, name)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *ProductRepo) GetByIDTx(tx *sqlx.Tx, id int) (*models.Product, error) {
+	var p models.Product
+	err := tx.Get(&p, `SELECT * FROM products WHERE id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+func (r *ProductRepo) GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string, error) {
+	var name string
+	err := tx.Get(&name, `SELECT name FROM categories WHERE id = $1`, categoryID)
+	return name, err
 }

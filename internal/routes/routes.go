@@ -66,6 +66,8 @@ func RegisterAdminRoutes(
 
 	// Управление товарами
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)
+	admin.HandleFunc("/products/bulk", product.AddBulk).Methods(http.MethodPost)
+
 	admin.HandleFunc("/products/{id}", product.Update).Methods(http.MethodPut)
 	admin.HandleFunc("/products/{id}", product.Delete).Methods(http.MethodDelete)
 
