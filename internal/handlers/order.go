@@ -19,6 +19,8 @@ type OrderHandlerInterface interface {
 	GetAllOrders(w http.ResponseWriter, r *http.Request)
 	ExportOrdersCSV(w http.ResponseWriter, r *http.Request)
 	UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
+	RepeatOrder(w http.ResponseWriter, r *http.Request)
+	GetOrderHistory(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -163,4 +165,43 @@ func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 
 	h.logger.Info("order status updated", zap.Int("order_id", id), zap.String("status", body.Status))
 	utils.JSONResponse(w, http.StatusOK, "Order status updated", nil)
+}
+
+// RepeatOrder
+// @Summary Повторить заказ
+// @Tags Заказ
+// @Security BearerAuth
+// @Param id path int true "ID заказа"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /api/orders/{id}/repeat [post]
+func (h *OrderHandler) RepeatOrder(w http.ResponseWriter, r *http.Request) {
+	ownerID := middleware.GetOwnerID(w, r)
+	orderID, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	if err := h.service.RepeatOrder(orderID, ownerID); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Order repeated — items added to cart", nil)
+}
+
+// GetOrderHistory
+// @Summary История заказов пользователя
+// @Tags Заказ
+// @Produce json
+// @Success 200 {array} models.OrderWithItems
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/orders/history [get]
+func (h *OrderHandler) GetOrderHistory(w http.ResponseWriter, r *http.Request) {
+	ownerID := middleware.GetOwnerID(w, r)
+
+	orders, err := h.service.GetOrderHistory(ownerID)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch history")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Order history retrieved", orders)
 }

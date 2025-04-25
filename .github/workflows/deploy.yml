@@ -44,8 +44,8 @@ jobs:
             cd /chechnya-product
 
             echo "⏫ Running Goose migrations..."
-            goose -dir ./migrations postgres "$DB_URL" up
-
+            /root/go/bin/goose -dir ./migrations postgres "$DB_URL" up
+  
             echo "🔁 Restarting app..."
             pkill main || true
             nohup ./main > main.log 2>&1 &
