@@ -1,39 +1,16 @@
-name: 🚀 Go App CI/CD
+name: 🚀 Deploy Go App
 
 on:
   push:
     branches:
-      - develop
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-
-    steps:
-      - name: 📥 Checkout repo
-        uses: actions/checkout@v3
-
-      - name: 🛠 Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-
-      - name: 🔨 Build Go app
-        run: |
-          cd cmd/api
-          go build -o ../../main
-          cd ../../
-          echo "✅ Build success!"
-
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: build
 
     steps:
-      - name: 📥 Checkout repo
+      - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
       - name: 🛠 Set up Go
@@ -41,13 +18,13 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: 🔨 Build Go app
+      - name: 🔨 Build the app
         run: |
           cd cmd/api
           go build -o ../../main
           cd ../../
 
-      - name: 📤 Copy binary and migrations
+      - name: 📤 Upload binary and migrations
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -56,7 +33,7 @@ jobs:
           source: "main,migrations"
           target: /chechnya-product/
 
-      - name: 🧬 Run migrations & restart app
+      - name: 🧬 Run migrations and restart app
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -65,7 +42,6 @@ jobs:
           envs: DB_URL
           script: |
             cd /chechnya-product
-
             echo "⏫ Running migrations..."
             migrate -path ./migrations -database "$DB_URL" up
 
