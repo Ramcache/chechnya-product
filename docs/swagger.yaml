@@ -98,6 +98,23 @@ definitions:
       stock:
         type: integer
     type: object
+  models.ProductResponse:
+    properties:
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+    type: object
   models.TopProduct:
     properties:
       name:
@@ -124,6 +141,8 @@ definitions:
     properties:
       name:
         type: string
+      sortOrder:
+        type: integer
     type: object
   utils.ErrorResponse:
     properties:
@@ -227,6 +246,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновить категорию
+      tags:
+      - Категории
+  /api/admin/categories/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет несколько категорий сразу (только для администратора)
+      parameters:
+      - description: Список категорий
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/utils.CategoryRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Categories created
+          schema:
+            type: string
+        "400":
+          description: Invalid body
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Массовое создание категорий
       tags:
       - Категории
   /api/admin/dashboard:
@@ -396,9 +445,9 @@ paths:
       - text/plain
       responses:
         "200":
-          description: Product updated
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/models.ProductResponse'
         "400":
           description: Bad Request
           schema:
@@ -414,6 +463,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновить товар (админ)
+      tags:
+      - Товар
+  /api/admin/products/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет несколько товаров сразу (только для администратора)
+      parameters:
+      - description: Массив товаров
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.Product'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Массовое добавление товаров (админ)
       tags:
       - Товар
   /api/cart:
@@ -677,7 +766,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Product'
+              $ref: '#/definitions/models.ProductResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -701,7 +790,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Product'
+            $ref: '#/definitions/models.ProductResponse'
         "400":
           description: Bad Request
           schema:

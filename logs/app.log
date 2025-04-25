@@ -154,3 +154,14 @@
 {"level":"INFO","time":"2025-04-25T10:43:30.330+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:64872","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":9715200}
 {"level":"INFO","time":"2025-04-25T10:43:45.917+0300","caller":"handlers/category.go:46","message":"categories fetched","count":2}
 {"level":"INFO","time":"2025-04-25T10:43:45.918+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/categories","ip":"[::1]:64872","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":4993900}
+{"level":"INFO","time":"2025-04-25T11:02:59.554+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T11:04:19.492+0300","caller":"handlers/product.go:258","message":"bulk products added","count":3}
+{"level":"INFO","time":"2025-04-25T11:04:19.495+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/products/bulk","ip":"[::1]:49970","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":69687800}
+{"level":"INFO","time":"2025-04-25T11:04:35.843+0300","caller":"handlers/product.go:66","message":"products fetched","count":3}
+{"level":"INFO","time":"2025-04-25T11:04:35.844+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products","ip":"[::1]:49970","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":17752100}
+{"level":"INFO","time":"2025-04-25T11:07:11.852+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T11:07:20.969+0300","caller":"handlers/product.go:259","message":"bulk products added","count":3}
+{"level":"INFO","time":"2025-04-25T11:07:20.970+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/products/bulk","ip":"[::1]:50516","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":79535900}
+{"level":"INFO","time":"2025-04-25T11:07:32.763+0300","caller":"handlers/product.go:259","message":"bulk products added","count":3}
+{"level":"INFO","time":"2025-04-25T11:07:32.763+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/products/bulk","ip":"[::1]:50516","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":8412200}
+{"level":"INFO","time":"2025-04-25T11:19:37.977+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
