@@ -3,7 +3,6 @@ package app
 import (
 	"chechnya-product/config"
 	_ "chechnya-product/docs"
-	"chechnya-product/internal/db"
 	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/repositories"
@@ -12,6 +11,7 @@ import (
 	"chechnya-product/internal/utils"
 	"chechnya-product/internal/ws"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
@@ -19,13 +19,7 @@ import (
 	"time"
 )
 
-func NewServer(cfg *config.Config, logger *zap.Logger) *http.Server {
-	dbConn, err := db.NewPostgresDB(cfg)
-	if err != nil {
-		logger.Fatal("Failed to connect to database", zap.Error(err))
-	}
-	// 💡 ты можешь обернуть dbConn.Close() через defer в main, если захочешь.
-
+func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Server {
 	hub := ws.NewHub(logger)
 	go hub.Run()
 

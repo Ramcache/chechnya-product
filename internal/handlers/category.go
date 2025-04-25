@@ -16,6 +16,7 @@ type CategoryHandlerInterface interface {
 	Create(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
+	CreateBulk(w http.ResponseWriter, r *http.Request)
 }
 
 type CategoryHandler struct {
@@ -59,19 +60,20 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Router /api/admin/categories [post]
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Name string `json:"name"`
+		Name      string `json:"name"`
+		SortOrder int    `json:"sortOrder"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		h.logger.Warn("invalid category creation request", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Create(body.Name); err != nil {
+	if err := h.service.Create(body.Name, body.SortOrder); err != nil {
 		h.logger.Warn("failed to create category", zap.String("name", body.Name), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category created", zap.String("name", body.Name))
+	h.logger.Info("category created", zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
 	utils.JSONResponse(w, http.StatusCreated, "Category created", nil)
 }
 
@@ -90,19 +92,20 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	var body struct {
-		Name string `json:"name"`
+		Name      string `json:"name"`
+		SortOrder int    `json:"sortOrder"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		h.logger.Warn("invalid update request", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Update(id, body.Name); err != nil {
+	if err := h.service.Update(id, body.Name, body.SortOrder); err != nil {
 		h.logger.Warn("failed to update category", zap.Int("id", id), zap.String("name", body.Name), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name))
+	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
 	utils.JSONResponse(w, http.StatusOK, "Category updated", nil)
 }
 
@@ -125,4 +128,33 @@ func (h *CategoryHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	h.logger.Info("category deleted", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Category deleted", nil)
+}
+
+// CreateBulk
+// @Summary Массовое создание категорий
+// @Description Добавляет несколько категорий сразу (только для администратора)
+// @Tags Категории
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param input body []utils.CategoryRequest true "Список категорий"
+// @Success 201 {string} string "Categories created"
+// @Failure 400 {string} string "Invalid body"
+// @Router /api/admin/categories/bulk [post]
+func (h *CategoryHandler) CreateBulk(w http.ResponseWriter, r *http.Request) {
+	var categories []utils.CategoryRequest
+	if err := json.NewDecoder(r.Body).Decode(&categories); err != nil || len(categories) == 0 {
+		h.logger.Warn("invalid bulk create request", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body or empty array")
+		return
+	}
+
+	if err := h.service.CreateBulk(categories); err != nil {
+		h.logger.Error("bulk category creation failed", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to create categories")
+		return
+	}
+
+	h.logger.Info("bulk categories created", zap.Int("count", len(categories)))
+	utils.JSONResponse(w, http.StatusCreated, "Categories created", nil)
 }

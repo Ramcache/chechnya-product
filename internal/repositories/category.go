@@ -7,8 +7,8 @@ import (
 
 type CategoryRepository interface {
 	GetAll() ([]models.Category, error)
-	Create(name string) error
-	Update(id int, name string) error
+	Create(name string, sortOrder int) error
+	Update(id int, name string, sortOrder int) error
 	Delete(id int) error
 }
 
@@ -22,17 +22,17 @@ func NewCategoryRepo(db *sqlx.DB) *CategoryRepo {
 
 func (r *CategoryRepo) GetAll() ([]models.Category, error) {
 	var categories []models.Category
-	err := r.db.Select(&categories, `SELECT * FROM categories ORDER BY id`)
+	err := r.db.Select(&categories, `SELECT * FROM categories ORDER BY sort_order`)
 	return categories, err
 }
 
-func (r *CategoryRepo) Create(name string) error {
-	_, err := r.db.Exec(`INSERT INTO categories (name) VALUES ($1)`, name)
+func (r *CategoryRepo) Create(name string, sortOrder int) error {
+	_, err := r.db.Exec(`INSERT INTO categories (name, sort_order) VALUES ($1, $2)`, name, sortOrder)
 	return err
 }
 
-func (r *CategoryRepo) Update(id int, name string) error {
-	_, err := r.db.Exec(`UPDATE categories SET name = $1 WHERE id = $2`, name, id)
+func (r *CategoryRepo) Update(id int, name string, sortOrder int) error {
+	_, err := r.db.Exec(`UPDATE categories SET name = $1, sort_order = $2 WHERE id = $3`, name, sortOrder, id)
 	return err
 }
 
