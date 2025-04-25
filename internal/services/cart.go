@@ -51,17 +51,7 @@ func (s *CartService) AddToCart(ownerID string, productID, quantity int) error {
 	if product == nil {
 		return ErrProductNotFound
 	}
-
-	item, err := s.repo.GetCartItem(ownerID, productID)
-	if err != nil {
-		return fmt.Errorf("get cart item: %w", err)
-	}
-
-	currentQty := 0
-	if item != nil {
-		currentQty = item.Quantity
-	}
-	if currentQty+quantity > product.Stock {
+	if !product.Availability {
 		return ErrProductOutOfStock
 	}
 
@@ -108,7 +98,7 @@ func (s *CartService) UpdateItem(ownerID string, productID, quantity int) error 
 	if product == nil {
 		return ErrProductNotFound
 	}
-	if quantity > product.Stock {
+	if !product.Availability {
 		return ErrProductOutOfStock
 	}
 

@@ -16,6 +16,7 @@ func RegisterPublicRoutes(
 	category handlers.CategoryHandlerInterface,
 	cart handlers.CartHandlerInterface,
 	order handlers.OrderHandlerInterface,
+	announcement handlers.AnnouncementHandlerInterface,
 ) {
 	public := r.PathPrefix("/api").Subrouter()
 
@@ -39,6 +40,10 @@ func RegisterPublicRoutes(
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders", order.GetUserOrders).Methods(http.MethodGet)
 
+	// Объявления
+	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)
+	public.HandleFunc("/announcements/{id}", announcement.GetByID).Methods(http.MethodGet)
+
 }
 
 func RegisterPrivateRoutes(
@@ -59,6 +64,7 @@ func RegisterAdminRoutes(
 	logs handlers.LogHandlerInterface,
 	dashboard handlers.DashboardHandlerInterface,
 	jwt utils.JWTManagerInterface,
+	announcement handlers.AnnouncementHandlerInterface,
 ) {
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTMiddleware(jwt))
@@ -86,4 +92,9 @@ func RegisterAdminRoutes(
 
 	// Дэшборд
 	admin.HandleFunc("/dashboard", dashboard.GetDashboard).Methods(http.MethodGet)
+
+	// Объявления
+	admin.HandleFunc("/announcements", announcement.Create).Methods(http.MethodPost)
+	admin.HandleFunc("/announcements/{id}", announcement.Update).Methods(http.MethodPut)
+	admin.HandleFunc("/announcements/{id}", announcement.Delete).Methods(http.MethodDelete)
 }

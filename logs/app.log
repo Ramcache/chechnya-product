@@ -176,3 +176,83 @@
 {"level":"INFO","time":"2025-04-25T12:30:20.080+0300","caller":"handlers/category.go:46","message":"categories fetched","count":2}
 {"level":"INFO","time":"2025-04-25T12:30:20.083+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/categories","ip":"[::1]:61306","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":60312900}
 {"level":"INFO","time":"2025-04-25T12:35:13.405+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T14:10:48.111+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"WARN","time":"2025-04-25T14:11:04.352+0300","caller":"handlers/user.go:100","message":"login failed","identifier":"admin","error":"invalid credentials"}
+{"level":"INFO","time":"2025-04-25T14:11:04.352+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/login","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":19686600}
+{"level":"INFO","time":"2025-04-25T14:11:21.278+0300","caller":"handlers/user.go:72","message":"user registered","phone":"79998887766","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc"}
+{"level":"INFO","time":"2025-04-25T14:11:21.279+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/register","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":143600800}
+{"level":"WARN","time":"2025-04-25T14:12:00.188+0300","caller":"handlers/user.go:56","message":"registration failed","error":"user with this phone already exists"}
+{"level":"INFO","time":"2025-04-25T14:12:00.188+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/register","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_26b14de8-a19b-4a22-a3cd-6f8a54b941f5","duration":5131400}
+{"level":"WARN","time":"2025-04-25T14:12:10.984+0300","caller":"handlers/user.go:56","message":"registration failed","error":"failed to create user: failed to create user: pq: повторяющееся значение ключа нарушает ограничение уникальности \"users_email_key\""}
+{"level":"INFO","time":"2025-04-25T14:12:10.984+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/register","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_7eed66dd-6a9b-4bdb-8e26-fe085044a027","duration":145469100}
+{"level":"INFO","time":"2025-04-25T14:12:25.657+0300","caller":"handlers/user.go:72","message":"user registered","phone":"79388945877","owner_id":"guest_7eed66dd-6a9b-4bdb-8e26-fe085044a027"}
+{"level":"INFO","time":"2025-04-25T14:12:25.658+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/register","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_7eed66dd-6a9b-4bdb-8e26-fe085044a027","duration":89867500}
+{"level":"INFO","time":"2025-04-25T14:12:44.127+0300","caller":"handlers/user.go:109","message":"user logged in","identifier":"admin"}
+{"level":"INFO","time":"2025-04-25T14:12:44.127+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/login","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":81695800}
+{"level":"INFO","time":"2025-04-25T14:13:05.046+0300","caller":"handlers/user.go:137","message":"user profile requested","user_id":3,"phone":"79388945877"}
+{"level":"INFO","time":"2025-04-25T14:13:05.046+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/me","ip":"[::1]:55293","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1900600}
+{"level":"WARN","time":"2025-04-25T14:15:04.071+0300","caller":"handlers/category.go:67","message":"invalid category creation request","error":"json: cannot unmarshal array into Go value of type struct { Name string \"json:\\\"name\\\"\"; SortOrder int \"json:\\\"sortOrder\\\"\" }"}
+{"level":"INFO","time":"2025-04-25T14:15:04.072+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories","ip":"[::1]:55742","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1749700}
+{"level":"INFO","time":"2025-04-25T14:15:58.010+0300","caller":"services/category.go:77","message":"category created","name":"Овощи","id":1}
+{"level":"INFO","time":"2025-04-25T14:15:58.014+0300","caller":"services/category.go:77","message":"category created","name":"Фрукты","id":2}
+{"level":"INFO","time":"2025-04-25T14:15:58.017+0300","caller":"services/category.go:77","message":"category created","name":"Молочные продукты","id":3}
+{"level":"INFO","time":"2025-04-25T14:15:58.018+0300","caller":"services/category.go:77","message":"category created","name":"Хлебобулочные изделия","id":4}
+{"level":"INFO","time":"2025-04-25T14:15:58.020+0300","caller":"services/category.go:77","message":"category created","name":"Мясо","id":5}
+{"level":"INFO","time":"2025-04-25T14:15:58.022+0300","caller":"services/category.go:77","message":"category created","name":"Рыба и морепродукты","id":6}
+{"level":"INFO","time":"2025-04-25T14:15:58.024+0300","caller":"services/category.go:77","message":"category created","name":"Крупы и макароны","id":7}
+{"level":"INFO","time":"2025-04-25T14:15:58.027+0300","caller":"services/category.go:77","message":"category created","name":"Консервы","id":8}
+{"level":"INFO","time":"2025-04-25T14:15:58.030+0300","caller":"services/category.go:77","message":"category created","name":"Сладости","id":9}
+{"level":"INFO","time":"2025-04-25T14:15:58.032+0300","caller":"services/category.go:77","message":"category created","name":"Напитки","id":10}
+{"level":"INFO","time":"2025-04-25T14:15:58.034+0300","caller":"services/category.go:77","message":"category created","name":"Замороженные продукты","id":11}
+{"level":"INFO","time":"2025-04-25T14:15:58.036+0300","caller":"services/category.go:77","message":"category created","name":"Соусы и приправы","id":12}
+{"level":"INFO","time":"2025-04-25T14:15:58.038+0300","caller":"services/category.go:77","message":"category created","name":"Масла и жиры","id":13}
+{"level":"INFO","time":"2025-04-25T14:15:58.040+0300","caller":"services/category.go:77","message":"category created","name":"Яйца","id":14}
+{"level":"INFO","time":"2025-04-25T14:15:58.042+0300","caller":"services/category.go:77","message":"category created","name":"Орехи и сухофрукты","id":15}
+{"level":"INFO","time":"2025-04-25T14:15:58.044+0300","caller":"services/category.go:77","message":"category created","name":"Выпечка","id":16}
+{"level":"INFO","time":"2025-04-25T14:15:58.047+0300","caller":"services/category.go:77","message":"category created","name":"Кофе и чай","id":17}
+{"level":"INFO","time":"2025-04-25T14:15:58.048+0300","caller":"services/category.go:77","message":"category created","name":"Здоровое питание","id":18}
+{"level":"INFO","time":"2025-04-25T14:15:58.050+0300","caller":"services/category.go:77","message":"category created","name":"Детское питание","id":19}
+{"level":"INFO","time":"2025-04-25T14:15:58.052+0300","caller":"services/category.go:77","message":"category created","name":"Безлактозные продукты","id":20}
+{"level":"INFO","time":"2025-04-25T14:15:58.053+0300","caller":"services/category.go:77","message":"category created","name":"Вегетарианские продукты","id":21}
+{"level":"INFO","time":"2025-04-25T14:15:58.055+0300","caller":"services/category.go:77","message":"category created","name":"Диетические продукты","id":22}
+{"level":"INFO","time":"2025-04-25T14:15:58.057+0300","caller":"services/category.go:77","message":"category created","name":"Бакалея","id":23}
+{"level":"INFO","time":"2025-04-25T14:15:58.059+0300","caller":"services/category.go:77","message":"category created","name":"Сыры","id":24}
+{"level":"INFO","time":"2025-04-25T14:15:58.063+0300","caller":"services/category.go:77","message":"category created","name":"Специи","id":25}
+{"level":"INFO","time":"2025-04-25T14:15:58.065+0300","caller":"handlers/category.go:170","message":"bulk categories created","count":25}
+{"level":"INFO","time":"2025-04-25T14:15:58.068+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:55742","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":69949900}
+{"level":"INFO","time":"2025-04-25T14:17:27.864+0300","caller":"handlers/product.go:269","message":"bulk products added","count":10}
+{"level":"INFO","time":"2025-04-25T14:17:27.866+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/products/bulk","ip":"[::1]:55834","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":38075000}
+{"level":"INFO","time":"2025-04-25T14:17:42.877+0300","caller":"handlers/product.go:76","message":"products fetched","count":10}
+{"level":"INFO","time":"2025-04-25T14:17:42.878+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products","ip":"[::1]:55834","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":9277300}
+{"level":"INFO","time":"2025-04-25T14:18:05.468+0300","caller":"handlers/product.go:106","message":"product fetched","id":9}
+{"level":"INFO","time":"2025-04-25T14:18:05.469+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products/9","ip":"[::1]:55834","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1894000}
+{"level":"INFO","time":"2025-04-25T14:20:21.632+0300","caller":"handlers/product.go:192","message":"product updated","id":9}
+{"level":"INFO","time":"2025-04-25T14:20:21.632+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"PUT","path":"/api/admin/products/9","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":3922800}
+{"level":"INFO","time":"2025-04-25T14:20:30.603+0300","caller":"handlers/product.go:76","message":"products fetched","count":10}
+{"level":"INFO","time":"2025-04-25T14:20:30.604+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6837500}
+{"level":"INFO","time":"2025-04-25T14:20:36.387+0300","caller":"handlers/product.go:106","message":"product fetched","id":9}
+{"level":"INFO","time":"2025-04-25T14:20:36.388+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products/9","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6046600}
+{"level":"INFO","time":"2025-04-25T14:20:52.251+0300","caller":"handlers/product.go:230","message":"product deleted","id":9}
+{"level":"INFO","time":"2025-04-25T14:20:52.252+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"DELETE","path":"/api/admin/products/9","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":4253400}
+{"level":"WARN","time":"2025-04-25T14:21:03.571+0300","caller":"handlers/product.go:101","message":"product not found","id":9}
+{"level":"INFO","time":"2025-04-25T14:21:03.572+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/products/9","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1497700}
+{"level":"INFO","time":"2025-04-25T14:21:27.724+0300","caller":"handlers/cart.go:59","message":"item added to cart","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","product_id":1,"quantity":2}
+{"level":"INFO","time":"2025-04-25T14:21:27.725+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":9270900}
+{"level":"INFO","time":"2025-04-25T14:21:39.670+0300","caller":"handlers/cart.go:89","message":"cart retrieved","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","items_count":1}
+{"level":"INFO","time":"2025-04-25T14:21:39.671+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6192200}
+{"level":"INFO","time":"2025-04-25T14:21:56.466+0300","caller":"handlers/cart.go:184","message":"cart cleared","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a"}
+{"level":"INFO","time":"2025-04-25T14:21:56.467+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"DELETE","path":"/api/cart/clear","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1435500}
+{"level":"INFO","time":"2025-04-25T14:22:03.757+0300","caller":"handlers/cart.go:89","message":"cart retrieved","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","items_count":0}
+{"level":"INFO","time":"2025-04-25T14:22:03.757+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":1465900}
+{"level":"INFO","time":"2025-04-25T14:22:08.735+0300","caller":"handlers/cart.go:59","message":"item added to cart","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","product_id":1,"quantity":2}
+{"level":"INFO","time":"2025-04-25T14:22:08.735+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":7139000}
+{"level":"INFO","time":"2025-04-25T14:22:14.647+0300","caller":"handlers/cart.go:59","message":"item added to cart","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","product_id":2,"quantity":2}
+{"level":"INFO","time":"2025-04-25T14:22:14.648+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":7042400}
+{"level":"INFO","time":"2025-04-25T14:22:19.486+0300","caller":"handlers/cart.go:89","message":"cart retrieved","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","items_count":2}
+{"level":"INFO","time":"2025-04-25T14:22:19.487+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/cart","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":3002400}
+{"level":"INFO","time":"2025-04-25T14:23:11.421+0300","caller":"handlers/order.go:47","message":"order placed","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a"}
+{"level":"INFO","time":"2025-04-25T14:23:11.421+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/order","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6195200}
+{"level":"INFO","time":"2025-04-25T14:23:11.423+0300","caller":"ws/hub.go:97","message":"WebSocket broadcast","type":"new_order","order_id":1,"clients_sent":0}
+{"level":"INFO","time":"2025-04-25T14:23:49.532+0300","caller":"handlers/order.go:69","message":"user orders retrieved","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","orders_count":1}
+{"level":"INFO","time":"2025-04-25T14:23:49.533+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/orders","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6153300}
+{"level":"INFO","time":"2025-04-25T14:24:10.722+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/admin/dashboard","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":19991700}

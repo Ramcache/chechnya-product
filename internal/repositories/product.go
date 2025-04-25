@@ -15,18 +15,22 @@ type ProductRepository interface {
 	Delete(id int) error
 	Update(id int, product *models.Product) error
 	GetByID(id int) (*models.Product, error)
-	DecreaseStock(id int, quantity int) error
-	GetFiltered(search, category string, minPrice, maxPrice float64, limit, offset int, sort string) ([]models.Product, error)
+	GetFiltered(
+		search, category string,
+		minPrice, maxPrice float64,
+		limit, offset int,
+		sort string,
+		availability *bool,
+	) ([]models.Product, error)
 	GetCategories() ([]string, error)
 	GetCategoryNameByID(categoryID int) (string, error)
 	GetByName(name string) (*models.Product, error)
-	AddStock(id, additionalStock int) error
 	CreateTx(tx *sqlx.Tx, p *models.Product) error
-	AddStockTx(tx *sqlx.Tx, id, amount int) error
 	GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error)
 	GetByIDTx(tx *sqlx.Tx, id int) (*models.Product, error)
 	GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string, error)
 	UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error
+	UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error
 }
 
 type ProductRepo struct {
@@ -52,15 +56,15 @@ func (r *ProductRepo) GetAll() ([]models.Product, error) {
 
 func (r *ProductRepo) Create(product *models.Product) error {
 	query := `
-		INSERT INTO products (name, description, price, stock, category_id)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id
-	`
+	INSERT INTO products (name, description, price, availability, category_id)
+	VALUES ($1, $2, $3, $4, $5)
+	RETURNING id
+`
 	err := r.db.QueryRow(query,
 		product.Name,
 		product.Description,
 		product.Price,
-		product.Stock,
+		product.Availability,
 		product.CategoryID,
 	).Scan(&product.ID)
 
@@ -84,11 +88,12 @@ func (r *ProductRepo) Delete(id int) error {
 
 func (r *ProductRepo) Update(id int, product *models.Product) error {
 	query := `
-		UPDATE products
-		SET name = $1, description = $2, price = $3, stock = $4, category_id = $5
-		WHERE id = $6
-	`
-	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Stock, product.CategoryID, id)
+	UPDATE products
+	SET name = $1, description = $2, price = $3, availability = $4, category_id = $5
+	WHERE id = $6
+`
+	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Availability, product.CategoryID, id)
+
 	if err != nil {
 		return fmt.Errorf("failed to update product: %w", err)
 	}
@@ -108,28 +113,12 @@ func (r *ProductRepo) GetByID(id int) (*models.Product, error) {
 	return &p, nil
 }
 
-func (r *ProductRepo) DecreaseStock(id int, quantity int) error {
-	query := `
-		UPDATE products
-		SET stock = stock - $1
-		WHERE id = $2 AND stock >= $1
-	`
-	result, err := r.db.Exec(query, quantity, id)
-	if err != nil {
-		return fmt.Errorf("failed to decrease stock: %w", err)
-	}
-	rows, _ := result.RowsAffected()
-	if rows == 0 {
-		return fmt.Errorf("not enough stock or product not found")
-	}
-	return nil
-}
-
 func (r *ProductRepo) GetFiltered(
 	search, category string,
 	minPrice, maxPrice float64,
 	limit, offset int,
 	sort string,
+	availability *bool,
 ) ([]models.Product, error) {
 	query := `SELECT * FROM products WHERE 1=1`
 	args := []interface{}{}
@@ -149,6 +138,11 @@ func (r *ProductRepo) GetFiltered(
 		args = append(args, categoryID)
 		i++
 	}
+	if availability != nil {
+		query += fmt.Sprintf(" AND availability = $%d", i)
+		args = append(args, *availability)
+		i++
+	}
 
 	if minPrice > 0 {
 		query += fmt.Sprintf(" AND price >= $%d", i)
@@ -162,12 +156,11 @@ func (r *ProductRepo) GetFiltered(
 	}
 
 	sortMap := map[string]string{
-		"price_asc":  "price ASC",
-		"price_desc": "price DESC",
-		"name_asc":   "name ASC",
-		"name_desc":  "name DESC",
-		"stock_asc":  "stock ASC",
-		"stock_desc": "stock DESC",
+		"price_asc":       "price ASC",
+		"price_desc":      "price DESC",
+		"name_asc":        "name ASC",
+		"name_desc":       "name DESC",
+		"available_first": "availability DESC",
 	}
 	if orderBy, ok := sortMap[sort]; ok {
 		query += " ORDER BY " + orderBy
@@ -217,21 +210,11 @@ func (r *ProductRepo) GetByName(name string) (*models.Product, error) {
 	return &product, nil
 }
 
-func (r *ProductRepo) AddStock(id, additionalStock int) error {
-	_, err := r.db.Exec(`UPDATE products SET stock = stock + $1 WHERE id = $2`, additionalStock, id)
-	return err
-}
-
 func (r *ProductRepo) CreateTx(tx *sqlx.Tx, p *models.Product) error {
-	query := `INSERT INTO products (name, description, price, stock, category_id)
-			  VALUES ($1, $2, $3, $4, $5)
-			  RETURNING id`
-	return tx.QueryRow(query, p.Name, p.Description, p.Price, p.Stock, p.CategoryID).Scan(&p.ID)
-}
-
-func (r *ProductRepo) AddStockTx(tx *sqlx.Tx, id, amount int) error {
-	_, err := tx.Exec(`UPDATE products SET stock = stock + $1 WHERE id = $2`, amount, id)
-	return err
+	query := `INSERT INTO products (name, description, price, availability, category_id)
+		  VALUES ($1, $2, $3, $4, $5)
+		  RETURNING id`
+	return tx.QueryRow(query, p.Name, p.Description, p.Price, p.Availability, p.CategoryID).Scan(&p.ID)
 }
 
 func (r *ProductRepo) GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error) {
@@ -258,7 +241,11 @@ func (r *ProductRepo) GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string
 }
 
 func (r *ProductRepo) UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error {
-	_, err := tx.Exec(`UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category_id=$5 WHERE id=$6`,
-		p.Name, p.Description, p.Price, p.Stock, p.CategoryID, id)
+	_, err := tx.Exec(`UPDATE products SET name=$1, description=$2, price=$3, availability=$4, category_id=$5 WHERE id=$6`,
+		p.Name, p.Description, p.Price, p.Availability, p.CategoryID, id)
+	return err
+}
+func (r *ProductRepo) UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error {
+	_, err := tx.Exec(`UPDATE products SET availability = $1 WHERE id = $2`, availability, id)
 	return err
 }

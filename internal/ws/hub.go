@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/models"
 	"encoding/json"
 	"go.uber.org/zap"
@@ -30,14 +31,20 @@ type OrderMessage struct {
 	Order models.Order `json:"order"` // заказ
 }
 
+type AnnouncementMessage struct {
+	Type         string                `json:"type"`         // "announcement"
+	Announcement handlers.Announcement `json:"announcement"` // объект
+}
+
 // Hub — управляет всеми WebSocket-клиентами
 type Hub struct {
-	clients     map[*Client]bool
-	register    chan *Client
-	unregister  chan *Client
-	broadcastCh chan OrderMessage
-	mu          sync.Mutex
-	logger      *zap.Logger // 👈 логгер
+	clients                map[*Client]bool
+	register               chan *Client
+	unregister             chan *Client
+	broadcastCh            chan OrderMessage
+	broadcastAnnouncements chan AnnouncementMessage
+	mu                     sync.Mutex
+	logger                 *zap.Logger
 }
 
 // NewHub создаёт новый экземпляр Hub
@@ -77,15 +84,12 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 
-		case msg := <-h.broadcastCh:
+		case msg := <-h.broadcastAnnouncements:
 			data, _ := json.Marshal(msg)
-
 			h.mu.Lock()
-			sent := 0
 			for client := range h.clients {
 				select {
 				case client.Send <- data:
-					sent++
 				default:
 					close(client.Send)
 					delete(h.clients, client)
@@ -93,12 +97,8 @@ func (h *Hub) Run() {
 				}
 			}
 			h.mu.Unlock()
+			h.logger.Info("Broadcast announcement", zap.String("title", msg.Announcement.Title))
 
-			h.logger.Info("WebSocket broadcast",
-				zap.String("type", msg.Type),
-				zap.Int("order_id", msg.Order.ID),
-				zap.Int("clients_sent", sent),
-			)
 		}
 	}
 }
@@ -108,5 +108,12 @@ func (h *Hub) BroadcastNewOrder(order models.Order) {
 	h.broadcastCh <- OrderMessage{
 		Type:  "new_order",
 		Order: order,
+	}
+}
+
+func (h *Hub) BroadcastAnnouncement(announcement handlers.Announcement) {
+	h.broadcastAnnouncements <- AnnouncementMessage{
+		Type:         "announcement",
+		Announcement: announcement,
 	}
 }
