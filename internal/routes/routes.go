@@ -75,6 +75,7 @@ func RegisterAdminRoutes(
 
 	// Управление категориями
 	admin.HandleFunc("/categories", category.Create).Methods(http.MethodPost)
+	admin.HandleFunc("/categories/bulk", category.CreateBulk).Methods(http.MethodPost)
 	admin.HandleFunc("/categories/{id}", category.Update).Methods(http.MethodPut)
 	admin.HandleFunc("/categories/{id}", category.Delete).Methods(http.MethodDelete)
 

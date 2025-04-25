@@ -5,6 +5,7 @@ import (
 	"chechnya-product/internal/app"
 	"chechnya-product/internal/db"
 	"chechnya-product/internal/logger"
+	"errors"
 	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 	"log"
@@ -47,7 +48,7 @@ func main() {
 	srv := app.NewServer(cfg, logger, dbConn)
 	logger.Sugar().Infow("Server is running", "port", cfg.Port)
 
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }

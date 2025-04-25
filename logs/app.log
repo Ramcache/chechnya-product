@@ -146,3 +146,11 @@
 {"level":"FATAL","time":"2025-04-24T20:11:14.686+0300","caller":"api/main.go:31","message":"Failed to connect to database","error":"dial tcp: lookup db: no such host"}
 {"level":"INFO","time":"2025-04-24T20:13:53.484+0300","caller":"api/main.go:42","message":"Server is running","port":"8080"}
 {"level":"FATAL","time":"2025-04-24T22:05:24.609+0300","caller":"api/main.go:32","message":"Failed to connect to database","error":"dial tcp: lookup db: no such host"}
+{"level":"INFO","time":"2025-04-25T09:58:42.312+0300","caller":"api/main.go:48","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T10:40:50.807+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"ERROR","time":"2025-04-25T10:42:51.593+0300","caller":"handlers/category.go:153","message":"bulk category creation failed","error":"pq: отношение \"categories\" не существует"}
+{"level":"INFO","time":"2025-04-25T10:42:51.597+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:64872","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":42785500}
+{"level":"INFO","time":"2025-04-25T10:43:30.329+0300","caller":"handlers/category.go:158","message":"bulk categories created","count":2}
+{"level":"INFO","time":"2025-04-25T10:43:30.330+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:64872","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":9715200}
+{"level":"INFO","time":"2025-04-25T10:43:45.917+0300","caller":"handlers/category.go:46","message":"categories fetched","count":2}
+{"level":"INFO","time":"2025-04-25T10:43:45.918+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/categories","ip":"[::1]:64872","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_8f618adc-b477-4a56-b3fb-7dfe6319a3cc","duration":4993900}

@@ -11,7 +11,8 @@ type UpdateItemRequest struct {
 }
 
 type CategoryRequest struct {
-	Name string `json:"name"`
+	Name      string `json:"name"`
+	SortOrder int    `json:"sortOrder"`
 }
 
 type SuccessResponse struct {
