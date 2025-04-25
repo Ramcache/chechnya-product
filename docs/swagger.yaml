@@ -499,7 +499,7 @@ paths:
       tags:
       - Заказ
   /api/admin/orders/{id}/status:
-    put:
+    patch:
       consumes:
       - application/json
       parameters:
@@ -510,7 +510,7 @@ paths:
         type: integer
       - description: Новый статус
         in: body
-        name: input
+        name: status
         required: true
         schema:
           $ref: '#/definitions/models.OrderStatusRequest'

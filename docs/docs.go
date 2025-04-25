@@ -470,7 +470,7 @@ const docTemplate = `{
             }
         },
         "/api/admin/orders/{id}/status": {
-            "put": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -496,7 +496,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "Новый статус",
-                        "name": "input",
+                        "name": "status",
                         "in": "body",
                         "required": true,
                         "schema": {
