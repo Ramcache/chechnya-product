@@ -46,6 +46,33 @@ func (h *Hub) HandleConnections(w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 }
 
+// HandleAnnouncementConnections
+// @Summary WebSocket подключение для объявлений
+// @Tags WebSocket
+// @Success 101 {string} string "Switching Protocols"
+// @Router /ws/announcements [get]
+func (h *Hub) HandleAnnouncementConnections(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	userID := middleware.GetUserIDOrZero(r)
+	role := "guest"
+	if userID > 0 {
+		role = middleware.GetUserRole(r)
+	}
+	client := &Client{
+		ID:   userID,
+		Role: role,
+		Conn: conn,
+		Send: make(chan []byte, 256),
+		Hub:  h,
+	}
+	h.register <- client
+	go client.readPump()
+	go client.writePump()
+}
+
 // readPump — читает сообщения от клиента (игнорируем)
 func (c *Client) readPump() {
 	defer func() {

@@ -54,15 +54,14 @@ func (s *OrderService) PlaceOrder(ownerID string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get product %d: %w", item.ProductID, err)
 		}
-		if product.Stock < item.Quantity {
-			return fmt.Errorf("not enough stock for \"%s\"", product.Name)
+		if product == nil {
+			return fmt.Errorf("product %d not found", item.ProductID)
+		}
+		if !product.Availability {
+			return fmt.Errorf("product \"%s\" is not available", product.Name)
 		}
 
 		total += float64(item.Quantity) * product.Price
-
-		if err := s.productRepo.DecreaseStock(item.ProductID, item.Quantity); err != nil {
-			return fmt.Errorf("failed to decrease stock for %d: %w", item.ProductID, err)
-		}
 	}
 
 	orderID, err := s.orderRepo.CreateOrder(ownerID, total)
@@ -78,7 +77,7 @@ func (s *OrderService) PlaceOrder(ownerID string) error {
 		ID:        orderID,
 		OwnerID:   ownerID,
 		Total:     total,
-		CreatedAt: time.Now(), // опционально: получи из БД
+		CreatedAt: time.Now(), // можно также получать из БД
 	}
 
 	if s.hub != nil {

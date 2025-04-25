@@ -15,6 +15,150 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/announcements": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Объявления"
+                ],
+                "summary": "Создать объявление",
+                "parameters": [
+                    {
+                        "description": "title, content",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Announcement"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/announcements/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Объявления"
+                ],
+                "summary": "Обновить объявление",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "title, content",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Объявления"
+                ],
+                "summary": "Удалить объявление",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/categories": {
             "post": {
                 "security": [
@@ -559,6 +703,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/announcements": {
+            "get": {
+                "tags": [
+                    "Объявления"
+                ],
+                "summary": "Получить все объявления",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Announcement"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/announcements/{id}": {
+            "get": {
+                "tags": [
+                    "Объявления"
+                ],
+                "summary": "Получить объявление по ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Announcement"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/cart": {
             "get": {
                 "description": "Возвращает список товаров в корзине для owner_id",
@@ -1053,6 +1259,22 @@ const docTemplate = `{
                 }
             }
         },
+        "/ws/announcements": {
+            "get": {
+                "tags": [
+                    "WebSocket"
+                ],
+                "summary": "WebSocket подключение для объявлений",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/ws/orders": {
             "get": {
                 "description": "Устанавливает WebSocket-соединение. Админы получают уведомления о новых заказах.",
@@ -1148,6 +1370,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Announcement": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.DailySales": {
             "type": "object",
             "properties": {
@@ -1205,6 +1441,9 @@ const docTemplate = `{
         "models.Product": {
             "type": "object",
             "properties": {
+                "availability": {
+                    "type": "boolean"
+                },
                 "category_id": {
                     "type": "integer"
                 },
@@ -1222,15 +1461,15 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
-                },
-                "stock": {
-                    "type": "integer"
                 }
             }
         },
         "models.ProductResponse": {
             "type": "object",
             "properties": {
+                "availability": {
+                    "type": "boolean"
+                },
                 "category_id": {
                     "type": "integer"
                 },
@@ -1248,9 +1487,6 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
-                },
-                "stock": {
-                    "type": "integer"
                 }
             }
         },

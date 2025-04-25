@@ -19,6 +19,7 @@ type ProductServiceInterface interface {
 		minPrice, maxPrice float64,
 		limit, offset int,
 		sort string,
+		availability *bool,
 	) ([]models.ProductResponse, error)
 	AddProductsBulk(products []models.Product) ([]models.ProductResponse, error)
 }
@@ -62,7 +63,7 @@ func (s *ProductService) GetByID(id int) (*models.ProductResponse, error) {
 		Name:         product.Name,
 		Description:  product.Description,
 		Price:        product.Price,
-		Stock:        product.Stock,
+		Availability: product.Availability,
 		CategoryID:   product.CategoryID,
 		CategoryName: categoryName,
 	}, nil
@@ -91,20 +92,17 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 		}
 	}()
 
-	// 1. Обновление товара
 	if err := s.repo.UpdateTx(tx, id, product); err != nil {
 		_ = tx.Rollback()
 		return nil, err
 	}
 
-	// 2. Получаем обновлённую сущность
 	updated, err := s.repo.GetByIDTx(tx, id)
 	if err != nil || updated == nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf("failed to fetch updated product")
 	}
 
-	// 3. Получаем имя категории
 	categoryName, err := s.repo.GetCategoryNameByIDTx(tx, updated.CategoryID)
 	if err != nil {
 		categoryName = ""
@@ -119,7 +117,7 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 		Name:         updated.Name,
 		Description:  updated.Description,
 		Price:        updated.Price,
-		Stock:        updated.Stock,
+		Availability: updated.Availability,
 		CategoryID:   updated.CategoryID,
 		CategoryName: categoryName,
 	}, nil
@@ -131,9 +129,6 @@ func validateProduct(p *models.Product) error {
 	}
 	if p.Price <= 0 {
 		return fmt.Errorf("product price must be positive")
-	}
-	if p.Stock < 0 {
-		return fmt.Errorf("product stock cannot be negative")
 	}
 	return nil
 }
@@ -147,8 +142,9 @@ func (s *ProductService) GetFiltered(
 	minPrice, maxPrice float64,
 	limit, offset int,
 	sort string,
+	availability *bool,
 ) ([]models.ProductResponse, error) {
-	products, err := s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
+	products, err := s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort, availability)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +160,7 @@ func (s *ProductService) GetFiltered(
 			Name:         p.Name,
 			Description:  p.Description,
 			Price:        p.Price,
-			Stock:        p.Stock,
+			Availability: p.Availability,
 			CategoryID:   p.CategoryID,
 			CategoryName: categoryName,
 		})
@@ -194,8 +190,8 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 
 		existing, err := s.repo.GetByNameTx(tx, p.Name)
 		if err == nil && existing != nil {
-			// обновляем stock
-			if err := s.repo.AddStockTx(tx, existing.ID, p.Stock); err != nil {
+			existing.Availability = p.Availability
+			if err := s.repo.UpdateAvailabilityTx(tx, existing.ID, p.Availability); err != nil {
 				_ = tx.Rollback()
 				return nil, err
 			}
@@ -205,18 +201,12 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 				return nil, err
 			}
 			categoryName, _ := s.repo.GetCategoryNameByIDTx(tx, updated.CategoryID)
-			s.logger.Info("stock increased for existing product",
-				zap.String("name", updated.Name),
-				zap.Int("added", p.Stock),
-				zap.Int("new_total", updated.Stock),
-			)
-
 			responses = append(responses, models.ProductResponse{
 				ID:           updated.ID,
 				Name:         updated.Name,
 				Description:  updated.Description,
 				Price:        updated.Price,
-				Stock:        updated.Stock,
+				Availability: updated.Availability,
 				CategoryID:   updated.CategoryID,
 				CategoryName: categoryName,
 			})
@@ -234,7 +224,7 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 			Name:         p.Name,
 			Description:  p.Description,
 			Price:        p.Price,
-			Stock:        p.Stock,
+			Availability: p.Availability,
 			CategoryID:   p.CategoryID,
 			CategoryName: categoryName,
 		})

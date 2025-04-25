@@ -51,13 +51,23 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	search := query.Get("search")
 	category := query.Get("category")
 	sort := query.Get("sort")
+	availabilityStr := query.Get("availability")
+	var availability *bool
+
+	if availabilityStr == "true" {
+		val := true
+		availability = &val
+	} else if availabilityStr == "false" {
+		val := false
+		availability = &val
+	}
 
 	limit, _ := strconv.Atoi(query.Get("limit"))
 	offset, _ := strconv.Atoi(query.Get("offset"))
 	minPrice, _ := strconv.ParseFloat(query.Get("min_price"), 64)
 	maxPrice, _ := strconv.ParseFloat(query.Get("max_price"), 64)
 
-	products, err := h.service.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort)
+	products, err := h.service.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort, availability)
 	if err != nil {
 		h.logger.Error("failed to fetch products", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")

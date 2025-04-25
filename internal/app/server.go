@@ -30,6 +30,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	orderRepo := repositories.NewOrderRepo(dbConn)
 	categoryRepo := repositories.NewCategoryRepo(dbConn)
 	dashboardRepo := repositories.NewDashboardRepository(dbConn)
+	announcementRepo := repositories.NewAnnouncementRepo(dbConn)
 
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
@@ -41,6 +42,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo, logger)
 	dashboardService := services.NewDashboardService(dashboardRepo)
+	announcementService := services.NewAnnouncementService(announcementRepo, hub)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -50,6 +52,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService, logger)
+	announcementHandler := handlers.NewAnnouncementHandler(announcementService, logger)
 
 	// --- Router ---
 	router := mux.NewRouter()
@@ -57,9 +60,9 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
-	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler)
+	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
-	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager)
+	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
 
 	// --- CORS ---
 	corsMiddleware := cors.New(cors.Options{
