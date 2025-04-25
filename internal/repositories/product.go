@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"chechnya-product/internal/models"
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"strconv"
@@ -31,6 +32,7 @@ type ProductRepository interface {
 	GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string, error)
 	UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error
 	UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error
+	GetAverageRating(productID int) (float64, error)
 }
 
 type ProductRepo struct {
@@ -248,4 +250,13 @@ func (r *ProductRepo) UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error {
 func (r *ProductRepo) UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error {
 	_, err := tx.Exec(`UPDATE products SET availability = $1 WHERE id = $2`, availability, id)
 	return err
+}
+
+func (r *ProductRepo) GetAverageRating(productID int) (float64, error) {
+	var avg sql.NullFloat64
+	err := r.db.Get(&avg, `SELECT AVG(rating) FROM reviews WHERE product_id = $1`, productID)
+	if err != nil || !avg.Valid {
+		return 0, nil
+	}
+	return avg.Float64, nil
 }

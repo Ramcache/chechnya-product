@@ -48,6 +48,8 @@ func RegisterPublicRoutes(
 	// Отзывы
 	public.HandleFunc("/products/{id}/reviews", review.GetReviews).Methods(http.MethodGet)
 	public.HandleFunc("/products/{id}/reviews", review.AddReview).Methods(http.MethodPost)
+	public.HandleFunc("/products/{id}/reviews", review.UpdateReview).Methods(http.MethodPut)
+	public.HandleFunc("/products/{id}/reviews", review.DeleteReview).Methods(http.MethodDelete)
 
 }
 

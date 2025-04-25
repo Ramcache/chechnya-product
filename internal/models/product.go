@@ -20,4 +20,5 @@ type ProductResponse struct {
 	Availability bool    `json:"availability"`
 	CategoryID   int     `json:"category_id"`
 	CategoryName string  `json:"category_name"`
+	Rating       float64 `json:"rating"`
 }

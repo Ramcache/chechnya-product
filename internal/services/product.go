@@ -236,3 +236,11 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 
 	return responses, nil
 }
+
+func (s *ProductService) GetAverageRating(productID int) (float64, error) {
+	rating, err := s.repo.GetAverageRating(productID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch average rating: %w", err)
+	}
+	return rating, nil
+}

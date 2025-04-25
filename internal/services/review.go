@@ -9,6 +9,8 @@ import (
 type ReviewServiceInterface interface {
 	AddReview(ownerID string, productID, rating int, comment string) error
 	GetReviewsByProductID(productID int) ([]models.Review, error)
+	UpdateReview(ownerID string, productID, rating int, comment string) error
+	DeleteReview(ownerID string, productID int) error
 }
 
 type ReviewService struct {
@@ -20,18 +22,28 @@ func NewReviewService(repo repositories.ReviewRepository) *ReviewService {
 }
 
 func (s *ReviewService) AddReview(ownerID string, productID, rating int, comment string) error {
-	if rating < 1 || rating > 5 {
-		return fmt.Errorf("rating must be between 1 and 5")
+	exists, err := s.repo.Exists(ownerID, productID)
+	if err != nil {
+		return err
 	}
-	review := &models.Review{
+	if exists {
+		return fmt.Errorf("you have already left a review for this product")
+	}
+	return s.repo.Create(&models.Review{
 		OwnerID:   ownerID,
 		ProductID: productID,
 		Rating:    rating,
 		Comment:   comment,
-	}
-	return s.repo.Create(review)
+	})
 }
 
 func (s *ReviewService) GetReviewsByProductID(productID int) ([]models.Review, error) {
 	return s.repo.GetByProductID(productID)
+}
+func (s *ReviewService) UpdateReview(ownerID string, productID, rating int, comment string) error {
+	return s.repo.Update(ownerID, productID, rating, comment)
+}
+
+func (s *ReviewService) DeleteReview(ownerID string, productID int) error {
+	return s.repo.Delete(ownerID, productID)
 }
