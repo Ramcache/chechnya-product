@@ -6,6 +6,7 @@ import (
 	"chechnya-product/internal/utils"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 )
@@ -19,10 +20,11 @@ type ReviewHandlerInterface interface {
 
 type ReviewHandler struct {
 	service services.ReviewServiceInterface
+	logger  *zap.Logger
 }
 
-func NewReviewHandler(service services.ReviewServiceInterface) *ReviewHandler {
-	return &ReviewHandler{service: service}
+func NewReviewHandler(service services.ReviewServiceInterface, logger *zap.Logger) *ReviewHandler {
+	return &ReviewHandler{service: service, logger: logger}
 }
 
 // AddReview добавляет новый отзыв к товару
@@ -38,22 +40,25 @@ func NewReviewHandler(service services.ReviewServiceInterface) *ReviewHandler {
 // @Router /api/products/{id}/reviews [post]
 func (h *ReviewHandler) AddReview(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
-
 	productID, _ := strconv.Atoi(mux.Vars(r)["id"])
+
 	var body struct {
 		Rating  int    `json:"rating"`
 		Comment string `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		h.logger.Warn("invalid review body", zap.Error(err), zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
 
 	if err := h.service.AddReview(ownerID, productID, body.Rating, body.Comment); err != nil {
+		h.logger.Warn("failed to add review", zap.Error(err), zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	h.logger.Info("review added", zap.String("owner_id", ownerID), zap.Int("product_id", productID), zap.Int("rating", body.Rating))
 	utils.JSONResponse(w, http.StatusCreated, "Review added", nil)
 }
 
@@ -69,9 +74,11 @@ func (h *ReviewHandler) GetReviews(w http.ResponseWriter, r *http.Request) {
 	productID, _ := strconv.Atoi(mux.Vars(r)["id"])
 	reviews, err := h.service.GetReviewsByProductID(productID)
 	if err != nil {
+		h.logger.Error("failed to fetch reviews", zap.Error(err), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch reviews")
 		return
 	}
+	h.logger.Info("reviews fetched", zap.Int("product_id", productID), zap.Int("count", len(reviews)))
 	utils.JSONResponse(w, http.StatusOK, "Reviews fetched", reviews)
 }
 
@@ -96,15 +103,19 @@ func (h *ReviewHandler) UpdateReview(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		h.logger.Warn("invalid update body", zap.Error(err), zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
 
 	err := h.service.UpdateReview(ownerID, productID, body.Rating, body.Comment)
 	if err != nil {
+		h.logger.Error("failed to update review", zap.Error(err), zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update review")
 		return
 	}
+
+	h.logger.Info("review updated", zap.String("owner_id", ownerID), zap.Int("product_id", productID), zap.Int("rating", body.Rating))
 	utils.JSONResponse(w, http.StatusOK, "Review updated", nil)
 }
 
@@ -122,8 +133,11 @@ func (h *ReviewHandler) DeleteReview(w http.ResponseWriter, r *http.Request) {
 	productID, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	if err := h.service.DeleteReview(ownerID, productID); err != nil {
+		h.logger.Error("failed to delete review", zap.Error(err), zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to delete review")
 		return
 	}
+
+	h.logger.Info("review deleted", zap.String("owner_id", ownerID), zap.Int("product_id", productID))
 	utils.JSONResponse(w, http.StatusOK, "Review deleted", nil)
 }
