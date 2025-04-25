@@ -76,25 +76,42 @@ func (s *ProductService) AddProduct(product *models.Product) error {
 }
 
 func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models.ProductResponse, error) {
-	// валидация
 	if err := validateProduct(product); err != nil {
 		return nil, err
 	}
 
-	// обновляем в БД
-	if err := s.repo.Update(id, product); err != nil {
+	tx, err := s.repo.BeginTx()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = tx.Rollback()
+			panic(p)
+		}
+	}()
+
+	// 1. Обновление товара
+	if err := s.repo.UpdateTx(tx, id, product); err != nil {
+		_ = tx.Rollback()
 		return nil, err
 	}
 
-	// получаем обновлённую запись
-	updated, err := s.repo.GetByID(id)
+	// 2. Получаем обновлённую сущность
+	updated, err := s.repo.GetByIDTx(tx, id)
 	if err != nil || updated == nil {
+		_ = tx.Rollback()
 		return nil, fmt.Errorf("failed to fetch updated product")
 	}
 
-	categoryName, err := s.repo.GetCategoryNameByID(updated.CategoryID)
+	// 3. Получаем имя категории
+	categoryName, err := s.repo.GetCategoryNameByIDTx(tx, updated.CategoryID)
 	if err != nil {
 		categoryName = ""
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return &models.ProductResponse{

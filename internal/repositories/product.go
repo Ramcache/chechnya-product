@@ -26,6 +26,7 @@ type ProductRepository interface {
 	GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error)
 	GetByIDTx(tx *sqlx.Tx, id int) (*models.Product, error)
 	GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string, error)
+	UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error
 }
 
 type ProductRepo struct {
@@ -254,4 +255,10 @@ func (r *ProductRepo) GetCategoryNameByIDTx(tx *sqlx.Tx, categoryID int) (string
 	var name string
 	err := tx.Get(&name, `SELECT name FROM categories WHERE id = $1`, categoryID)
 	return name, err
+}
+
+func (r *ProductRepo) UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error {
+	_, err := tx.Exec(`UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category_id=$5 WHERE id=$6`,
+		p.Name, p.Description, p.Price, p.Stock, p.CategoryID, id)
+	return err
 }
