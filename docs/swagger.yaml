@@ -421,7 +421,7 @@ paths:
       - BearerAuth: []
       summary: Дэшборд администратора
       tags:
-      - Админ / Дэшборд
+      - Дэшборд
   /api/admin/logs:
     get:
       description: Возвращает содержимое лог-файла (только для администратора)
@@ -461,7 +461,7 @@ paths:
       - BearerAuth: []
       summary: Получить все заказы (админ)
       tags:
-      - Админ / Заказы
+      - Заказ
   /api/admin/orders/export:
     get:
       description: Экспортирует все заказы в формате CSV (только для админа)
@@ -480,7 +480,7 @@ paths:
       - BearerAuth: []
       summary: Экспорт заказов в CSV (админ)
       tags:
-      - Админ / Заказы
+      - Заказ
   /api/admin/products:
     post:
       consumes:
@@ -832,7 +832,7 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: User login
       tags:
-      - auth
+      - Профиль
   /api/me:
     get:
       description: Returns profile info of authenticated user
@@ -855,7 +855,7 @@ paths:
       - BearerAuth: []
       summary: Get current user
       tags:
-      - users
+      - Профиль
   /api/order:
     post:
       description: Оформляет заказ из текущей корзины owner_id
@@ -1103,7 +1103,7 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: Register new user
       tags:
-      - auth
+      - Профиль
   /ws/announcements:
     get:
       responses:

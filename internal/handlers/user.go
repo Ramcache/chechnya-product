@@ -28,7 +28,7 @@ func NewUserHandler(service services.UserServiceInterface, logger *zap.Logger) *
 // Register handles user registration
 // @Summary      Register new user
 // @Description  Registers a new user with phone, password, username and email
-// @Tags         auth
+// @Tags         Профиль
 // @Accept       json
 // @Param        register body RegisterRequest true "User registration data"
 // @Produce json
@@ -76,7 +76,7 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // Login authenticates a user and returns JWT token
 // @Summary      User login
 // @Description  Logs in a user and returns JWT token on success
-// @Tags         auth
+// @Tags         Профиль
 // @Accept       json
 // @Produce      json
 // @Param        login body LoginRequest true "Phone and password"
@@ -113,7 +113,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 // Me returns current user profile
 // @Summary      Get current user
 // @Description  Returns profile info of authenticated user
-// @Tags         users
+// @Tags         Профиль
 // @Security     BearerAuth
 // @Produce      json
 // @Success 200 {object} UserProfileResponse

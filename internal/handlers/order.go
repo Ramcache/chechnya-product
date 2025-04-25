@@ -73,7 +73,7 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 // GetAllOrders
 // @Summary Получить все заказы (админ)
 // @Description Возвращает список всех заказов (только для админа)
-// @Tags Админ / Заказы
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {array} models.Order
@@ -94,7 +94,7 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 // ExportOrdersCSV
 // @Summary Экспорт заказов в CSV (админ)
 // @Description Экспортирует все заказы в формате CSV (только для админа)
-// @Tags Админ / Заказы
+// @Tags Заказ
 // @Security BearerAuth
 // @Produce text/csv
 // @Success 200 {file} file "CSV файл"

@@ -23,7 +23,7 @@ func NewDashboardHandler(service services.DashboardServiceInterface, logger *zap
 // GetDashboard
 // @Summary Дэшборд администратора
 // @Description Возвращает метрики: заказы, выручка, топ товары, продажи по дням
-// @Tags Админ / Дэшборд
+// @Tags Дэшборд
 // @Security BearerAuth
 // @Produce json
 // @Success 200 {object} models.DashboardData
