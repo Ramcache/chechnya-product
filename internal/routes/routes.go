@@ -40,6 +40,7 @@ func RegisterPublicRoutes(
 	// Заказы
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders", order.GetUserOrders).Methods(http.MethodGet)
+	public.HandleFunc("/orders/{id}/repeat", order.RepeatOrder).Methods(http.MethodPost)
 
 	// Объявления
 	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)

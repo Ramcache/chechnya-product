@@ -13,3 +13,9 @@ type Order struct {
 type OrderStatusRequest struct {
 	Status string `json:"status" example:"в пути"`
 }
+
+type OrderItem struct {
+	OrderID   int `db:"order_id" json:"order_id"`
+	ProductID int `db:"product_id" json:"product_id"`
+	Quantity  int `db:"quantity" json:"quantity"`
+}

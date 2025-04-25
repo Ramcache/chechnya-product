@@ -11,6 +11,7 @@ type OrderRepository interface {
 	GetAll() ([]models.Order, error)
 	UpdateStatus(orderID int, status string) error
 	GetByID(orderID int) (*models.Order, error)
+	GetOrderItems(orderID int) ([]models.OrderItem, error)
 }
 
 type OrderRepo struct {
@@ -62,4 +63,14 @@ func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 		return nil, err
 	}
 	return &order, nil
+}
+
+func (r *OrderRepo) GetOrderItems(orderID int) ([]models.OrderItem, error) {
+	var items []models.OrderItem
+	err := r.db.Select(&items, `
+		SELECT product_id, quantity
+		FROM order_items
+		WHERE order_id = $1
+	`, orderID)
+	return items, err
 }

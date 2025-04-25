@@ -15,6 +15,7 @@ type OrderServiceInterface interface {
 	GetOrders(ownerID string) ([]models.Order, error)
 	GetAllOrders() ([]models.Order, error)
 	UpdateStatus(orderID int, status string) error
+	RepeatOrder(orderID int, ownerID string) error
 }
 
 type OrderService struct {
@@ -133,5 +134,24 @@ func (s *OrderService) UpdateStatus(orderID int, status string) error {
 		s.hub.BroadcastStatusUpdate(*order)
 	}
 
+	return nil
+}
+
+func (s *OrderService) RepeatOrder(orderID int, ownerID string) error {
+	order, err := s.orderRepo.GetByID(orderID)
+	if err != nil || order.OwnerID != ownerID {
+		return errors.New("invalid order")
+	}
+
+	items, err := s.orderRepo.GetOrderItems(orderID)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		if err := s.cartRepo.AddOrUpdate(ownerID, item.ProductID, item.Quantity); err != nil {
+			return err
+		}
+	}
 	return nil
 }
