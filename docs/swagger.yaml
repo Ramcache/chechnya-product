@@ -123,6 +123,32 @@ definitions:
         type: string
       price:
         type: number
+      rating:
+        type: number
+    type: object
+  models.Review:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      owner_id:
+        type: string
+      product_id:
+        type: integer
+      rating:
+        type: integer
+    type: object
+  models.ReviewRequest:
+    properties:
+      comment:
+        example: Отличный товар!
+        type: string
+      rating:
+        example: 5
+        type: integer
     type: object
   models.TopProduct:
     properties:
@@ -941,6 +967,117 @@ paths:
       summary: Получить товар по ID
       tags:
       - Товар
+  /api/products/{id}/reviews:
+    delete:
+      description: Может удалить только тот, кто оставил (по owner_id)
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Удалить отзыв
+      tags:
+      - Отзывы
+    get:
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить отзывы товара
+      tags:
+      - Отзывы
+    post:
+      consumes:
+      - application/json
+      description: Отзыв может оставить как авторизованный, так и гость. Повторный
+        отзыв от одного владельца невозможен.
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Оценка и комментарий
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Добавить отзыв
+      tags:
+      - Отзывы
+    put:
+      consumes:
+      - application/json
+      description: Может обновить только тот, кто оставил (по owner_id)
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновлённая оценка и комментарий
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Обновить отзыв
+      tags:
+      - Отзывы
   /api/register:
     post:
       consumes:

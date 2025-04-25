@@ -17,6 +17,7 @@ func RegisterPublicRoutes(
 	cart handlers.CartHandlerInterface,
 	order handlers.OrderHandlerInterface,
 	announcement handlers.AnnouncementHandlerInterface,
+	review handlers.ReviewHandlerInterface,
 ) {
 	public := r.PathPrefix("/api").Subrouter()
 
@@ -43,6 +44,12 @@ func RegisterPublicRoutes(
 	// Объявления
 	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)
 	public.HandleFunc("/announcements/{id}", announcement.GetByID).Methods(http.MethodGet)
+
+	// Отзывы
+	public.HandleFunc("/products/{id}/reviews", review.GetReviews).Methods(http.MethodGet)
+	public.HandleFunc("/products/{id}/reviews", review.AddReview).Methods(http.MethodPost)
+	public.HandleFunc("/products/{id}/reviews", review.UpdateReview).Methods(http.MethodPut)
+	public.HandleFunc("/products/{id}/reviews", review.DeleteReview).Methods(http.MethodDelete)
 
 }
 

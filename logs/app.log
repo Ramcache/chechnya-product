@@ -257,3 +257,5 @@
 {"level":"INFO","time":"2025-04-25T14:23:49.533+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/orders","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":6153300}
 {"level":"INFO","time":"2025-04-25T14:24:10.722+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/admin/dashboard","ip":"[::1]:55950","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_a214039c-cf62-4cce-b940-03d0490d350a","duration":19991700}
 {"level":"INFO","time":"2025-04-25T14:55:39.186+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T15:22:24.693+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-25T15:30:35.723+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
