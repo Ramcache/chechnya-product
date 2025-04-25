@@ -91,21 +91,30 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Router /api/admin/categories/{id} [put]
 func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
 	var body struct {
-		Name      string `json:"name"`
-		SortOrder int    `json:"sortOrder"`
+		Name      *string `json:"name"`
+		SortOrder *int    `json:"sortOrder"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		h.logger.Warn("invalid update request", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Update(id, body.Name, body.SortOrder); err != nil {
-		h.logger.Warn("failed to update category", zap.Int("id", id), zap.String("name", body.Name), zap.Error(err))
+
+	if body.Name == nil && body.SortOrder == nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Nothing to update")
+		return
+	}
+
+	if err := h.service.PartialUpdate(id, body.Name, body.SortOrder); err != nil {
+		h.logger.Warn("failed to update category", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category updated", zap.Int("id", id), zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
+
+	h.logger.Info("category updated", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Category updated", nil)
 }
 
@@ -149,11 +158,14 @@ func (h *CategoryHandler) CreateBulk(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.CreateBulk(categories); err != nil {
+	created, err := h.service.CreateBulk(categories)
+	if err != nil {
 		h.logger.Error("bulk category creation failed", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to create categories")
 		return
 	}
+
+	utils.JSONResponse(w, http.StatusCreated, "Categories created", created)
 
 	h.logger.Info("bulk categories created", zap.Int("count", len(categories)))
 	utils.JSONResponse(w, http.StatusCreated, "Categories created", nil)

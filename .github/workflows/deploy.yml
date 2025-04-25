@@ -1,13 +1,15 @@
-name: 🚀 Deploy Go App to Ubuntu
+name: 🚀 Go App CI/CD
 
 on:
   push:
     branches:
+      - develop
       - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
 
     steps:
       - name: 📥 Checkout repo
@@ -23,8 +25,27 @@ jobs:
           cd cmd/api
           go build -o ../../main
           cd ../../
-          ls -al
-          ls -al migrations
+          echo "✅ Build success!"
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: build
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v3
+
+      - name: 🛠 Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: 🔨 Build Go app
+        run: |
+          cd cmd/api
+          go build -o ../../main
+          cd ../../
 
       - name: 📤 Copy binary and migrations
         uses: appleboy/scp-action@v0.1.7
