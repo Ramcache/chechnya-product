@@ -16,7 +16,7 @@ type AnnouncementServiceInterface interface {
 
 type AnnouncementService struct {
 	repo repositories.AnnouncementRepository
-	hub  *ws.Hub // для WebSocket рассылки
+	hub  *ws.Hub
 }
 
 func NewAnnouncementService(repo repositories.AnnouncementRepository, hub *ws.Hub) *AnnouncementService {

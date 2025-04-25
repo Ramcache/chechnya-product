@@ -46,6 +46,15 @@ definitions:
       username:
         type: string
     type: object
+  models.Announcement:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      title:
+        type: string
+    type: object
   models.DailySales:
     properties:
       date:
@@ -83,6 +92,8 @@ definitions:
     type: object
   models.Product:
     properties:
+      availability:
+        type: boolean
       category_id:
         type: integer
       created_at:
@@ -95,11 +106,11 @@ definitions:
         type: string
       price:
         type: number
-      stock:
-        type: integer
     type: object
   models.ProductResponse:
     properties:
+      availability:
+        type: boolean
       category_id:
         type: integer
       category_name:
@@ -112,8 +123,6 @@ definitions:
         type: string
       price:
         type: number
-      stock:
-        type: integer
     type: object
   models.TopProduct:
     properties:
@@ -163,6 +172,96 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/admin/announcements:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: title, content
+        in: body
+        name: input
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Announcement'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создать объявление
+      tags:
+      - Объявления
+  /api/admin/announcements/{id}:
+    delete:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Deleted
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить объявление
+      tags:
+      - Объявления
+    put:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: title, content
+        in: body
+        name: input
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      responses:
+        "200":
+          description: Updated
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить объявление
+      tags:
+      - Объявления
   /api/admin/categories:
     post:
       consumes:
@@ -505,6 +604,46 @@ paths:
       summary: Массовое добавление товаров (админ)
       tags:
       - Товар
+  /api/announcements:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Announcement'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить все объявления
+      tags:
+      - Объявления
+  /api/announcements/{id}:
+    get:
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Announcement'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить объявление по ID
+      tags:
+      - Объявления
   /api/cart:
     get:
       description: Возвращает список товаров в корзине для owner_id
@@ -828,6 +967,16 @@ paths:
       summary: Register new user
       tags:
       - auth
+  /ws/announcements:
+    get:
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+      summary: WebSocket подключение для объявлений
+      tags:
+      - WebSocket
   /ws/orders:
     get:
       description: Устанавливает WebSocket-соединение. Админы получают уведомления

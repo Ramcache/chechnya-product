@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/models"
 	"encoding/json"
 	"go.uber.org/zap"
@@ -32,8 +31,8 @@ type OrderMessage struct {
 }
 
 type AnnouncementMessage struct {
-	Type         string                `json:"type"`         // "announcement"
-	Announcement handlers.Announcement `json:"announcement"` // объект
+	Type         string              `json:"type"`         // "announcement"
+	Announcement models.Announcement `json:"announcement"` // объект
 }
 
 // Hub — управляет всеми WebSocket-клиентами
@@ -111,7 +110,7 @@ func (h *Hub) BroadcastNewOrder(order models.Order) {
 	}
 }
 
-func (h *Hub) BroadcastAnnouncement(announcement handlers.Announcement) {
+func (h *Hub) BroadcastAnnouncement(announcement models.Announcement) {
 	h.broadcastAnnouncements <- AnnouncementMessage{
 		Type:         "announcement",
 		Announcement: announcement,
