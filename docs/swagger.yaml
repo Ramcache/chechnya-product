@@ -92,11 +92,39 @@ definitions:
       total:
         type: number
     type: object
+  models.OrderItemFull:
+    properties:
+      price:
+        type: number
+      product_id:
+        type: integer
+      product_name:
+        type: string
+      quantity:
+        type: integer
+    type: object
   models.OrderStatusRequest:
     properties:
       status:
         example: в пути
         type: string
+    type: object
+  models.OrderWithItems:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.OrderItemFull'
+        type: array
+      owner_id:
+        type: string
+      status:
+        type: string
+      total:
+        type: number
     type: object
   models.Product:
     properties:
@@ -934,6 +962,46 @@ paths:
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: Получить заказы пользователя
+      tags:
+      - Заказ
+  /api/orders/{id}/repeat:
+    post:
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Повторить заказ
+      tags:
+      - Заказ
+  /api/orders/history:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.OrderWithItems'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: История заказов пользователя
       tags:
       - Заказ
   /api/products:

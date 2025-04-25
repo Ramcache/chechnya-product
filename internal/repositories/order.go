@@ -12,6 +12,7 @@ type OrderRepository interface {
 	UpdateStatus(orderID int, status string) error
 	GetByID(orderID int) (*models.Order, error)
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
+	GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error)
 }
 
 type OrderRepo struct {
@@ -73,4 +74,36 @@ func (r *OrderRepo) GetOrderItems(orderID int) ([]models.OrderItem, error) {
 		WHERE order_id = $1
 	`, orderID)
 	return items, err
+}
+
+func (r *OrderRepo) GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error) {
+	var orders []models.OrderWithItems
+
+	// 1. Получаем заказы пользователя
+	err := r.db.Select(&orders, `
+		SELECT id, owner_id, total, status, created_at
+		FROM orders
+		WHERE owner_id = $1
+		ORDER BY created_at DESC
+	`, ownerID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Для каждого заказа — подтягиваем товары
+	for i := range orders {
+		var items []models.OrderItemFull
+		err := r.db.Select(&items, `
+			SELECT p.id AS product_id, p.name AS product_name, oi.quantity, p.price
+			FROM order_items oi
+			JOIN products p ON oi.product_id = p.id
+			WHERE oi.order_id = $1
+		`, orders[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		orders[i].Items = items
+	}
+
+	return orders, nil
 }
