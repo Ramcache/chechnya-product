@@ -31,7 +31,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	categoryRepo := repositories.NewCategoryRepo(dbConn)
 	dashboardRepo := repositories.NewDashboardRepository(dbConn)
 	announcementRepo := repositories.NewAnnouncementRepo(dbConn)
-
+	reviewRepo := repositories.NewReviewRepo(dbConn)
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
 
@@ -43,6 +43,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	categoryService := services.NewCategoryService(categoryRepo, logger)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	announcementService := services.NewAnnouncementService(announcementRepo, hub)
+	reviewService := services.NewReviewService(reviewRepo)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -53,14 +54,14 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService, logger)
 	announcementHandler := handlers.NewAnnouncementHandler(announcementService, logger)
-
+	reviewHandler := handlers.NewReviewHandler(reviewService)
 	// --- Router ---
 	router := mux.NewRouter()
 	router.Use(middleware.RecoveryMiddleware(logger))
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
-	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler)
+	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
 	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
 
