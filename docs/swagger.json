@@ -458,6 +458,63 @@
                 }
             }
         },
+        "/api/admin/orders/{id}/status": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заказ"
+                ],
+                "summary": "Обновить статус заказа",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заказа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Новый статус",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.OrderStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/products": {
             "post": {
                 "security": [
@@ -1579,17 +1636,29 @@
         "models.Order": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "ownerID": {
+                "owner_id": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "total": {
                     "type": "number"
+                }
+            }
+        },
+        "models.OrderStatusRequest": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "в пути"
                 }
             }
         },

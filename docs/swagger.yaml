@@ -81,14 +81,22 @@ definitions:
     type: object
   models.Order:
     properties:
-      createdAt:
+      created_at:
         type: string
       id:
         type: integer
-      ownerID:
+      owner_id:
+        type: string
+      status:
         type: string
       total:
         type: number
+    type: object
+  models.OrderStatusRequest:
+    properties:
+      status:
+        example: в пути
+        type: string
     type: object
   models.Product:
     properties:
@@ -460,6 +468,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить все заказы (админ)
+      tags:
+      - Заказ
+  /api/admin/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новый статус
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.OrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить статус заказа
       tags:
       - Заказ
   /api/admin/orders/export:

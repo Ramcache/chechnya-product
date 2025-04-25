@@ -5,6 +5,8 @@ import (
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/csv"
+	"encoding/json"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
@@ -16,6 +18,7 @@ type OrderHandlerInterface interface {
 	GetUserOrders(w http.ResponseWriter, r *http.Request)
 	GetAllOrders(w http.ResponseWriter, r *http.Request)
 	ExportOrdersCSV(w http.ResponseWriter, r *http.Request)
+	UpdateOrderStatus(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -126,4 +129,38 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 			order.CreatedAt.Format(time.RFC3339),
 		})
 	}
+}
+
+// UpdateOrderStatus обновляет статус заказа (только админ)
+// @Summary Обновить статус заказа
+// @Tags Заказ
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "ID заказа"
+// @Param input body models.OrderStatusRequest true "Новый статус"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/admin/orders/{id}/status [put]
+func (h *OrderHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	id, _ := strconv.Atoi(idStr)
+
+	var body struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
+		return
+	}
+
+	if err := h.service.UpdateStatus(id, body.Status); err != nil {
+		h.logger.Warn("failed to update order status", zap.Int("order_id", id), zap.String("status", body.Status), zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	h.logger.Info("order status updated", zap.Int("order_id", id), zap.String("status", body.Status))
+	utils.JSONResponse(w, http.StatusOK, "Order status updated", nil)
 }

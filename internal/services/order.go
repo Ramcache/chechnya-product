@@ -14,6 +14,7 @@ type OrderServiceInterface interface {
 	PlaceOrder(ownerID string) error
 	GetOrders(ownerID string) ([]models.Order, error)
 	GetAllOrders() ([]models.Order, error)
+	UpdateStatus(orderID int, status string) error
 }
 
 type OrderService struct {
@@ -77,7 +78,7 @@ func (s *OrderService) PlaceOrder(ownerID string) error {
 		ID:        orderID,
 		OwnerID:   ownerID,
 		Total:     total,
-		CreatedAt: time.Now(), // можно также получать из БД
+		CreatedAt: time.Now(),
 	}
 
 	if s.hub != nil {
@@ -107,4 +108,30 @@ func (s *OrderService) GetAllOrders() ([]models.Order, error) {
 		return []models.Order{}, nil
 	}
 	return orders, nil
+}
+
+func (s *OrderService) UpdateStatus(orderID int, status string) error {
+	allowed := map[string]bool{
+		"в обработке": true,
+		"принят":      true,
+		"отклонен":    true,
+		"готов":       true,
+		"в пути":      true,
+		"доставлен":   true,
+	}
+	if !allowed[status] {
+		return fmt.Errorf("недопустимый статус")
+	}
+
+	err := s.orderRepo.UpdateStatus(orderID, status)
+	if err != nil {
+		return err
+	}
+
+	order, err := s.orderRepo.GetByID(orderID)
+	if err == nil && s.hub != nil {
+		s.hub.BroadcastStatusUpdate(*order)
+	}
+
+	return nil
 }

@@ -9,6 +9,8 @@ type OrderRepository interface {
 	CreateOrder(ownerID string, total float64) (int, error)
 	GetByOwnerID(ownerID string) ([]models.Order, error)
 	GetAll() ([]models.Order, error)
+	UpdateStatus(orderID int, status string) error
+	GetByID(orderID int) (*models.Order, error)
 }
 
 type OrderRepo struct {
@@ -46,4 +48,18 @@ func (r *OrderRepo) GetAll() ([]models.Order, error) {
 		ORDER BY created_at DESC
 	`)
 	return orders, err
+}
+
+func (r *OrderRepo) UpdateStatus(orderID int, status string) error {
+	_, err := r.db.Exec(`UPDATE orders SET status = $1 WHERE id = $2`, status, orderID)
+	return err
+}
+
+func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
+	var order models.Order
+	err := r.db.Get(&order, `SELECT id, owner_id, total, created_at, status FROM orders WHERE id = $1`, orderID)
+	if err != nil {
+		return nil, err
+	}
+	return &order, nil
 }
