@@ -89,7 +89,7 @@ func RegisterAdminRoutes(
 	// Управление заказами
 	admin.HandleFunc("/orders", order.GetAllOrders).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/export", order.ExportOrdersCSV).Methods(http.MethodGet)
-	admin.HandleFunc("/orders/{id}/status", order.UpdateOrderStatus).Methods(http.MethodPut)
+	admin.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
 
 	// Управление категориями
 	admin.HandleFunc("/categories", category.Create).Methods(http.MethodPost)
