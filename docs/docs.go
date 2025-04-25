@@ -354,7 +354,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Админ / Дэшборд"
+                    "Дэшборд"
                 ],
                 "summary": "Дэшборд администратора",
                 "responses": {
@@ -416,7 +416,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Админ / Заказы"
+                    "Заказ"
                 ],
                 "summary": "Получить все заказы (админ)",
                 "responses": {
@@ -450,7 +450,7 @@ const docTemplate = `{
                     "text/csv"
                 ],
                 "tags": [
-                    "Админ / Заказы"
+                    "Заказ"
                 ],
                 "summary": "Экспорт заказов в CSV (админ)",
                 "responses": {
@@ -977,7 +977,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Профиль"
                 ],
                 "summary": "User login",
                 "parameters": [
@@ -1025,7 +1025,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Профиль"
                 ],
                 "summary": "Get current user",
                 "responses": {
@@ -1395,7 +1395,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Профиль"
                 ],
                 "summary": "Register new user",
                 "parameters": [

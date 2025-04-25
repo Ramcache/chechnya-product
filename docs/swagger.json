@@ -343,7 +343,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Админ / Дэшборд"
+                    "Дэшборд"
                 ],
                 "summary": "Дэшборд администратора",
                 "responses": {
@@ -405,7 +405,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Админ / Заказы"
+                    "Заказ"
                 ],
                 "summary": "Получить все заказы (админ)",
                 "responses": {
@@ -439,7 +439,7 @@
                     "text/csv"
                 ],
                 "tags": [
-                    "Админ / Заказы"
+                    "Заказ"
                 ],
                 "summary": "Экспорт заказов в CSV (админ)",
                 "responses": {
@@ -966,7 +966,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Профиль"
                 ],
                 "summary": "User login",
                 "parameters": [
@@ -1014,7 +1014,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Профиль"
                 ],
                 "summary": "Get current user",
                 "responses": {
@@ -1384,7 +1384,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Профиль"
                 ],
                 "summary": "Register new user",
                 "parameters": [

@@ -55,6 +55,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService, logger)
 	announcementHandler := handlers.NewAnnouncementHandler(announcementService, logger)
 	reviewHandler := handlers.NewReviewHandler(reviewService, logger)
+
 	// --- Router ---
 	router := mux.NewRouter()
 	router.Use(middleware.RecoveryMiddleware(logger))
