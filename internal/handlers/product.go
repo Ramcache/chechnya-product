@@ -191,12 +191,29 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var product models.Product
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+	var input models.ProductInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		h.logger.Warn("invalid update JSON", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
+
+	// Преобразуем ProductInput -> Product
+	product := models.Product{
+		Name:         input.Name,
+		Description:  input.Description,
+		Price:        input.Price,
+		Availability: input.Availability,
+		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
+	}
+
+	if input.CategoryID != nil {
+		product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
+	} else {
+		product.CategoryID = sql.NullInt64{Valid: false}
+	}
+
+	// Теперь передаем product дальше
 
 	response, err := h.service.UpdateProduct(id, &product)
 	if err != nil {
