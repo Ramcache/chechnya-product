@@ -35,3 +35,12 @@ type ProductInput struct {
 	CategoryID   *int    `json:"category_id"`
 	Url          string  `json:"url"`
 }
+
+type ProductPatchInput struct {
+	Name         *string  `json:"name,omitempty"`
+	Description  *string  `json:"description,omitempty"`
+	Price        *float64 `json:"price,omitempty"`
+	Availability *bool    `json:"availability,omitempty"`
+	CategoryID   *int     `json:"category_id,omitempty"`
+	Url          *string  `json:"url,omitempty"`
+}

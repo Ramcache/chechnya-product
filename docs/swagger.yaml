@@ -55,6 +55,15 @@ definitions:
       title:
         type: string
     type: object
+  models.Category:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      sort_order:
+        type: integer
+    type: object
   models.DailySales:
     properties:
       date:
@@ -127,21 +136,21 @@ definitions:
         type: number
     type: object
   models.Product:
+    type: object
+  models.ProductPatchInput:
     properties:
       availability:
         type: boolean
       category_id:
         type: integer
-      created_at:
-        type: string
       description:
         type: string
-      id:
-        type: integer
       name:
         type: string
       price:
         type: number
+      url:
+        type: string
     type: object
   models.ProductResponse:
     properties:
@@ -161,6 +170,8 @@ definitions:
         type: number
       rating:
         type: number
+      url:
+        type: string
     type: object
   models.Review:
     properties:
@@ -337,16 +348,16 @@ paths:
         schema:
           $ref: '#/definitions/utils.CategoryRequest'
       produces:
-      - text/plain
+      - application/json
       responses:
         "201":
-          description: Category created
+          description: Created
           schema:
-            type: string
+            $ref: '#/definitions/models.Category'
         "400":
-          description: Invalid body or duplicate name
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/utils.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Создать новую категорию
@@ -620,6 +631,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Удалить товар (админ)
+      tags:
+      - Товар
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет отдельные поля товара по его ID (только для администратора)
+      parameters:
+      - description: ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Поля для обновления товара
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductPatchInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Частичное обновление товара (админ)
       tags:
       - Товар
     put:

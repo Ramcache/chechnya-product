@@ -23,6 +23,7 @@ type ProductServiceInterface interface {
 		availability *bool,
 	) ([]models.ProductResponse, error)
 	AddProductsBulk(products []models.Product) ([]models.ProductResponse, error)
+	PatchProduct(id int, updates map[string]interface{}) error
 }
 
 type ProductService struct {
@@ -236,4 +237,8 @@ func (s *ProductService) GetAverageRating(productID int) (float64, error) {
 		return 0, fmt.Errorf("failed to fetch average rating: %w", err)
 	}
 	return rating, nil
+}
+
+func (s *ProductService) PatchProduct(id int, updates map[string]interface{}) error {
+	return s.repo.UpdatePartial(id, updates)
 }

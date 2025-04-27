@@ -171,7 +171,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "produces": [
-                    "text/plain"
+                    "application/json"
                 ],
                 "tags": [
                     "Категории"
@@ -190,15 +190,15 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Category created",
+                        "description": "Created",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.Category"
                         }
                     },
                     "400": {
-                        "description": "Invalid body or duplicate name",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     }
                 }
@@ -737,6 +737,68 @@ const docTemplate = `{
                         "description": "Product deleted",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет отдельные поля товара по его ID (только для администратора)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Товар"
+                ],
+                "summary": "Частичное обновление товара (админ)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID товара",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Поля для обновления товара",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ProductPatchInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
@@ -1671,6 +1733,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Category": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sort_order": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.DailySales": {
             "type": "object",
             "properties": {
@@ -1781,6 +1857,9 @@ const docTemplate = `{
             }
         },
         "models.Product": {
+            "type": "object"
+        },
+        "models.ProductPatchInput": {
             "type": "object",
             "properties": {
                 "availability": {
@@ -1789,20 +1868,17 @@ const docTemplate = `{
                 "category_id": {
                     "type": "integer"
                 },
-                "created_at": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
                 },
                 "price": {
                     "type": "number"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -1832,6 +1908,9 @@ const docTemplate = `{
                 },
                 "rating": {
                     "type": "number"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },

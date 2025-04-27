@@ -33,6 +33,7 @@ type ProductRepository interface {
 	UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error
 	UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error
 	GetAverageRating(productID int) (float64, error)
+	UpdatePartial(id int, updates map[string]interface{}) error
 }
 
 type ProductRepo struct {
@@ -260,4 +261,24 @@ func (r *ProductRepo) GetAverageRating(productID int) (float64, error) {
 		return 0, nil
 	}
 	return avg.Float64, nil
+}
+
+func (r *ProductRepo) UpdatePartial(id int, updates map[string]interface{}) error {
+	if len(updates) == 0 {
+		return nil
+	}
+
+	setParts := []string{}
+	args := []interface{}{}
+	i := 1
+	for key, value := range updates {
+		setParts = append(setParts, fmt.Sprintf("%s = $%d", key, i))
+		args = append(args, value)
+		i++
+	}
+	args = append(args, id)
+
+	query := fmt.Sprintf(`UPDATE products SET %s WHERE id = $%d`, strings.Join(setParts, ", "), len(args))
+	_, err := r.db.Exec(query, args...)
+	return err
 }

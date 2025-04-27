@@ -21,6 +21,7 @@ type ProductHandlerInterface interface {
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	AddBulk(w http.ResponseWriter, r *http.Request)
+	Patch(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -318,4 +319,75 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("bulk products added", zap.Int("count", len(responses)))
 	utils.JSONResponse(w, http.StatusCreated, "Products added", responses)
+}
+
+// Patch
+// @Summary Частичное обновление товара (админ)
+// @Description Обновляет отдельные поля товара по его ID (только для администратора)
+// @Tags Товар
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "ID товара"
+// @Param input body models.ProductPatchInput true "Поля для обновления товара"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 403 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/admin/products/{id} [patch]
+func (h *ProductHandler) Patch(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil || claims.Role != "admin" {
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
+		return
+	}
+
+	idStr := mux.Vars(r)["id"]
+	id, err := utils.ParseIntParam(idStr)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		return
+	}
+
+	var input models.ProductPatchInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	updates := make(map[string]interface{})
+	if input.Name != nil {
+		updates["name"] = *input.Name
+	}
+	if input.Description != nil {
+		updates["description"] = *input.Description
+	}
+	if input.Price != nil {
+		if *input.Price <= 0 {
+			utils.ErrorJSON(w, http.StatusBadRequest, "Price must be positive")
+			return
+		}
+		updates["price"] = *input.Price
+	}
+	if input.Availability != nil {
+		updates["availability"] = *input.Availability
+	}
+	if input.CategoryID != nil {
+		updates["category_id"] = *input.CategoryID
+	}
+	if input.Url != nil {
+		updates["url"] = *input.Url
+	}
+
+	if len(updates) == 0 {
+		utils.ErrorJSON(w, http.StatusBadRequest, "No fields to update")
+		return
+	}
+
+	if err := h.service.PatchProduct(id, updates); err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Product updated", nil)
 }
