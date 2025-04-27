@@ -9,6 +9,7 @@ type Product struct {
 	Price        float64   `db:"price" json:"price"`
 	Availability bool      `db:"availability" json:"availability"`
 	CategoryID   int       `db:"category_id" json:"category_id"`
+	Url          string    `db:"url" json:"url"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 }
 
@@ -21,4 +22,5 @@ type ProductResponse struct {
 	CategoryID   int     `json:"category_id"`
 	CategoryName string  `json:"category_name"`
 	Rating       float64 `json:"rating"`
+	Url          string  `json:"url"`
 }

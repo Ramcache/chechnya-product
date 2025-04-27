@@ -58,7 +58,14 @@ var allowedStatuses = map[string]bool{
 func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
 
-	if err := h.service.PlaceOrder(ownerID); err != nil {
+	var req models.PlaceOrderRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("failed to decode order request", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid order data")
+		return
+	}
+
+	if err := h.service.PlaceOrder(ownerID, req); err != nil {
 		h.logger.Warn("failed to place order", zap.String("owner_id", ownerID), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to place order")
 		return

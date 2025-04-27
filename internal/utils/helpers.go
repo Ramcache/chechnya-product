@@ -27,12 +27,17 @@ type ErrorResponse struct {
 func JSONResponse(w http.ResponseWriter, status int, message string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+
+	if message == "" {
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
 	json.NewEncoder(w).Encode(SuccessResponse{
 		Message: message,
 		Data:    data,
 	})
 }
-
 func ErrorJSON(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

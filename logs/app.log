@@ -261,3 +261,99 @@
 {"level":"INFO","time":"2025-04-25T15:30:35.723+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
 {"level":"INFO","time":"2025-04-25T17:18:25.177+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
 {"level":"INFO","time":"2025-04-25T17:43:43.175+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T16:20:23.718+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T16:21:13.989+0300","caller":"handlers/user.go:109","message":"user logged in","identifier":"admin"}
+{"level":"INFO","time":"2025-04-27T16:21:13.989+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/login","ip":"[::1]:54067","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":203391200}
+{"level":"INFO","time":"2025-04-27T16:21:33.576+0300","caller":"handlers/user.go:137","message":"user profile requested","user_id":3,"phone":"79388945877"}
+{"level":"INFO","time":"2025-04-27T16:21:33.576+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/me","ip":"[::1]:54067","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":6236600}
+{"level":"INFO","time":"2025-04-27T16:21:57.346+0300","caller":"handlers/category.go:46","message":"categories fetched","count":25}
+{"level":"INFO","time":"2025-04-27T16:21:57.347+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/categories","ip":"[::1]:54067","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":28698300}
+{"level":"INFO","time":"2025-04-27T16:22:25.516+0300","caller":"handlers/category.go:76","message":"category created","name":"New Categыееуory","sortOrder":0}
+{"level":"INFO","time":"2025-04-27T16:22:25.517+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories","ip":"[::1]:54067","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":23923700}
+{"level":"INFO","time":"2025-04-27T16:31:50.135+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T16:32:01.051+0300","caller":"handlers/category.go:76","message":"category created","name":"New йцу","sortOrder":0}
+{"level":"INFO","time":"2025-04-27T16:32:01.051+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories","ip":"[::1]:54579","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":10317600}
+{"level":"INFO","time":"2025-04-27T16:32:57.321+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Овощи"}
+{"level":"INFO","time":"2025-04-27T16:32:57.324+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Фрукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.324+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Молочные продукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.326+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Хлебобулочные изделия"}
+{"level":"INFO","time":"2025-04-27T16:32:57.327+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Мясо"}
+{"level":"INFO","time":"2025-04-27T16:32:57.328+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Рыба и морепродукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.329+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Крупы и макароны"}
+{"level":"INFO","time":"2025-04-27T16:32:57.331+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Консервы"}
+{"level":"INFO","time":"2025-04-27T16:32:57.334+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Сладости"}
+{"level":"INFO","time":"2025-04-27T16:32:57.335+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Напитки"}
+{"level":"INFO","time":"2025-04-27T16:32:57.337+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Замороженные продукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.338+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Соусы и приправы"}
+{"level":"INFO","time":"2025-04-27T16:32:57.339+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Масла и жиры"}
+{"level":"INFO","time":"2025-04-27T16:32:57.340+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Яйца"}
+{"level":"INFO","time":"2025-04-27T16:32:57.342+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Орехи и сухофрукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.343+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Выпечка"}
+{"level":"INFO","time":"2025-04-27T16:32:57.345+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Кофе и чай"}
+{"level":"INFO","time":"2025-04-27T16:32:57.346+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Здоровое питание"}
+{"level":"INFO","time":"2025-04-27T16:32:57.347+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Детское питание"}
+{"level":"INFO","time":"2025-04-27T16:32:57.349+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Безлактозные продукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.351+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Вегетарианские продукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.352+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Диетические продукты"}
+{"level":"INFO","time":"2025-04-27T16:32:57.354+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Бакалея"}
+{"level":"INFO","time":"2025-04-27T16:32:57.355+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Сыры"}
+{"level":"INFO","time":"2025-04-27T16:32:57.356+0300","caller":"services/category.go:74","message":"category already exists, skipping","name":"Специи"}
+{"level":"INFO","time":"2025-04-27T16:32:57.358+0300","caller":"handlers/category.go:169","message":"bulk categories created","count":25}
+{"level":"INFO","time":"2025-04-27T16:32:57.360+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:54579","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":64954400}
+{"level":"INFO","time":"2025-04-27T16:36:58.580+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T16:37:03.927+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Овощи"}
+{"level":"INFO","time":"2025-04-27T16:37:03.928+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Фрукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.929+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Молочные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.929+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Хлебобулочные изделия"}
+{"level":"INFO","time":"2025-04-27T16:37:03.931+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Мясо"}
+{"level":"INFO","time":"2025-04-27T16:37:03.931+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Рыба и морепродукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.933+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Крупы и макароны"}
+{"level":"INFO","time":"2025-04-27T16:37:03.934+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Консервы"}
+{"level":"INFO","time":"2025-04-27T16:37:03.935+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Сладости"}
+{"level":"INFO","time":"2025-04-27T16:37:03.936+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Напитки"}
+{"level":"INFO","time":"2025-04-27T16:37:03.938+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Замороженные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.940+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Соусы и приправы"}
+{"level":"INFO","time":"2025-04-27T16:37:03.942+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Масла и жиры"}
+{"level":"INFO","time":"2025-04-27T16:37:03.944+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Яйца"}
+{"level":"INFO","time":"2025-04-27T16:37:03.946+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Орехи и сухофрукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.947+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Выпечка"}
+{"level":"INFO","time":"2025-04-27T16:37:03.948+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Кофе и чай"}
+{"level":"INFO","time":"2025-04-27T16:37:03.949+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Здоровое питание"}
+{"level":"INFO","time":"2025-04-27T16:37:03.950+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Детское питание"}
+{"level":"INFO","time":"2025-04-27T16:37:03.951+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Безлактозные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.952+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Вегетарианские продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.953+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Диетические продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:03.957+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Бакалея"}
+{"level":"INFO","time":"2025-04-27T16:37:03.959+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Сыры"}
+{"level":"INFO","time":"2025-04-27T16:37:03.965+0300","caller":"services/category.go:89","message":"category created","name":"тест","id":28}
+{"level":"INFO","time":"2025-04-27T16:37:03.966+0300","caller":"handlers/category.go:171","message":"bulk categories created","count":1,"names":["тест"]}
+{"level":"INFO","time":"2025-04-27T16:37:03.967+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:54873","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":47366600}
+{"level":"INFO","time":"2025-04-27T16:37:14.599+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Овощи"}
+{"level":"INFO","time":"2025-04-27T16:37:14.601+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Фрукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.602+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Молочные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.603+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Хлебобулочные изделия"}
+{"level":"INFO","time":"2025-04-27T16:37:14.605+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Мясо"}
+{"level":"INFO","time":"2025-04-27T16:37:14.606+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Рыба и морепродукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.607+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Крупы и макароны"}
+{"level":"INFO","time":"2025-04-27T16:37:14.609+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Консервы"}
+{"level":"INFO","time":"2025-04-27T16:37:14.610+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Сладости"}
+{"level":"INFO","time":"2025-04-27T16:37:14.611+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Напитки"}
+{"level":"INFO","time":"2025-04-27T16:37:14.612+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Замороженные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.613+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Соусы и приправы"}
+{"level":"INFO","time":"2025-04-27T16:37:14.615+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Масла и жиры"}
+{"level":"INFO","time":"2025-04-27T16:37:14.616+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Яйца"}
+{"level":"INFO","time":"2025-04-27T16:37:14.618+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Орехи и сухофрукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.619+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Выпечка"}
+{"level":"INFO","time":"2025-04-27T16:37:14.620+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Кофе и чай"}
+{"level":"INFO","time":"2025-04-27T16:37:14.621+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Здоровое питание"}
+{"level":"INFO","time":"2025-04-27T16:37:14.622+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Детское питание"}
+{"level":"INFO","time":"2025-04-27T16:37:14.625+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Безлактозные продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.627+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Вегетарианские продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.628+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Диетические продукты"}
+{"level":"INFO","time":"2025-04-27T16:37:14.630+0300","caller":"services/category.go:79","message":"category already exists, skipping","name":"Бакалея"}
+{"level":"INFO","time":"2025-04-27T16:37:14.632+0300","caller":"services/category.go:89","message":"category created","name":"второй ","id":29}
+{"level":"INFO","time":"2025-04-27T16:37:14.635+0300","caller":"services/category.go:89","message":"category created","name":"еще 1 ","id":30}
+{"level":"INFO","time":"2025-04-27T16:37:14.635+0300","caller":"handlers/category.go:171","message":"bulk categories created","count":2,"names":["второй ","еще 1 "]}
+{"level":"INFO","time":"2025-04-27T16:37:14.636+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:54873","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":38787900}
+{"level":"INFO","time":"2025-04-27T16:54:10.357+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T17:01:59.662+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}

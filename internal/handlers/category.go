@@ -53,28 +53,27 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Tags Категории
 // @Security BearerAuth
 // @Accept json
-// @Produce plain
+// @Produce json
 // @Param input body utils.CategoryRequest true "Название категории"
-// @Success 201 {string} string "Category created"
-// @Failure 400 {string} string "Invalid body or duplicate name"
+// @Success 201 {object} models.Category
+// @Failure 400 {object} utils.ErrorResponse
 // @Router /api/admin/categories [post]
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var body struct {
-		Name      string `json:"name"`
-		SortOrder int    `json:"sortOrder"`
-	}
+	var body utils.CategoryRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Name == "" {
 		h.logger.Warn("invalid category creation request", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid body")
 		return
 	}
-	if err := h.service.Create(body.Name, body.SortOrder); err != nil {
-		h.logger.Warn("failed to create category", zap.String("name", body.Name), zap.Error(err))
+
+	category, err := h.service.Create(body.Name, body.SortOrder)
+	if err != nil {
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	h.logger.Info("category created", zap.String("name", body.Name), zap.Int("sortOrder", body.SortOrder))
-	utils.JSONResponse(w, http.StatusCreated, "Category created", nil)
+	utils.JSONResponse(w, http.StatusCreated, "Category created", category)
+
+	h.logger.Info("category created", zap.String("name", category.Name), zap.Int("sortOrder", category.SortOrder))
 }
 
 // Update
@@ -108,14 +107,15 @@ func (h *CategoryHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.PartialUpdate(id, body.Name, body.SortOrder); err != nil {
+	updatedCategory, err := h.service.PartialUpdate(id, body.Name, body.SortOrder)
+	if err != nil {
 		h.logger.Warn("failed to update category", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	h.logger.Info("category updated", zap.Int("id", id))
-	utils.JSONResponse(w, http.StatusOK, "Category updated", nil)
+	utils.JSONResponse(w, http.StatusOK, "Category updated", updatedCategory)
 }
 
 // Delete
@@ -165,8 +165,10 @@ func (h *CategoryHandler) CreateBulk(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	names := make([]string, 0, len(created))
+	for _, c := range created {
+		names = append(names, c.Name)
+	}
+	h.logger.Info("bulk categories created", zap.Int("count", len(created)), zap.Strings("names", names))
 	utils.JSONResponse(w, http.StatusCreated, "Categories created", created)
-
-	h.logger.Info("bulk categories created", zap.Int("count", len(categories)))
-	utils.JSONResponse(w, http.StatusCreated, "Categories created", nil)
 }

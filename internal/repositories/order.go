@@ -13,6 +13,7 @@ type OrderRepository interface {
 	GetByID(orderID int) (*models.Order, error)
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
 	GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error)
+	CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error)
 }
 
 type OrderRepo struct {
@@ -106,4 +107,34 @@ func (r *OrderRepo) GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithIte
 	}
 
 	return orders, nil
+}
+
+func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	var orderID int
+	err = tx.QueryRow(`
+		INSERT INTO orders (owner_id, total, status, created_at, delivery_type, payment_type, change_for, name, address)
+		VALUES ($1, $2, $3, NOW(), $4, $5, $6, $7, $8)
+		RETURNING id
+	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor, req.Name, req.Address).Scan(&orderID)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, item := range req.Items {
+		_, err := tx.Exec(`
+			INSERT INTO order_items (order_id, product_id, quantity)
+			VALUES ($1, $2, $3)
+		`, orderID, item.ID, item.Quantity)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return orderID, tx.Commit()
 }
