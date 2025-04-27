@@ -3,6 +3,7 @@ package services
 import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
+	"chechnya-product/internal/utils"
 	"fmt"
 	"go.uber.org/zap"
 	"strings"
@@ -63,16 +64,8 @@ func (s *ProductService) GetByID(id int) (*models.ProductResponse, error) {
 		categoryName = ""
 	}
 
-	return &models.ProductResponse{
-		ID:           product.ID,
-		Name:         product.Name,
-		Description:  product.Description,
-		Price:        product.Price,
-		Availability: product.Availability,
-		CategoryID:   int(product.CategoryID.Int64),
-		CategoryName: categoryName,
-		Url:          product.Url,
-	}, nil
+	response := utils.BuildProductResponse(product, categoryName)
+	return &response, nil
 }
 
 func (s *ProductService) AddProduct(product *models.Product) error {
@@ -121,16 +114,9 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return &models.ProductResponse{
-		ID:           updated.ID,
-		Name:         updated.Name,
-		Description:  updated.Description,
-		Price:        updated.Price,
-		Availability: updated.Availability,
-		CategoryID:   int(updated.CategoryID.Int64),
-		CategoryName: categoryName,
-		Url:          updated.Url,
-	}, nil
+	response := utils.BuildProductResponse(updated, categoryName)
+	return &response, nil
+
 }
 
 func validateProduct(p *models.Product) error {
@@ -171,16 +157,9 @@ func (s *ProductService) GetFiltered(
 			categoryName = ""
 		}
 
-		result = append(result, models.ProductResponse{
-			ID:           p.ID,
-			Name:         p.Name,
-			Description:  p.Description,
-			Price:        p.Price,
-			Availability: p.Availability,
-			CategoryID:   int(p.CategoryID.Int64), // если NULL — будет 0
-			CategoryName: categoryName,
-			Url:          p.Url,
-		})
+		response := utils.BuildProductResponse(&p, categoryName)
+		result = append(result, response)
+
 	}
 	return result, nil
 }
@@ -223,16 +202,9 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 				categoryName, _ = s.repo.GetCategoryNameByIDTx(tx, int(updated.CategoryID.Int64))
 			}
 
-			responses = append(responses, models.ProductResponse{
-				ID:           updated.ID,
-				Name:         updated.Name,
-				Description:  updated.Description,
-				Price:        updated.Price,
-				Availability: updated.Availability,
-				CategoryID:   int(updated.CategoryID.Int64),
-				CategoryName: categoryName,
-				Url:          updated.Url,
-			})
+			response := utils.BuildProductResponse(updated, categoryName)
+			responses = append(responses, response)
+
 			continue
 		}
 
@@ -246,16 +218,9 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 			categoryName, _ = s.repo.GetCategoryNameByIDTx(tx, int(p.CategoryID.Int64))
 		}
 
-		responses = append(responses, models.ProductResponse{
-			ID:           p.ID,
-			Name:         p.Name,
-			Description:  p.Description,
-			Price:        p.Price,
-			Availability: p.Availability,
-			CategoryID:   int(p.CategoryID.Int64),
-			CategoryName: categoryName,
-			Url:          p.Url,
-		})
+		response := utils.BuildProductResponse(&p, categoryName)
+		responses = append(responses, response)
+
 	}
 
 	if err := tx.Commit(); err != nil {

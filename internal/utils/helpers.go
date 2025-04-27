@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"chechnya-product/internal/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -52,4 +53,31 @@ func FormatFloat(f float64) string {
 
 func ParseIntParam(param string) (int, error) {
 	return strconv.Atoi(param)
+}
+
+func BuildProductResponse(p *models.Product, categoryName string) models.ProductResponse {
+	var categoryID int
+	if p.CategoryID.Valid {
+		categoryID = int(p.CategoryID.Int64)
+	} else {
+		categoryID = 0
+	}
+
+	var url string
+	if p.Url.Valid {
+		url = p.Url.String
+	} else {
+		url = ""
+	}
+
+	return models.ProductResponse{
+		ID:           p.ID,
+		Name:         p.Name,
+		Description:  p.Description,
+		Price:        p.Price,
+		Availability: p.Availability,
+		CategoryID:   categoryID,
+		CategoryName: categoryName,
+		Url:          url,
+	}
 }
