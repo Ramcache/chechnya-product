@@ -137,11 +137,16 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	availability := true
+	if input.Availability != nil {
+		availability = *input.Availability
+	}
+
 	product := models.Product{
 		Name:         input.Name,
 		Description:  input.Description,
 		Price:        input.Price,
-		Availability: input.Availability,
+		Availability: availability,
 		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
 	}
 
@@ -199,12 +204,16 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Преобразуем ProductInput -> Product
+	availability := true
+	if input.Availability != nil {
+		availability = *input.Availability
+	}
+
 	product := models.Product{
 		Name:         input.Name,
 		Description:  input.Description,
 		Price:        input.Price,
-		Availability: input.Availability,
+		Availability: availability,
 		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
 	}
 
@@ -295,13 +304,19 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 
 	var products []models.Product
 	for _, input := range inputs {
+		availability := true
+		if input.Availability != nil {
+			availability = *input.Availability
+		}
+
 		product := models.Product{
 			Name:         input.Name,
 			Description:  input.Description,
 			Price:        input.Price,
-			Availability: input.Availability,
+			Availability: availability,
 			Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
 		}
+
 		if input.CategoryID != nil {
 			product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
 		} else {
