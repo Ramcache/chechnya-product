@@ -156,8 +156,9 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := utils.BuildProductResponse(&product, "")
 	h.logger.Info("product added", zap.String("name", product.Name))
-	utils.JSONResponse(w, http.StatusCreated, "Product added", nil)
+	utils.JSONResponse(w, http.StatusCreated, "Product added", response)
 }
 
 // Update
