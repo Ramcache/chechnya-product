@@ -26,3 +26,12 @@ type ProductResponse struct {
 	Rating       float64 `json:"rating"`
 	Url          string  `json:"url"`
 }
+
+type ProductInput struct {
+	Name         string  `json:"name"`
+	Description  string  `json:"description"`
+	Price        float64 `json:"price"`
+	Availability bool    `json:"availability"`
+	CategoryID   *int    `json:"category_id"`
+	Url          string  `json:"url"`
+}

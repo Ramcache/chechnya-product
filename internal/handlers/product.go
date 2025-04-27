@@ -4,6 +4,7 @@ import (
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/utils"
+	"database/sql"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -128,11 +129,25 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var product models.Product
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+	var input models.ProductInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		h.logger.Warn("invalid product JSON", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
+	}
+
+	product := models.Product{
+		Name:         input.Name,
+		Description:  input.Description,
+		Price:        input.Price,
+		Availability: input.Availability,
+		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
+	}
+
+	if input.CategoryID != nil {
+		product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
+	} else {
+		product.CategoryID = sql.NullInt64{Valid: false}
 	}
 
 	if err := h.service.AddProduct(&product); err != nil {
@@ -252,11 +267,28 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var products []models.Product
-	if err := json.NewDecoder(r.Body).Decode(&products); err != nil || len(products) == 0 {
+	var inputs []models.ProductInput
+	if err := json.NewDecoder(r.Body).Decode(&inputs); err != nil || len(inputs) == 0 {
 		h.logger.Warn("invalid bulk product JSON", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON or empty array")
 		return
+	}
+
+	var products []models.Product
+	for _, input := range inputs {
+		product := models.Product{
+			Name:         input.Name,
+			Description:  input.Description,
+			Price:        input.Price,
+			Availability: input.Availability,
+			Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
+		}
+		if input.CategoryID != nil {
+			product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
+		} else {
+			product.CategoryID = sql.NullInt64{Valid: false}
+		}
+		products = append(products, product)
 	}
 
 	responses, err := h.service.AddProductsBulk(products)
@@ -268,5 +300,4 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("bulk products added", zap.Int("count", len(responses)))
 	utils.JSONResponse(w, http.StatusCreated, "Products added", responses)
-
 }
