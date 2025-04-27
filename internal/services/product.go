@@ -53,8 +53,13 @@ func (s *ProductService) GetByID(id int) (*models.ProductResponse, error) {
 		return nil, fmt.Errorf("product not found")
 	}
 
-	categoryName, err := s.repo.GetCategoryNameByID(product.CategoryID)
-	if err != nil {
+	var categoryName string
+	if product.CategoryID.Valid {
+		categoryName, err = s.repo.GetCategoryNameByID(int(product.CategoryID.Int64))
+		if err != nil {
+			categoryName = ""
+		}
+	} else {
 		categoryName = ""
 	}
 
@@ -64,7 +69,7 @@ func (s *ProductService) GetByID(id int) (*models.ProductResponse, error) {
 		Description:  product.Description,
 		Price:        product.Price,
 		Availability: product.Availability,
-		CategoryID:   product.CategoryID,
+		CategoryID:   int(product.CategoryID.Int64),
 		CategoryName: categoryName,
 		Url:          product.Url,
 	}, nil
@@ -104,9 +109,12 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 		return nil, fmt.Errorf("failed to fetch updated product")
 	}
 
-	categoryName, err := s.repo.GetCategoryNameByIDTx(tx, updated.CategoryID)
-	if err != nil {
-		categoryName = ""
+	var categoryName string
+	if updated.CategoryID.Valid {
+		categoryName, err = s.repo.GetCategoryNameByIDTx(tx, int(updated.CategoryID.Int64))
+		if err != nil {
+			categoryName = ""
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -114,16 +122,15 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 	}
 
 	return &models.ProductResponse{
-		ID:           product.ID,
-		Name:         product.Name,
-		Description:  product.Description,
-		Price:        product.Price,
-		Availability: product.Availability,
-		CategoryID:   product.CategoryID,
+		ID:           updated.ID,
+		Name:         updated.Name,
+		Description:  updated.Description,
+		Price:        updated.Price,
+		Availability: updated.Availability,
+		CategoryID:   int(updated.CategoryID.Int64),
 		CategoryName: categoryName,
-		Url:          product.Url,
+		Url:          updated.Url,
 	}, nil
-
 }
 
 func validateProduct(p *models.Product) error {
@@ -154,17 +161,23 @@ func (s *ProductService) GetFiltered(
 
 	var result []models.ProductResponse
 	for _, p := range products {
-		categoryName, err := s.repo.GetCategoryNameByID(p.CategoryID)
-		if err != nil {
+		var categoryName string
+		if p.CategoryID.Valid {
+			categoryName, err = s.repo.GetCategoryNameByID(int(p.CategoryID.Int64))
+			if err != nil {
+				categoryName = ""
+			}
+		} else {
 			categoryName = ""
 		}
+
 		result = append(result, models.ProductResponse{
 			ID:           p.ID,
 			Name:         p.Name,
 			Description:  p.Description,
 			Price:        p.Price,
 			Availability: p.Availability,
-			CategoryID:   p.CategoryID,
+			CategoryID:   int(p.CategoryID.Int64), // если NULL — будет 0
 			CategoryName: categoryName,
 			Url:          p.Url,
 		})
@@ -204,14 +217,19 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 				_ = tx.Rollback()
 				return nil, err
 			}
-			categoryName, _ := s.repo.GetCategoryNameByIDTx(tx, updated.CategoryID)
+
+			var categoryName string
+			if updated.CategoryID.Valid {
+				categoryName, _ = s.repo.GetCategoryNameByIDTx(tx, int(updated.CategoryID.Int64))
+			}
+
 			responses = append(responses, models.ProductResponse{
 				ID:           updated.ID,
 				Name:         updated.Name,
 				Description:  updated.Description,
 				Price:        updated.Price,
 				Availability: updated.Availability,
-				CategoryID:   updated.CategoryID,
+				CategoryID:   int(updated.CategoryID.Int64),
 				CategoryName: categoryName,
 				Url:          updated.Url,
 			})
@@ -223,14 +241,18 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 			return nil, err
 		}
 
-		categoryName, _ := s.repo.GetCategoryNameByIDTx(tx, p.CategoryID)
+		var categoryName string
+		if p.CategoryID.Valid {
+			categoryName, _ = s.repo.GetCategoryNameByIDTx(tx, int(p.CategoryID.Int64))
+		}
+
 		responses = append(responses, models.ProductResponse{
 			ID:           p.ID,
 			Name:         p.Name,
 			Description:  p.Description,
 			Price:        p.Price,
 			Availability: p.Availability,
-			CategoryID:   p.CategoryID,
+			CategoryID:   int(p.CategoryID.Int64),
 			CategoryName: categoryName,
 			Url:          p.Url,
 		})
