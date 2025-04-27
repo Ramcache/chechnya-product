@@ -357,3 +357,4 @@
 {"level":"INFO","time":"2025-04-27T16:37:14.636+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/admin/categories/bulk","ip":"[::1]:54873","user_agent":"PostmanRuntime/7.43.3","owner_id":"guest_10eaadda-e37d-4f07-8d73-5f207e432045","duration":38787900}
 {"level":"INFO","time":"2025-04-27T16:54:10.357+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
 {"level":"INFO","time":"2025-04-27T17:01:59.662+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
+{"level":"INFO","time":"2025-04-27T19:23:46.031+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}
