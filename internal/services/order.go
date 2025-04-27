@@ -6,12 +6,11 @@ import (
 	"chechnya-product/internal/ws"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 )
 
 type OrderServiceInterface interface {
-	PlaceOrder(ownerID string) error
+	PlaceOrder(ownerID string, req models.PlaceOrderRequest) error
 	GetOrders(ownerID string) ([]models.Order, error)
 	GetAllOrders() ([]models.Order, error)
 	UpdateStatus(orderID int, status string) error
@@ -40,46 +39,17 @@ func NewOrderService(
 	}
 }
 
-func (s *OrderService) PlaceOrder(ownerID string) error {
-	items, err := s.cartRepo.GetCartItems(ownerID)
-	log.Println("[OWNER]", ownerID)
-
-	if err != nil {
-		return fmt.Errorf("failed to get cart items: %w", err)
-	}
-	if len(items) == 0 {
-		return errors.New("cart is empty")
-	}
-
-	var total float64
-	for _, item := range items {
-		product, err := s.productRepo.GetByID(item.ProductID)
-		if err != nil {
-			return fmt.Errorf("failed to get product %d: %w", item.ProductID, err)
-		}
-		if product == nil {
-			return fmt.Errorf("product %d not found", item.ProductID)
-		}
-		if !product.Availability {
-			return fmt.Errorf("product \"%s\" is not available", product.Name)
-		}
-
-		total += float64(item.Quantity) * product.Price
-	}
-
-	orderID, err := s.orderRepo.CreateOrder(ownerID, total)
+func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) error {
+	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req)
 	if err != nil {
 		return fmt.Errorf("failed to create order: %w", err)
-	}
-
-	if err := s.cartRepo.ClearCart(ownerID); err != nil {
-		return fmt.Errorf("failed to clear cart: %w", err)
 	}
 
 	order := models.Order{
 		ID:        orderID,
 		OwnerID:   ownerID,
-		Total:     total,
+		Total:     req.Total,
+		Status:    req.Status,
 		CreatedAt: time.Now(),
 	}
 

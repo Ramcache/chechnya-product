@@ -10,11 +10,11 @@ import (
 
 type CategoryServiceInterface interface {
 	GetAll() ([]models.Category, error)
-	Create(name string, sortOrder int) error
+	Create(name string, sortOrder int) (*models.Category, error)
 	Update(id int, name string, sortOrder int) error
 	Delete(id int) error
 	CreateBulk(categories []utils.CategoryRequest) ([]models.Category, error)
-	PartialUpdate(id int, name *string, sortOrder *int) error
+	PartialUpdate(id int, name *string, sortOrder *int) (*models.Category, error)
 }
 
 type CategoryService struct {
@@ -30,8 +30,15 @@ func (s *CategoryService) GetAll() ([]models.Category, error) {
 	return s.repo.GetAll()
 }
 
-func (s *CategoryService) Create(name string, sortOrder int) error {
-	return s.repo.Create(name, sortOrder)
+func (s *CategoryService) Create(name string, sortOrder int) (*models.Category, error) {
+	category := &models.Category{
+		Name:      name,
+		SortOrder: sortOrder,
+	}
+	if err := s.repo.Create(category); err != nil {
+		return nil, err
+	}
+	return category, nil
 }
 
 func (s *CategoryService) Update(id int, name string, sortOrder int) error {
@@ -47,19 +54,24 @@ func (s *CategoryService) CreateBulk(categories []utils.CategoryRequest) ([]mode
 	if err != nil {
 		return nil, fmt.Errorf("failed to start transaction: %w", err)
 	}
+
+	var created []models.Category
+	var txErr error
+
 	defer func() {
 		if p := recover(); p != nil {
 			_ = tx.Rollback()
 			panic(p)
 		}
+		if txErr != nil {
+			_ = tx.Rollback()
+		}
 	}()
-
-	var created []models.Category
 
 	for _, cat := range categories {
 		if cat.Name == "" {
-			_ = tx.Rollback()
-			return nil, fmt.Errorf("category name cannot be empty")
+			txErr = fmt.Errorf("category name cannot be empty")
+			return nil, txErr
 		}
 
 		existing, err := s.repo.GetByNameTx(tx, cat.Name)
@@ -70,8 +82,8 @@ func (s *CategoryService) CreateBulk(categories []utils.CategoryRequest) ([]mode
 
 		newCat, err := s.repo.CreateReturningTx(tx, cat.Name, cat.SortOrder)
 		if err != nil {
-			_ = tx.Rollback()
-			return nil, fmt.Errorf("failed to create category '%s': %w", cat.Name, err)
+			txErr = fmt.Errorf("failed to create category '%s': %w", cat.Name, err)
+			return nil, txErr
 		}
 
 		s.logger.Info("category created", zap.String("name", newCat.Name), zap.Int("id", newCat.ID))
@@ -85,6 +97,16 @@ func (s *CategoryService) CreateBulk(categories []utils.CategoryRequest) ([]mode
 	return created, nil
 }
 
-func (s *CategoryService) PartialUpdate(id int, name *string, sortOrder *int) error {
-	return s.repo.PartialUpdate(id, name, sortOrder)
+func (s *CategoryService) PartialUpdate(id int, name *string, sortOrder *int) (*models.Category, error) {
+	err := s.repo.PartialUpdate(id, name, sortOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	updated, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
 }

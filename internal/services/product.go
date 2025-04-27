@@ -66,6 +66,7 @@ func (s *ProductService) GetByID(id int) (*models.ProductResponse, error) {
 		Availability: product.Availability,
 		CategoryID:   product.CategoryID,
 		CategoryName: categoryName,
+		Url:          product.Url,
 	}, nil
 }
 
@@ -113,14 +114,16 @@ func (s *ProductService) UpdateProduct(id int, product *models.Product) (*models
 	}
 
 	return &models.ProductResponse{
-		ID:           updated.ID,
-		Name:         updated.Name,
-		Description:  updated.Description,
-		Price:        updated.Price,
-		Availability: updated.Availability,
-		CategoryID:   updated.CategoryID,
+		ID:           product.ID,
+		Name:         product.Name,
+		Description:  product.Description,
+		Price:        product.Price,
+		Availability: product.Availability,
+		CategoryID:   product.CategoryID,
 		CategoryName: categoryName,
+		Url:          product.Url,
 	}, nil
+
 }
 
 func validateProduct(p *models.Product) error {
@@ -163,6 +166,7 @@ func (s *ProductService) GetFiltered(
 			Availability: p.Availability,
 			CategoryID:   p.CategoryID,
 			CategoryName: categoryName,
+			Url:          p.Url,
 		})
 	}
 	return result, nil
@@ -209,6 +213,7 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 				Availability: updated.Availability,
 				CategoryID:   updated.CategoryID,
 				CategoryName: categoryName,
+				Url:          updated.Url,
 			})
 			continue
 		}
@@ -227,6 +232,7 @@ func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.Pr
 			Availability: p.Availability,
 			CategoryID:   p.CategoryID,
 			CategoryName: categoryName,
+			Url:          p.Url,
 		})
 	}
 

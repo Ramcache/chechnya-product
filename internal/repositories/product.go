@@ -58,9 +58,9 @@ func (r *ProductRepo) GetAll() ([]models.Product, error) {
 
 func (r *ProductRepo) Create(product *models.Product) error {
 	query := `
-	INSERT INTO products (name, description, price, availability, category_id)
-	VALUES ($1, $2, $3, $4, $5)
-	RETURNING id
+INSERT INTO products (name, description, price, availability, category_id, url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id
 `
 	err := r.db.QueryRow(query,
 		product.Name,
@@ -68,6 +68,7 @@ func (r *ProductRepo) Create(product *models.Product) error {
 		product.Price,
 		product.Availability,
 		product.CategoryID,
+		product.Url,
 	).Scan(&product.ID)
 
 	if err != nil {
@@ -90,11 +91,11 @@ func (r *ProductRepo) Delete(id int) error {
 
 func (r *ProductRepo) Update(id int, product *models.Product) error {
 	query := `
-	UPDATE products
-	SET name = $1, description = $2, price = $3, availability = $4, category_id = $5
-	WHERE id = $6
+UPDATE products
+SET name = $1, description = $2, price = $3, availability = $4, category_id = $5, url = $6
+WHERE id = $7
 `
-	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Availability, product.CategoryID, id)
+	result, err := r.db.Exec(query, product.Name, product.Description, product.Price, product.Availability, product.CategoryID, id, product.Url)
 
 	if err != nil {
 		return fmt.Errorf("failed to update product: %w", err)

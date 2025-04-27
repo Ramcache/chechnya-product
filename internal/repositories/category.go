@@ -9,13 +9,14 @@ import (
 
 type CategoryRepository interface {
 	GetAll() ([]models.Category, error)
-	Create(name string, sortOrder int) error
+	Create(category *models.Category) error
 	Update(id int, name string, sortOrder int) error
 	Delete(id int) error
 	BeginTx() (*sqlx.Tx, error)
 	GetByNameTx(tx *sqlx.Tx, name string) (*models.Category, error)
 	CreateReturningTx(tx *sqlx.Tx, name string, sortOrder int) (*models.Category, error)
 	PartialUpdate(id int, name *string, sortOrder *int) error
+	GetByID(id int) (*models.Category, error)
 }
 
 type CategoryRepo struct {
@@ -32,8 +33,11 @@ func (r *CategoryRepo) GetAll() ([]models.Category, error) {
 	return categories, err
 }
 
-func (r *CategoryRepo) Create(name string, sortOrder int) error {
-	_, err := r.db.Exec(`INSERT INTO categories (name, sort_order) VALUES ($1, $2)`, name, sortOrder)
+func (r *CategoryRepo) Create(category *models.Category) error {
+	err := r.db.QueryRow(
+		`INSERT INTO categories (name, sort_order) VALUES ($1, $2) RETURNING id`,
+		category.Name, category.SortOrder,
+	).Scan(&category.ID)
 	return err
 }
 
@@ -101,4 +105,16 @@ func (r *CategoryRepo) PartialUpdate(id int, name *string, sortOrder *int) error
 
 	_, err := r.db.Exec(query, args...)
 	return err
+}
+
+func (r *CategoryRepo) GetByID(id int) (*models.Category, error) {
+	var category models.Category
+	err := r.db.QueryRow(`SELECT id, name, sort_order FROM categories WHERE id = $1`, id).
+		Scan(&category.ID, &category.Name, &category.SortOrder)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &category, nil
 }
