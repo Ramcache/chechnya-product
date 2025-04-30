@@ -18,6 +18,8 @@ type UserServiceInterface interface {
 	GetByID(userID int) (*models.User, error)
 	GetByOwnerID(ownerID string) (*models.User, error)
 	TransferCart(oldOwnerID, newOwnerID string) error
+	LoginWithUser(req LoginRequest) (*models.User, string, error)
+	CreateByPhone(phone string) (*models.User, string, error)
 }
 
 type UserService struct {
@@ -146,4 +148,63 @@ func isValidEmail(s string) bool {
 func isValidPhone(s string) bool {
 	// Простейшая проверка: начинается с "+" и длина от 10
 	return strings.HasPrefix(s, "+") && len(s) >= 10
+}
+
+func (s *UserService) LoginWithUser(req LoginRequest) (*models.User, string, error) {
+	user, err := s.repo.FindByPhoneOrEmail(req.Identifier)
+	if err != nil {
+		return nil, "", err
+	}
+	if !user.IsVerified {
+		return nil, "", errors.New("phone not verified")
+	}
+	if !CheckPasswordHash(req.Password, user.PasswordHash) {
+		return nil, "", errors.New("invalid password")
+	}
+
+	token, err := s.jwt.Generate(user.ID, user.Role)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return user, token, nil
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func (s *UserService) CreateByPhone(phone string) (*models.User, string, error) {
+	if !isValidPhone(phone) {
+		return nil, "", errors.New("invalid phone format")
+	}
+
+	existing, _ := s.repo.GetByPhone(phone)
+	if existing != nil {
+		return nil, "", errors.New("user already exists")
+	}
+
+	// 🔐 генерируем пароль
+	password := utils.GeneratePassword(8)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user := &models.User{
+		Phone:        phone,
+		PasswordHash: string(hash),
+		Username:     "user_" + phone[len(phone)-4:], // например user_1122
+		Role:         models.UserRoleUser,
+		IsVerified:   true,
+		OwnerID:      "user_" + utils.GenerateShortID(),
+		CreatedAt:    time.Now(),
+	}
+
+	if err := s.repo.Create(user); err != nil {
+		return nil, "", err
+	}
+
+	return user, password, nil
 }

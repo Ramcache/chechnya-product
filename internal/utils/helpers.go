@@ -3,8 +3,10 @@ package utils
 import (
 	"chechnya-product/internal/models"
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type UpdateItemRequest struct {
@@ -80,4 +82,25 @@ func BuildProductResponse(p *models.Product, categoryName string) models.Product
 		CategoryName: categoryName,
 		Url:          url,
 	}
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#"
+const idCharset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+func GeneratePassword(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	pass := make([]byte, length)
+	for i := range pass {
+		pass[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(pass)
+}
+
+func GenerateShortID() string {
+	rand.Seed(time.Now().UnixNano())
+	id := make([]byte, 6)
+	for i := range id {
+		id[i] = idCharset[rand.Intn(len(idCharset))]
+	}
+	return string(id)
 }

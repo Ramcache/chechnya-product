@@ -14,6 +14,7 @@ type UserHandlerInterface interface {
 	Register(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	Me(w http.ResponseWriter, r *http.Request)
+	CreateUserByPhone(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
@@ -62,12 +63,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:   middleware.OwnerCookieName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	})
+	middleware.SetOwnerID(w, user.OwnerID)
+	h.logger.Info("cart transferred",
+		zap.String("from", oldOwnerID),
+		zap.String("to", user.OwnerID),
+	)
 
 	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
 	utils.JSONResponse(w, http.StatusCreated, "Registration successful", nil)
@@ -92,7 +92,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Login(services.LoginRequest{
+	oldOwnerID := middleware.GetOwnerID(w, r) // 👈 получаем текущий owner_id (гость)
+
+	user, token, err := h.service.LoginWithUser(services.LoginRequest{
 		Identifier: req.Identifier,
 		Password:   req.Password,
 	})
@@ -106,7 +108,17 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info("user logged in", zap.String("identifier", req.Identifier))
+	if cartErr := h.service.TransferCart(oldOwnerID, user.OwnerID); cartErr != nil {
+		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
+	}
+
+	middleware.SetOwnerID(w, user.OwnerID)
+
+	h.logger.Info("user logged in",
+		zap.String("identifier", req.Identifier),
+		zap.String("owner_id", user.OwnerID),
+	)
+
 	utils.JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
 }
 
@@ -143,5 +155,37 @@ func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 		"role":       user.Role,
 		"isVerified": user.IsVerified,
 		"owner_id":   user.OwnerID,
+	})
+}
+
+type CreateByPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+// CreateUserByPhone создает пользователя по номеру телефона
+// @Summary Создать пользователя по номеру
+// @Tags Админ
+// @Accept json
+// @Produce json
+// @Param input body CreateByPhoneRequest true "Номер телефона"
+// @Success 201 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /api/admin/users [post]
+func (h *UserHandler) CreateUserByPhone(w http.ResponseWriter, r *http.Request) {
+	var req CreateByPhoneRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	user, password, err := h.service.CreateByPhone(req.Phone)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusCreated, "User created", map[string]interface{}{
+		"phone":    user.Phone,
+		"password": password,
 	})
 }

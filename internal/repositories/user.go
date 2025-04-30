@@ -4,6 +4,7 @@ import (
 	"chechnya-product/internal/models"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -15,6 +16,7 @@ type UserRepository interface {
 	GetByEmail(email string) (*models.User, error)
 	GetByUsername(username string) (*models.User, error)
 	GetByOwnerID(ownerID string) (*models.User, error)
+	FindByPhoneOrEmail(identifier string) (*models.User, error)
 }
 
 type UserRepo struct {
@@ -101,4 +103,14 @@ func (r *UserRepo) GetByUsername(username string) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepo) FindByPhoneOrEmail(identifier string) (*models.User, error) {
+	if strings.Contains(identifier, "@") {
+		return r.GetByEmail(identifier)
+	}
+	if strings.HasPrefix(identifier, "+") {
+		return r.GetByPhone(identifier)
+	}
+	return r.GetByUsername(identifier)
 }

@@ -822,6 +822,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/users": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Админ"
+                ],
+                "summary": "Создать пользователя по номеру",
+                "parameters": [
+                    {
+                        "description": "Номер телефона",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateByPhoneRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/announcements": {
             "get": {
                 "tags": [
@@ -900,7 +939,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/services.CartItemResponse"
+                                "$ref": "#/definitions/models.CartItemResponse"
                             }
                         }
                     },
@@ -1718,6 +1757,14 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.CreateByPhoneRequest": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.LoginRequest": {
             "type": "object",
             "properties": {
@@ -1800,8 +1847,28 @@ const docTemplate = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/services.CartItemResponse"
+                        "$ref": "#/definitions/models.CartItemResponse"
                     }
+                },
+                "total": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.CartItemResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer"
                 },
                 "total": {
                     "type": "number"
@@ -2036,26 +2103,6 @@ const docTemplate = `{
                 },
                 "sold": {
                     "type": "integer"
-                }
-            }
-        },
-        "services.CartItemResponse": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "number"
                 }
             }
         },
