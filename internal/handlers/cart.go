@@ -17,6 +17,7 @@ type CartHandlerInterface interface {
 	UpdateItem(w http.ResponseWriter, r *http.Request)
 	DeleteItem(w http.ResponseWriter, r *http.Request)
 	ClearCart(w http.ResponseWriter, r *http.Request)
+	AddBulkToCart(w http.ResponseWriter, r *http.Request)
 }
 
 type CartHandler struct {
@@ -184,4 +185,49 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 	h.logger.Info("cart cleared", zap.String("owner_id", ownerID))
 
 	utils.JSONResponse(w, http.StatusOK, "Cart cleared", nil)
+}
+
+// AddBulkToCart
+// @Summary Добавить несколько товаров в корзину
+// @Description Добавляет несколько товаров в корзину за один запрос (bulk).
+// @Tags Корзина
+// @Accept json
+// @Produce json
+// @Param input body []AddToCartRequest true "Список товаров для добавления"
+// @Success 201 {object} utils.SuccessResponse{data=[]services.CartItemResponse} "Товары успешно добавлены"
+// @Failure 400 {object} utils.ErrorResponse "Некорректные данные запроса"
+// @Failure 500 {object} utils.ErrorResponse "Ошибка сервера при получении корзины"
+// @Router /api/cart/bulk [post]
+func (h *CartHandler) AddBulkToCart(w http.ResponseWriter, r *http.Request) {
+	ownerID := middleware.GetOwnerID(w, r)
+
+	var items []AddToCartRequest
+	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	for _, item := range items {
+		if item.Quantity <= 0 {
+			continue
+		}
+		err := h.service.AddToCart(ownerID, item.ProductID, item.Quantity)
+		if err != nil {
+			h.logger.Warn("bulk add failed",
+				zap.Int("product_id", item.ProductID),
+				zap.Error(err),
+			)
+		}
+	}
+
+	cartItems, err := h.service.GetCart(ownerID)
+	if err != nil {
+		h.logger.Error("get cart after bulk failed", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to get updated cart")
+		return
+	}
+
+	h.logger.Info("bulk items added", zap.String("owner_id", ownerID), zap.Int("count", len(cartItems)))
+
+	utils.JSONResponse(w, http.StatusCreated, "Items added to cart", cartItems)
 }
