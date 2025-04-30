@@ -33,7 +33,7 @@ type ProductRepository interface {
 	UpdateTx(tx *sqlx.Tx, id int, p *models.Product) error
 	UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error
 	GetAverageRating(productID int) (float64, error)
-	UpdatePartial(id int, updates map[string]interface{}) error
+	PatchProduct(id int, patch models.ProductPatch) error
 }
 
 type ProductRepo struct {
@@ -263,22 +263,49 @@ func (r *ProductRepo) GetAverageRating(productID int) (float64, error) {
 	return avg.Float64, nil
 }
 
-func (r *ProductRepo) UpdatePartial(id int, updates map[string]interface{}) error {
-	if len(updates) == 0 {
+func (r *ProductRepo) PatchProduct(id int, patch models.ProductPatch) error {
+	setParts := []string{}
+	args := []interface{}{}
+	argID := 1
+
+	if patch.Name != nil {
+		setParts = append(setParts, fmt.Sprintf("name = $%d", argID))
+		args = append(args, *patch.Name)
+		argID++
+	}
+	if patch.Description != nil {
+		setParts = append(setParts, fmt.Sprintf("description = $%d", argID))
+		args = append(args, *patch.Description)
+		argID++
+	}
+	if patch.Price != nil {
+		setParts = append(setParts, fmt.Sprintf("price = $%d", argID))
+		args = append(args, *patch.Price)
+		argID++
+	}
+	if patch.Availability != nil {
+		setParts = append(setParts, fmt.Sprintf("availability = $%d", argID))
+		args = append(args, *patch.Availability)
+		argID++
+	}
+	if patch.CategoryID != nil {
+		setParts = append(setParts, fmt.Sprintf("category_id = $%d", argID))
+		args = append(args, *patch.CategoryID)
+		argID++
+	}
+	if patch.Url != nil {
+		setParts = append(setParts, fmt.Sprintf("url = $%d", argID))
+		args = append(args, *patch.Url)
+		argID++
+	}
+
+	if len(setParts) == 0 {
 		return nil
 	}
 
-	setParts := []string{}
-	args := []interface{}{}
-	i := 1
-	for key, value := range updates {
-		setParts = append(setParts, fmt.Sprintf("%s = $%d", key, i))
-		args = append(args, value)
-		i++
-	}
+	query := fmt.Sprintf(`UPDATE products SET %s WHERE id = $%d`, strings.Join(setParts, ", "), argID)
 	args = append(args, id)
 
-	query := fmt.Sprintf(`UPDATE products SET %s WHERE id = $%d`, strings.Join(setParts, ", "), len(args))
 	_, err := r.db.Exec(query, args...)
 	return err
 }

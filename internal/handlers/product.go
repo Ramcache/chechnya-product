@@ -137,24 +137,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	availability := true
-	if input.Availability != nil {
-		availability = *input.Availability
-	}
-
-	product := models.Product{
-		Name:         input.Name,
-		Description:  input.Description,
-		Price:        input.Price,
-		Availability: availability,
-		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
-	}
-
-	if input.CategoryID != nil {
-		product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
-	} else {
-		product.CategoryID = sql.NullInt64{Valid: false}
-	}
+	product := mapProductInputToProduct(input)
 
 	if err := h.service.AddProduct(&product); err != nil {
 		h.logger.Error("failed to add product", zap.String("name", product.Name), zap.Error(err))
@@ -184,7 +167,7 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	claims := middleware.GetUserClaims(r)
 	if claims == nil || claims.Role != "admin" {
-		h.logger.Warn("unauthorized access to add product")
+		h.logger.Warn("unauthorized access to update product")
 		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
 		return
 	}
@@ -204,26 +187,7 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	availability := true
-	if input.Availability != nil {
-		availability = *input.Availability
-	}
-
-	product := models.Product{
-		Name:         input.Name,
-		Description:  input.Description,
-		Price:        input.Price,
-		Availability: availability,
-		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
-	}
-
-	if input.CategoryID != nil {
-		product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
-	} else {
-		product.CategoryID = sql.NullInt64{Valid: false}
-	}
-
-	// Теперь передаем product дальше
+	product := mapProductInputToProduct(input)
 
 	response, err := h.service.UpdateProduct(id, &product)
 	if err != nil {
@@ -304,25 +268,7 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 
 	var products []models.Product
 	for _, input := range inputs {
-		availability := true
-		if input.Availability != nil {
-			availability = *input.Availability
-		}
-
-		product := models.Product{
-			Name:         input.Name,
-			Description:  input.Description,
-			Price:        input.Price,
-			Availability: availability,
-			Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
-		}
-
-		if input.CategoryID != nil {
-			product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
-		} else {
-			product.CategoryID = sql.NullInt64{Valid: false}
-		}
-		products = append(products, product)
+		products = append(products, mapProductInputToProduct(input))
 	}
 
 	responses, err := h.service.AddProductsBulk(products)
@@ -405,4 +351,27 @@ func (h *ProductHandler) Patch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Product updated", nil)
+}
+
+func mapProductInputToProduct(input models.ProductInput) models.Product {
+	availability := true
+	if input.Availability != nil {
+		availability = *input.Availability
+	}
+
+	product := models.Product{
+		Name:         input.Name,
+		Description:  input.Description,
+		Price:        input.Price,
+		Availability: availability,
+		Url:          sql.NullString{String: input.Url, Valid: input.Url != ""},
+	}
+
+	if input.CategoryID != nil {
+		product.CategoryID = sql.NullInt64{Int64: int64(*input.CategoryID), Valid: true}
+	} else {
+		product.CategoryID = sql.NullInt64{Valid: false}
+	}
+
+	return product
 }

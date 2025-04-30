@@ -49,3 +49,20 @@ func GetUserIDOrZero(r *http.Request) int {
 	}
 	return 0
 }
+
+func OptionalJWTMiddleware(jwt utils.JWTManagerInterface) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			auth := r.Header.Get("Authorization")
+			if auth != "" && strings.HasPrefix(auth, "Bearer ") {
+				tokenStr := strings.TrimPrefix(auth, "Bearer ")
+				claims, err := jwt.Verify(tokenStr)
+				if err == nil && claims != nil {
+					ctx := context.WithValue(r.Context(), userClaimsKey, claims)
+					r = r.WithContext(ctx)
+				}
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}

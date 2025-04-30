@@ -240,5 +240,32 @@ func (s *ProductService) GetAverageRating(productID int) (float64, error) {
 }
 
 func (s *ProductService) PatchProduct(id int, updates map[string]interface{}) error {
-	return s.repo.UpdatePartial(id, updates)
+	patch := buildProductPatch(updates)
+	return s.repo.PatchProduct(id, patch)
+}
+
+func buildProductPatch(updates map[string]interface{}) models.ProductPatch {
+	var patch models.ProductPatch
+
+	if v, ok := updates["name"].(string); ok {
+		patch.Name = &v
+	}
+	if v, ok := updates["description"].(string); ok {
+		patch.Description = &v
+	}
+	if v, ok := updates["price"].(float64); ok {
+		patch.Price = &v
+	}
+	if v, ok := updates["availability"].(bool); ok {
+		patch.Availability = &v
+	}
+	if v, ok := updates["category_id"].(float64); ok {
+		vi := int(v)
+		patch.CategoryID = &vi
+	}
+	if v, ok := updates["url"].(string); ok {
+		patch.Url = &v
+	}
+
+	return patch
 }
