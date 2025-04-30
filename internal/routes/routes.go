@@ -36,6 +36,7 @@ func RegisterPublicRoutes(
 	public.HandleFunc("/cart", cart.AddToCart).Methods(http.MethodPost)
 	public.HandleFunc("/cart", cart.GetCart).Methods(http.MethodGet)
 	public.HandleFunc("/cart/clear", cart.ClearCart).Methods(http.MethodDelete)
+	public.HandleFunc("/cart/bulk", cart.AddBulkToCart).Methods(http.MethodPost)
 	public.HandleFunc("/cart/{product_id}", cart.UpdateItem).Methods(http.MethodPut)
 	public.HandleFunc("/cart/{product_id}", cart.DeleteItem).Methods(http.MethodDelete)
 

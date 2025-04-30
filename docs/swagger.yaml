@@ -890,6 +890,45 @@ paths:
       summary: Обновить количество товара в корзине
       tags:
       - Корзина
+  /api/cart/bulk:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет несколько товаров в корзину за один запрос (bulk).
+      parameters:
+      - description: Список товаров для добавления
+        in: body
+        name: input
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/handlers.AddToCartRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Товары успешно добавлены
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/services.CartItemResponse'
+                  type: array
+              type: object
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Ошибка сервера при получении корзины
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Добавить несколько товаров в корзину
+      tags:
+      - Корзина
   /api/cart/clear:
     delete:
       description: Удаляет все товары из корзины owner_id

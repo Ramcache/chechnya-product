@@ -951,6 +951,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/cart/bulk": {
+            "post": {
+                "description": "Добавляет несколько товаров в корзину за один запрос (bulk).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Корзина"
+                ],
+                "summary": "Добавить несколько товаров в корзину",
+                "parameters": [
+                    {
+                        "description": "Список товаров для добавления",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.AddToCartRequest"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Товары успешно добавлены",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/services.CartItemResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении корзины",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/cart/clear": {
             "delete": {
                 "description": "Удаляет все товары из корзины owner_id",
