@@ -64,7 +64,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, jwtManager)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
-	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
+	routes.RegisterAdminRoutes(router, userHandler, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
 
 	// --- CORS ---
 	corsMiddleware := cors.New(cors.Options{

@@ -14,6 +14,7 @@ type UserHandlerInterface interface {
 	Register(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	Me(w http.ResponseWriter, r *http.Request)
+	CreateUserByPhone(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
@@ -154,5 +155,37 @@ func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 		"role":       user.Role,
 		"isVerified": user.IsVerified,
 		"owner_id":   user.OwnerID,
+	})
+}
+
+type CreateByPhoneRequest struct {
+	Phone string `json:"phone"`
+}
+
+// CreateUserByPhone создает пользователя по номеру телефона
+// @Summary Создать пользователя по номеру
+// @Tags Админ
+// @Accept json
+// @Produce json
+// @Param input body CreateByPhoneRequest true "Номер телефона"
+// @Success 201 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /api/admin/users [post]
+func (h *UserHandler) CreateUserByPhone(w http.ResponseWriter, r *http.Request) {
+	var req CreateByPhoneRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request")
+		return
+	}
+
+	user, password, err := h.service.CreateByPhone(req.Phone)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusCreated, "User created", map[string]interface{}{
+		"phone":    user.Phone,
+		"password": password,
 	})
 }

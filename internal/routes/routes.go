@@ -70,6 +70,7 @@ func RegisterPrivateRoutes(
 
 func RegisterAdminRoutes(
 	r *mux.Router,
+	user handlers.UserHandlerInterface,
 	product handlers.ProductHandlerInterface,
 	order handlers.OrderHandlerInterface,
 	category handlers.CategoryHandlerInterface,
@@ -81,6 +82,8 @@ func RegisterAdminRoutes(
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTMiddleware(jwt))
 	admin.Use(middleware.OnlyAdmin())
+
+	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
 
 	// Управление товарами
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)

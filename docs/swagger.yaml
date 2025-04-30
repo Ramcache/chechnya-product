@@ -6,6 +6,11 @@ definitions:
       quantity:
         type: integer
     type: object
+  handlers.CreateByPhoneRequest:
+    properties:
+      phone:
+        type: string
+    type: object
   handlers.LoginRequest:
     properties:
       identifier:
@@ -59,8 +64,21 @@ definitions:
     properties:
       items:
         items:
-          $ref: '#/definitions/services.CartItemResponse'
+          $ref: '#/definitions/models.CartItemResponse'
         type: array
+      total:
+        type: number
+    type: object
+  models.CartItemResponse:
+    properties:
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: integer
+      quantity:
+        type: integer
       total:
         type: number
     type: object
@@ -214,19 +232,6 @@ definitions:
         type: integer
       sold:
         type: integer
-    type: object
-  services.CartItemResponse:
-    properties:
-      name:
-        type: string
-      price:
-        type: number
-      product_id:
-        type: integer
-      quantity:
-        type: integer
-      total:
-        type: number
     type: object
   utils.CategoryRequest:
     properties:
@@ -762,6 +767,31 @@ paths:
       summary: Массовое добавление товаров (админ)
       tags:
       - Товар
+  /api/admin/users:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Номер телефона
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateByPhoneRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Создать пользователя по номеру
+      tags:
+      - Админ
   /api/announcements:
     get:
       responses:
@@ -812,7 +842,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/services.CartItemResponse'
+              $ref: '#/definitions/models.CartItemResponse'
             type: array
         "500":
           description: Internal Server Error
