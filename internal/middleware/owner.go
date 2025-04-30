@@ -48,6 +48,16 @@ func setOwnerCookie(w http.ResponseWriter, value string) {
 	})
 }
 
+func SetOwnerID(w http.ResponseWriter, ownerID string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     OwnerCookieName,
+		Value:    ownerID,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
 func itoa(i int) string {
 	return fmt.Sprintf("%d", i)
 }

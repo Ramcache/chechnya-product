@@ -62,12 +62,11 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:   middleware.OwnerCookieName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	})
+	middleware.SetOwnerID(w, user.OwnerID)
+	h.logger.Info("cart transferred",
+		zap.String("from", oldOwnerID),
+		zap.String("to", user.OwnerID),
+	)
 
 	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
 	utils.JSONResponse(w, http.StatusCreated, "Registration successful", nil)
@@ -92,7 +91,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Login(services.LoginRequest{
+	oldOwnerID := middleware.GetOwnerID(w, r) // 👈 получаем текущий owner_id (гость)
+
+	user, token, err := h.service.LoginWithUser(services.LoginRequest{
 		Identifier: req.Identifier,
 		Password:   req.Password,
 	})
@@ -106,7 +107,17 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Info("user logged in", zap.String("identifier", req.Identifier))
+	if cartErr := h.service.TransferCart(oldOwnerID, user.OwnerID); cartErr != nil {
+		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
+	}
+
+	middleware.SetOwnerID(w, user.OwnerID)
+
+	h.logger.Info("user logged in",
+		zap.String("identifier", req.Identifier),
+		zap.String("owner_id", user.OwnerID),
+	)
+
 	utils.JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
 }
 
