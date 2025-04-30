@@ -428,3 +428,4 @@
 {"level":"INFO","time":"2025-04-30T11:14:09.271+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"POST","path":"/api/cart","ip":"[::1]:49404","user_agent":"PostmanRuntime/7.43.3","owner_id":"user_4","duration":4040800}
 {"level":"INFO","time":"2025-04-30T11:14:14.154+0300","caller":"handlers/cart.go:89","message":"cart retrieved","owner_id":"user_4","items_count":2}
 {"level":"INFO","time":"2025-04-30T11:14:14.155+0300","caller":"middleware/logger.go:20","message":"HTTP Request","method":"GET","path":"/api/cart","ip":"[::1]:49404","user_agent":"PostmanRuntime/7.43.3","owner_id":"user_4","duration":6722800}
+{"level":"INFO","time":"2025-04-30T15:32:45.266+0300","caller":"api/main.go:49","message":"Server is running","port":"8080"}

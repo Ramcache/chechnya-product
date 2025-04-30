@@ -72,7 +72,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 // @Description Возвращает список товаров в корзине для owner_id
 // @Tags Корзина
 // @Produce json
-// @Success 200 {array} services.CartItemResponse
+// @Success 200 {array} models.CartItemResponse
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +85,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if items == nil {
-		items = []services.CartItemResponse{}
+		items = []models.CartItemResponse{}
 	}
 
 	h.logger.Info("cart retrieved", zap.String("owner_id", ownerID), zap.Int("items_count", len(items)))
