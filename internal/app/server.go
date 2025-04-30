@@ -62,7 +62,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
-	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler)
+	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, jwtManager)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
 	routes.RegisterAdminRoutes(router, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
 

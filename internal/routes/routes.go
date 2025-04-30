@@ -18,8 +18,10 @@ func RegisterPublicRoutes(
 	order handlers.OrderHandlerInterface,
 	announcement handlers.AnnouncementHandlerInterface,
 	review handlers.ReviewHandlerInterface,
+	jwt utils.JWTManagerInterface,
 ) {
 	public := r.PathPrefix("/api").Subrouter()
+	public.Use(middleware.OptionalJWTMiddleware(jwt))
 
 	// Аутентификация и регистрация
 	public.HandleFunc("/register", user.Register).Methods(http.MethodPost)
