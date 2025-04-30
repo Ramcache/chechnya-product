@@ -55,6 +55,15 @@ definitions:
       title:
         type: string
     type: object
+  models.CartBulkResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/services.CartItemResponse'
+        type: array
+      total:
+        type: number
+    type: object
   models.Category:
     properties:
       id:
@@ -908,15 +917,13 @@ paths:
       - application/json
       responses:
         "201":
-          description: Товары успешно добавлены
+          description: Товары добавлены, возвращены список и сумма
           schema:
             allOf:
             - $ref: '#/definitions/utils.SuccessResponse'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/services.CartItemResponse'
-                  type: array
+                  $ref: '#/definitions/models.CartBulkResponse'
               type: object
         "400":
           description: Некорректные данные запроса

@@ -980,7 +980,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Товары успешно добавлены",
+                        "description": "Товары добавлены, возвращены список и сумма",
                         "schema": {
                             "allOf": [
                                 {
@@ -990,10 +990,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/services.CartItemResponse"
-                                            }
+                                            "$ref": "#/definitions/models.CartBulkResponse"
                                         }
                                     }
                                 }
@@ -1794,6 +1791,20 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "models.CartBulkResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/services.CartItemResponse"
+                    }
+                },
+                "total": {
+                    "type": "number"
                 }
             }
         },

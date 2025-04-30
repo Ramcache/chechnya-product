@@ -1,6 +1,7 @@
 package services
 
 import (
+	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
 	"errors"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 
 type CartServiceInterface interface {
 	AddToCart(ownerID string, productID, quantity int) error
-	GetCart(ownerID string) ([]CartItemResponse, error)
+	GetCart(ownerID string) ([]models.CartItemResponse, error)
 	UpdateItem(ownerID string, productID, quantity int) error
 	DeleteItem(ownerID string, productID int) error
 	ClearCart(ownerID string) error
@@ -25,14 +26,6 @@ var (
 type CartService struct {
 	repo        repositories.CartRepository
 	productRepo repositories.ProductRepository
-}
-
-type CartItemResponse struct {
-	ProductID int     `json:"product_id"`
-	Name      string  `json:"name"`
-	Price     float64 `json:"price"`
-	Quantity  int     `json:"quantity"`
-	Total     float64 `json:"total"`
 }
 
 func NewCartService(repo repositories.CartRepository, productRepo repositories.ProductRepository) *CartService {
@@ -58,7 +51,7 @@ func (s *CartService) AddToCart(ownerID string, productID, quantity int) error {
 	return s.repo.AddItem(ownerID, productID, quantity)
 }
 
-func (s *CartService) GetCart(ownerID string) ([]CartItemResponse, error) {
+func (s *CartService) GetCart(ownerID string) ([]models.CartItemResponse, error) {
 	items, err := s.repo.GetCartItems(ownerID)
 	log.Println("[OWNER]", ownerID)
 
@@ -66,7 +59,7 @@ func (s *CartService) GetCart(ownerID string) ([]CartItemResponse, error) {
 		return nil, fmt.Errorf("failed to fetch cart: %w", err)
 	}
 
-	result := make([]CartItemResponse, 0)
+	result := make([]models.CartItemResponse, 0)
 
 	for _, item := range items {
 		product, err := s.productRepo.GetByID(item.ProductID)
@@ -74,7 +67,7 @@ func (s *CartService) GetCart(ownerID string) ([]CartItemResponse, error) {
 			continue
 		}
 
-		response := CartItemResponse{
+		response := models.CartItemResponse{
 			ProductID: item.ProductID,
 			Name:      product.Name,
 			Price:     product.Price,

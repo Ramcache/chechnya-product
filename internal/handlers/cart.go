@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"chechnya-product/internal/middleware"
+	"chechnya-product/internal/models"
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/json"
@@ -71,7 +72,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 // @Description Возвращает список товаров в корзине для owner_id
 // @Tags Корзина
 // @Produce json
-// @Success 200 {array} services.CartItemResponse
+// @Success 200 {array} models.CartItemResponse
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +85,7 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if items == nil {
-		items = []services.CartItemResponse{}
+		items = []models.CartItemResponse{}
 	}
 
 	h.logger.Info("cart retrieved", zap.String("owner_id", ownerID), zap.Int("items_count", len(items)))
@@ -194,7 +195,7 @@ func (h *CartHandler) ClearCart(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param input body []AddToCartRequest true "Список товаров для добавления"
-// @Success 201 {object} utils.SuccessResponse{data=[]services.CartItemResponse} "Товары успешно добавлены"
+// @Success 201 {object} utils.SuccessResponse{data=models.CartBulkResponse} "Товары добавлены, возвращены список и сумма"
 // @Failure 400 {object} utils.ErrorResponse "Некорректные данные запроса"
 // @Failure 500 {object} utils.ErrorResponse "Ошибка сервера при получении корзины"
 // @Router /api/cart/bulk [post]
@@ -227,7 +228,16 @@ func (h *CartHandler) AddBulkToCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var total float64
+	for _, item := range cartItems {
+		total += item.Total
+	}
+
 	h.logger.Info("bulk items added", zap.String("owner_id", ownerID), zap.Int("count", len(cartItems)))
 
-	utils.JSONResponse(w, http.StatusCreated, "Items added to cart", cartItems)
+	utils.JSONResponse(w, http.StatusCreated, "Items added to cart", models.CartBulkResponse{
+		Items: cartItems,
+		Total: total,
+	})
+
 }
