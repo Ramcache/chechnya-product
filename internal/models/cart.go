@@ -1,5 +1,7 @@
 package models
 
+import "chechnya-product/internal/services"
+
 type CartItem struct {
 	ID        int `json:"id" db:"id"`
 	CartID    int `json:"cart_id" db:"cart_id"`
@@ -7,15 +9,7 @@ type CartItem struct {
 	Quantity  int `json:"quantity" db:"quantity"`
 }
 
-type AddToCartRequest struct {
-	ProductID int `json:"product_id"`
-	Quantity  int `json:"quantity"`
-}
-
-type CartItemResponse struct {
-	ProductID int     `json:"product_id"`
-	Name      string  `json:"name"`
-	Price     float64 `json:"price"`
-	Quantity  int     `json:"quantity"`
-	Total     float64 `json:"total"`
+type CartBulkResponse struct {
+	Items []services.CartItemResponse `json:"items"`
+	Total float64                     `json:"total"`
 }
