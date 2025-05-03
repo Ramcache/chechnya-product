@@ -5,9 +5,8 @@ import (
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/json"
-	"net/http"
-
 	"go.uber.org/zap"
+	"net/http"
 )
 
 type UserHandlerInterface interface {
@@ -45,6 +44,12 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	oldOwnerID := middleware.GetOwnerID(w, r)
+
+	if err := utils.ValidatePhone(req.Phone); err != nil {
+		h.logger.Warn("invalid phone format", zap.String("phone", req.Phone))
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	user, err := h.service.Register(services.RegisterRequest{
 		Phone:    req.Phone,
@@ -86,13 +91,20 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid login JSON", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	oldOwnerID := middleware.GetOwnerID(w, r) // 👈 получаем текущий owner_id (гость)
+	if err := utils.ValidateIdentifier(req.Identifier); err != nil {
+		h.logger.Warn("invalid identifier", zap.String("identifier", req.Identifier), zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	oldOwnerID := middleware.GetOwnerID(w, r)
 
 	user, token, err := h.service.LoginWithUser(services.LoginRequest{
 		Identifier: req.Identifier,

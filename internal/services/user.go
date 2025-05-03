@@ -88,9 +88,9 @@ func (s *UserService) Login(req LoginRequest) (string, error) {
 
 	// Определяем тип идентификатора
 	switch {
-	case isValidEmail(req.Identifier):
+	case strings.Contains(req.Identifier, "@"):
 		user, err = s.repo.GetByEmail(req.Identifier)
-	case isValidPhone(req.Identifier):
+	case strings.HasPrefix(req.Identifier, "+"):
 		user, err = s.repo.GetByPhone(req.Identifier)
 	default:
 		user, err = s.repo.GetByUsername(req.Identifier)
@@ -132,8 +132,8 @@ func (s *UserService) TransferCart(oldOwnerID, newOwnerID string) error {
 
 // Валидация регистрации
 func validateRegisterRequest(req RegisterRequest) error {
-	if strings.TrimSpace(req.Phone) == "" || len(req.Phone) < 10 {
-		return errors.New("invalid phone number")
+	if err := utils.ValidatePhone(req.Phone); err != nil {
+		return err
 	}
 	if len(req.Password) < 6 {
 		return errors.New("password must be at least 6 characters")
@@ -141,16 +141,11 @@ func validateRegisterRequest(req RegisterRequest) error {
 	return nil
 }
 
-func isValidEmail(s string) bool {
-	return strings.Contains(s, "@")
-}
-
-func isValidPhone(s string) bool {
-	// Простейшая проверка: начинается с "+" и длина от 10
-	return strings.HasPrefix(s, "+") && len(s) >= 10
-}
-
 func (s *UserService) LoginWithUser(req LoginRequest) (*models.User, string, error) {
+	if err := utils.ValidateIdentifier(req.Identifier); err != nil {
+		return nil, "", err
+	}
+
 	user, err := s.repo.FindByPhoneOrEmail(req.Identifier)
 	if err != nil {
 		return nil, "", err
@@ -176,8 +171,8 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func (s *UserService) CreateByPhone(phone string) (*models.User, string, error) {
-	if !isValidPhone(phone) {
-		return nil, "", errors.New("invalid phone format")
+	if err := utils.ValidatePhone(phone); err != nil {
+		return nil, "", err
 	}
 
 	existing, _ := s.repo.GetByPhone(phone)

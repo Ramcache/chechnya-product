@@ -3,8 +3,10 @@ package utils
 import (
 	"chechnya-product/internal/models"
 	"encoding/json"
+	"errors"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -103,4 +105,34 @@ func GenerateShortID() string {
 		id[i] = idCharset[rand.Intn(len(idCharset))]
 	}
 	return string(id)
+}
+
+var phoneRegex = regexp.MustCompile(`^\+\d{10,15}$`)
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+// ValidatePhone проверяет формат международного номера телефона
+func ValidatePhone(phone string) error {
+	if !phoneRegex.MatchString(phone) {
+		return errors.New("invalid phone format: expected format +71234567890")
+	}
+	return nil
+}
+
+// ValidateEmail проверяет формат email
+func ValidateEmail(email string) error {
+	if !emailRegex.MatchString(email) {
+		return errors.New("invalid email format")
+	}
+	return nil
+}
+
+// ValidateIdentifier проверяет, что значение — валидный телефон или email
+func ValidateIdentifier(id string) error {
+	if phoneRegex.MatchString(id) {
+		return nil
+	}
+	if emailRegex.MatchString(id) {
+		return nil
+	}
+	return errors.New("invalid identifier: expected phone like +71234567890 or email like user@example.com")
 }

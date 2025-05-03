@@ -71,12 +71,12 @@ definitions:
     type: object
   models.CartItemResponse:
     properties:
+      id:
+        type: integer
       name:
         type: string
       price:
         type: number
-      product_id:
-        type: integer
       quantity:
         type: integer
       total:
@@ -485,7 +485,17 @@ paths:
       - Дэшборд
   /api/admin/logs:
     get:
-      description: Возвращает содержимое лог-файла (только для администратора)
+      description: Возвращает содержимое лог-файла (info.log или error.log). Можно
+        скачать файл или просмотреть в браузере.
+      parameters:
+      - description: 'Тип логов: info (по умолчанию) или error'
+        in: query
+        name: type
+        type: string
+      - description: Скачать файл (true) или отобразить в браузере
+        in: query
+        name: download
+        type: boolean
       produces:
       - text/plain
       responses:
@@ -493,8 +503,12 @@ paths:
           description: Содержимое лог-файла
           schema:
             type: string
+        "400":
+          description: Неверный тип файла
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Ошибка при открытии файла
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
       security:
