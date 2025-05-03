@@ -863,9 +863,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.CartItemResponse'
-            type: array
+            $ref: '#/definitions/models.CartBulkResponse'
         "500":
           description: Internal Server Error
           schema:

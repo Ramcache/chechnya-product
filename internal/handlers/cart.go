@@ -47,24 +47,47 @@ type AddToCartRequest struct {
 // @Router /api/cart [post]
 func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	ownerID := middleware.GetOwnerID(w, r)
+
 	var req AddToCartRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("invalid AddToCart request", zap.Error(err), zap.String("owner_id", ownerID))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
+
 	if err := h.service.AddToCart(ownerID, req.ProductID, req.Quantity); err != nil {
 		h.logger.Error("add to cart failed", zap.Error(err), zap.String("owner_id", ownerID))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	cartItems, err := h.service.GetCart(ownerID)
+	if err != nil {
+		h.logger.Error("get cart after add failed", zap.Error(err), zap.String("owner_id", ownerID))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch updated cart")
+		return
+	}
+
+	var addedItem *models.CartItemResponse
+	for _, item := range cartItems {
+		if item.ProductID == req.ProductID {
+			addedItem = &item
+			break
+		}
+	}
+
+	if addedItem == nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Item added but not found in cart")
+		return
+	}
+
 	h.logger.Info("item added to cart",
 		zap.String("owner_id", ownerID),
 		zap.Int("product_id", req.ProductID),
 		zap.Int("quantity", req.Quantity),
 	)
-	utils.JSONResponse(w, http.StatusCreated, "Added to cart", nil)
 
+	utils.JSONResponse(w, http.StatusCreated, "Item added to cart", addedItem)
 }
 
 // GetCart
@@ -72,7 +95,7 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 // @Description Возвращает список товаров в корзине для owner_id
 // @Tags Корзина
 // @Produce json
-// @Success 200 {array} models.CartItemResponse
+// @Success 200 {object} models.CartBulkResponse
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/cart [get]
 func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +112,18 @@ func (h *CartHandler) GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Info("cart retrieved", zap.String("owner_id", ownerID), zap.Int("items_count", len(items)))
-	utils.JSONResponse(w, http.StatusOK, "Cart retrieved", items)
+	var total float64
+	for _, item := range items {
+		total += item.Total
+	}
+
+	response := models.CartBulkResponse{
+		Items: items,
+		Total: total,
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Cart retrieved", response)
+
 }
 
 // UpdateItem
