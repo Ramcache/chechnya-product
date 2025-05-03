@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"chechnya-product/internal/models"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -24,6 +25,11 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 	return &OrderRepo{db: db}
 }
 
+const orderFields = `
+	id, owner_id, total, created_at, status,
+	name, address, delivery_type, payment_type, change_for
+`
+
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
 	var orderID int
 	err := r.db.QueryRow(`
@@ -36,20 +42,17 @@ func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
 
 func (r *OrderRepo) GetByOwnerID(ownerID string) ([]models.Order, error) {
 	var orders []models.Order
-	err := r.db.Select(&orders, `
-		SELECT * FROM orders 
-		WHERE owner_id = $1 
-		ORDER BY created_at DESC
-	`, ownerID)
+	query := fmt.Sprintf("SELECT %s FROM orders WHERE owner_id = $1 ORDER BY created_at DESC", orderFields)
+	err := r.db.Select(&orders, query, ownerID)
+
 	return orders, err
 }
 
 func (r *OrderRepo) GetAll() ([]models.Order, error) {
 	var orders []models.Order
-	err := r.db.Select(&orders, `
-		SELECT * FROM orders 
-		ORDER BY created_at DESC
-	`)
+	query := fmt.Sprintf("SELECT %s FROM orders WHERE owner_id = $1 ORDER BY created_at DESC", orderFields)
+	err := r.db.Select(&orders, query)
+
 	return orders, err
 }
 
