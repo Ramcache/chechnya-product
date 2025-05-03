@@ -1,30 +1,25 @@
+// internal/logger/logger.go
 package logger
 
 import (
-	"github.com/natefinch/lumberjack"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
+	"time"
 )
 
 func NewLogger() (*zap.Logger, error) {
-	infoWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   "logs/info.log",
-		MaxSize:    10,
-		MaxBackups: 3,
-		MaxAge:     7,
-		Compress:   true,
-	})
+	writer, err := rotatelogs.New(
+		"logs/app.%Y-%m-%d.log",                   // шаблон имени
+		rotatelogs.WithLinkName("logs/app.log"),   // симлинк на последний файл
+		rotatelogs.WithMaxAge(7*24*time.Hour),     // хранить 7 дней
+		rotatelogs.WithRotationTime(24*time.Hour), // ротация каждый день
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	errorWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   "logs/error.log",
-		MaxSize:    10,
-		MaxBackups: 3,
-		MaxAge:     7,
-		Compress:   true,
-	})
-
-	encoder := zapcore.NewJSONEncoder(zapcore.EncoderConfig{
+	encoderCfg := zapcore.EncoderConfig{
 		TimeKey:      "time",
 		LevelKey:     "level",
 		MessageKey:   "message",
@@ -32,19 +27,12 @@ func NewLogger() (*zap.Logger, error) {
 		EncodeTime:   zapcore.ISO8601TimeEncoder,
 		EncodeLevel:  zapcore.CapitalLevelEncoder,
 		EncodeCaller: zapcore.ShortCallerEncoder,
-	})
+	}
 
-	infoLevel := zap.LevelEnablerFunc(func(l zapcore.Level) bool {
-		return l >= zap.InfoLevel && l < zap.ErrorLevel
-	})
-
-	errorLevel := zap.LevelEnablerFunc(func(l zapcore.Level) bool {
-		return l >= zap.ErrorLevel
-	})
-
-	core := zapcore.NewTee(
-		zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(infoWriter, zapcore.AddSync(os.Stdout)), infoLevel),
-		zapcore.NewCore(encoder, errorWriter, errorLevel),
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderCfg),
+		zapcore.AddSync(writer),
+		zap.InfoLevel,
 	)
 
 	return zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)), nil

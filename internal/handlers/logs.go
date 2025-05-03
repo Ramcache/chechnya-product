@@ -24,29 +24,32 @@ func NewLogHandler(logger *zap.Logger, logPath string) *LogHandler {
 
 // GetLogs
 // @Summary      Получить лог-файл
-// @Description  Возвращает содержимое лог-файла (info.log или error.log). Можно скачать файл или просмотреть в браузере.
+// @Description  Возвращает лог за указанную дату. Поддерживает скачивание.
 // @Tags         Логи
 // @Security     BearerAuth
 // @Produce      plain
-// @Param        type     query string false "Тип логов: info (по умолчанию) или error"
+// @Param        date     query string false "Дата в формате YYYY-MM-DD (по умолчанию — сегодня)"
 // @Param        download query bool   false "Скачать файл (true) или отобразить в браузере"
 // @Success      200 {string} string "Содержимое лог-файла"
-// @Failure      400 {object} utils.ErrorResponse "Неверный тип файла"
-// @Failure      500 {object} utils.ErrorResponse "Ошибка при открытии файла"
+// @Failure      400 {object} utils.ErrorResponse
+// @Failure      404 {object} utils.ErrorResponse
+// @Failure      500 {object} utils.ErrorResponse
 // @Router       /api/admin/logs [get]
 func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	logType := query.Get("type")      // info | error
-	download := query.Get("download") // "true" => attachment
+	download := query.Get("download")
+	date := query.Get("date") // формат YYYY-MM-DD
 
-	var filePath string
-	switch logType {
-	case "error":
-		filePath = "logs/error.log"
-	case "info", "":
-		filePath = "logs/info.log"
-	default:
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid log type")
+	if date == "" {
+		date = utils.TodayDate() // utils.TodayDate() вернёт текущую дату в формате "2006-01-02"
+	}
+
+	// Формируем путь к файлу
+	filePath := "logs/app." + date + ".log"
+
+	// Проверка, существует ли файл
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		utils.ErrorJSON(w, http.StatusNotFound, "Log file not found for date: "+date)
 		return
 	}
 
@@ -60,8 +63,9 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	if download == "true" {
-		w.Header().Set("Content-Disposition", "attachment; filename="+logType+".log")
+		w.Header().Set("Content-Disposition", "attachment; filename=log-"+date+".log")
 	}
+
 	w.WriteHeader(http.StatusOK)
 	io.Copy(w, file)
 }
