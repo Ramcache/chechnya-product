@@ -27,7 +27,8 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 
 const orderFields = `
 	id, owner_id, total, created_at, status,
-	name, address, delivery_type, payment_type, change_for
+	name, address, delivery_type, payment_type, change_for,
+	delivery_fee, delivery_text, frontend_created_at
 `
 
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
