@@ -380,7 +380,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает лог за указанную дату. Поддерживает скачивание.",
+                "description": "Возвращает лог за указанную дату. Поддерживает скачивание. Тип: info или error.",
                 "produces": [
                     "text/plain"
                 ],
@@ -389,6 +389,12 @@ const docTemplate = `{
                 ],
                 "summary": "Получить лог-файл",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Тип логов: info (по умолчанию) или error",
+                        "name": "type",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Дата в формате YYYY-MM-DD (по умолчанию — сегодня)",

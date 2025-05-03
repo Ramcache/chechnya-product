@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"chechnya-product/internal/utils"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -24,10 +26,11 @@ func NewLogHandler(logger *zap.Logger, logPath string) *LogHandler {
 
 // GetLogs
 // @Summary      Получить лог-файл
-// @Description  Возвращает лог за указанную дату. Поддерживает скачивание.
+// @Description  Возвращает лог за указанную дату. Поддерживает скачивание. Тип: info или error.
 // @Tags         Логи
 // @Security     BearerAuth
 // @Produce      plain
+// @Param        type     query string false "Тип логов: info (по умолчанию) или error"
 // @Param        date     query string false "Дата в формате YYYY-MM-DD (по умолчанию — сегодня)"
 // @Param        download query bool   false "Скачать файл (true) или отобразить в браузере"
 // @Success      200 {string} string "Содержимое лог-файла"
@@ -37,17 +40,24 @@ func NewLogHandler(logger *zap.Logger, logPath string) *LogHandler {
 // @Router       /api/admin/logs [get]
 func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	download := query.Get("download")
-	date := query.Get("date") // формат YYYY-MM-DD
+	logType := query.Get("type")      // info | error
+	date := query.Get("date")         // формат YYYY-MM-DD
+	download := query.Get("download") // "true" => attachment
 
-	if date == "" {
-		date = utils.TodayDate() // utils.TodayDate() вернёт текущую дату в формате "2006-01-02"
+	if logType == "" {
+		logType = "info"
+	}
+	if logType != "info" && logType != "error" {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid log type: must be 'info' or 'error'")
+		return
 	}
 
-	// Формируем путь к файлу
-	filePath := "logs/app." + date + ".log"
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
 
-	// Проверка, существует ли файл
+	filePath := fmt.Sprintf("logs/%s.%s.log", logType, date)
+
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		utils.ErrorJSON(w, http.StatusNotFound, "Log file not found for date: "+date)
 		return
@@ -63,9 +73,8 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	if download == "true" {
-		w.Header().Set("Content-Disposition", "attachment; filename=log-"+date+".log")
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s-%s.log", logType, date))
 	}
-
 	w.WriteHeader(http.StatusOK)
 	io.Copy(w, file)
 }

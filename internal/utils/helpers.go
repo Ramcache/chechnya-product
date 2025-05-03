@@ -127,16 +127,17 @@ func ValidateEmail(email string) error {
 }
 
 // ValidateIdentifier проверяет, что значение — валидный телефон или email
-func ValidateIdentifier(id string) error {
-	if phoneRegex.MatchString(id) {
-		return nil
-	}
-	if emailRegex.MatchString(id) {
-		return nil
-	}
-	return errors.New("invalid identifier: expected phone like +71234567890 or email like user@example.com")
-}
+var usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9_]{3,32}$`)
 
-func TodayDate() string {
-	return time.Now().Format("2006-01-02")
+func ValidateIdentifier(id string) error {
+	switch {
+	case phoneRegex.MatchString(id):
+		return nil
+	case emailRegex.MatchString(id):
+		return nil
+	case usernameRegex.MatchString(id):
+		return nil
+	default:
+		return errors.New("invalid identifier: must be phone (+7...), email or username (letters/numbers)")
+	}
 }
