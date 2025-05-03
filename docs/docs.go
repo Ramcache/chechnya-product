@@ -380,7 +380,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает содержимое лог-файла (info.log или error.log). Можно скачать файл или просмотреть в браузере.",
+                "description": "Возвращает лог за указанную дату. Поддерживает скачивание.",
                 "produces": [
                     "text/plain"
                 ],
@@ -391,8 +391,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Тип логов: info (по умолчанию) или error",
-                        "name": "type",
+                        "description": "Дата в формате YYYY-MM-DD (по умолчанию — сегодня)",
+                        "name": "date",
                         "in": "query"
                     },
                     {
@@ -410,13 +410,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Неверный тип файла",
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Ошибка при открытии файла",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }

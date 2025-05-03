@@ -136,3 +136,7 @@ func ValidateIdentifier(id string) error {
 	}
 	return errors.New("invalid identifier: expected phone like +71234567890 or email like user@example.com")
 }
+
+func TodayDate() string {
+	return time.Now().Format("2006-01-02")
+}
