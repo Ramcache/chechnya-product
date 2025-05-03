@@ -485,8 +485,13 @@ paths:
       - Дэшборд
   /api/admin/logs:
     get:
-      description: Возвращает лог за указанную дату. Поддерживает скачивание.
+      description: 'Возвращает лог за указанную дату. Поддерживает скачивание. Тип:
+        info или error.'
       parameters:
+      - description: 'Тип логов: info (по умолчанию) или error'
+        in: query
+        name: type
+        type: string
       - description: Дата в формате YYYY-MM-DD (по умолчанию — сегодня)
         in: query
         name: date
