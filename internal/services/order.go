@@ -45,16 +45,20 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 		return fmt.Errorf("failed to create order: %w", err)
 	}
 
-	order := models.Order{
-		ID:        orderID,
-		OwnerID:   ownerID,
-		Total:     req.Total,
-		Status:    req.Status,
-		CreatedAt: time.Now(),
+	// Очистим корзину после создания заказа
+	if err := s.cartRepo.ClearCart(ownerID); err != nil {
+		return fmt.Errorf("order created but failed to clear cart: %w", err)
 	}
 
+	// Отправим уведомление через WebSocket, если используешь
 	if s.hub != nil {
-		s.hub.BroadcastNewOrder(order)
+		s.hub.BroadcastNewOrder(models.Order{
+			ID:        orderID,
+			OwnerID:   ownerID,
+			Total:     req.Total,
+			Status:    req.Status,
+			CreatedAt: time.Now(),
+		})
 	}
 
 	return nil

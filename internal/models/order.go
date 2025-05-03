@@ -4,20 +4,23 @@ import "time"
 
 type PlaceOrderRequest struct {
 	Name         string             `json:"name"`
-	Address      string             `json:"address"`
+	Address      *string            `json:"address"`
 	Items        []OrderItemRequest `json:"items"`
 	Total        float64            `json:"total"`
-	DeliveryType string             `json:"deliveryType"`
 	PaymentType  string             `json:"paymentType"`
-	ChangeFor    *float64           `json:"changeFor"` // может быть null
 	Status       string             `json:"status"`
+	DeliveryType string             `json:"deliveryType"`
+	CreatedAt    int64              `json:"createdAt"`
+	DeliveryText string             `json:"deliveryText"`
+	DeliveryFee  float64            `json:"deliveryFee"`
+	ChangeFor    *float64           `json:"changeFor"`
 }
 
 type OrderItemRequest struct {
-	ID       int     `json:"id"`       // ID товара
-	Quantity int     `json:"quantity"` // Количество
-	Name     string  `json:"name"`     // Название товара
-	Price    float64 `json:"price"`    // Цена
+	ID       int     `json:"id"`
+	Name     string  `json:"name"`
+	Quantity int     `json:"quantity"`
+	Price    float64 `json:"price"`
 }
 
 type Order struct {
@@ -38,9 +41,10 @@ type OrderStatusRequest struct {
 }
 
 type OrderItem struct {
-	OrderID   int `db:"order_id" json:"order_id"`
-	ProductID int `db:"product_id" json:"product_id"`
-	Quantity  int `db:"quantity" json:"quantity"`
+	OrderID   int     `db:"order_id" json:"order_id"`
+	Name      *string `json:"name" db:"name"`
+	ProductID int     `db:"product_id" json:"product_id"`
+	Quantity  int     `db:"quantity" json:"quantity"`
 }
 
 type OrderWithItems struct {
