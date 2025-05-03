@@ -380,7 +380,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает содержимое лог-файла (только для администратора)",
+                "description": "Возвращает содержимое лог-файла (info.log или error.log). Можно скачать файл или просмотреть в браузере.",
                 "produces": [
                     "text/plain"
                 ],
@@ -388,6 +388,20 @@ const docTemplate = `{
                     "Логи"
                 ],
                 "summary": "Получить лог-файл",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Тип логов: info (по умолчанию) или error",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Скачать файл (true) или отобразить в браузере",
+                        "name": "download",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Содержимое лог-файла",
@@ -395,8 +409,14 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "400": {
+                        "description": "Неверный тип файла",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Ошибка при открытии файла",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -1858,14 +1878,14 @@ const docTemplate = `{
         "models.CartItemResponse": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "string"
                 },
                 "price": {
                     "type": "number"
-                },
-                "product_id": {
-                    "type": "integer"
                 },
                 "quantity": {
                     "type": "integer"

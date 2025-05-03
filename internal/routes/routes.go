@@ -21,6 +21,9 @@ func RegisterPublicRoutes(
 	jwt utils.JWTManagerInterface,
 ) {
 	public := r.PathPrefix("/api").Subrouter()
+
+	public.Use(middleware.RateLimitMiddleware)
+
 	public.Use(middleware.OptionalJWTMiddleware(jwt))
 
 	// Аутентификация и регистрация
