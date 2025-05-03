@@ -969,10 +969,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.CartItemResponse"
-                            }
+                            "$ref": "#/definitions/models.CartBulkResponse"
                         }
                     },
                     "500": {
