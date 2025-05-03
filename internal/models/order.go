@@ -21,11 +21,16 @@ type OrderItemRequest struct {
 }
 
 type Order struct {
-	ID        int       `json:"id" db:"id"`
-	OwnerID   string    `json:"owner_id" db:"owner_id"`
-	Total     float64   `json:"total" db:"total"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	Status    string    `json:"status" db:"status"`
+	ID           int       `json:"id" db:"id"`
+	OwnerID      string    `json:"owner_id" db:"owner_id"`
+	Total        float64   `json:"total" db:"total"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	Status       string    `json:"status" db:"status"`
+	Name         *string   `json:"name" db:"name"`
+	Address      *string   `json:"address" db:"address"`
+	DeliveryType *string   `json:"delivery_type" db:"delivery_type"`
+	PaymentType  *string   `json:"payment_type" db:"payment_type"`
+	ChangeFor    *float64  `json:"change_for" db:"change_for"`
 }
 
 type OrderStatusRequest struct {

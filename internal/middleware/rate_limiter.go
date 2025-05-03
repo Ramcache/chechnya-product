@@ -15,13 +15,14 @@ type visitor struct {
 	lastSeen time.Time
 }
 
-var visitors = make(map[string]map[string]*visitor) // ip -> path -> visitor
+var visitors = make(map[string]map[string]*visitor)
 var mu sync.Mutex
 
 var pathLimits = map[string]*rate.Limiter{
-	"/api/login":    rate.NewLimiter(0.1, 3),
-	"/api/register": rate.NewLimiter(0.1, 3),
-	"/api/products": rate.NewLimiter(2, 10),
+	"/api/login":     rate.NewLimiter(0.1, 3),
+	"/api/register":  rate.NewLimiter(0.1, 3),
+	"/api/cart":      rate.NewLimiter(1, 2),
+	"/api/cart/bulk": rate.NewLimiter(0.5, 1),
 }
 
 func cleanupVisitors() {
