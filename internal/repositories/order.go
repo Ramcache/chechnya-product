@@ -121,19 +121,26 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 
 	var orderID int
 	err = tx.QueryRow(`
-		INSERT INTO orders (owner_id, total, status, created_at, delivery_type, payment_type, change_for, name, address)
-		VALUES ($1, $2, $3, NOW(), $4, $5, $6, $7, $8)
+		INSERT INTO orders (
+			owner_id, total, status, created_at, delivery_type, payment_type, 
+			change_for, name, address, delivery_fee, delivery_text, frontend_created_at
+		) VALUES (
+			$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10, $11
+		)
 		RETURNING id
-	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor, req.Name, req.Address).Scan(&orderID)
+	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
+		req.Name, req.Address, req.DeliveryFee, req.DeliveryText, req.CreatedAt).Scan(&orderID)
+
 	if err != nil {
 		return 0, err
 	}
 
 	for _, item := range req.Items {
 		_, err := tx.Exec(`
-			INSERT INTO order_items (order_id, product_id, quantity)
-			VALUES ($1, $2, $3)
-		`, orderID, item.ID, item.Quantity)
+			INSERT INTO order_items (order_id, product_id, quantity, product_name, price)
+			VALUES ($1, $2, $3, $4, $5)
+		`, orderID, item.ID, item.Quantity, item.Name, item.Price)
+
 		if err != nil {
 			return 0, err
 		}
