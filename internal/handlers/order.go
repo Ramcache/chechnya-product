@@ -65,14 +65,15 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.PlaceOrder(ownerID, req); err != nil {
+	order, err := h.service.PlaceOrder(ownerID, req) // теперь получаем заказ
+	if err != nil {
 		h.logger.Warn("failed to place order", zap.String("owner_id", ownerID), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to place order")
 		return
 	}
 
-	h.logger.Info("order placed", zap.String("owner_id", ownerID))
-	utils.JSONResponse(w, http.StatusOK, "Order placed successfully", nil)
+	h.logger.Info("order placed", zap.String("owner_id", ownerID), zap.Int("order_id", order.ID))
+	utils.JSONResponse(w, http.StatusOK, "Order placed successfully", order)
 }
 
 // GetUserOrders
