@@ -22,6 +22,14 @@ type ProductServiceInterface interface {
 		sort string,
 		availability *bool,
 	) ([]models.ProductResponse, error)
+	GetFilteredRaw(
+		search, category string,
+		minPrice, maxPrice float64,
+		limit, offset int,
+		sort string,
+		availability *bool,
+	) ([]models.Product, error)
+	GetCategoryNameByID(id int) (string, error)
 	AddProductsBulk(products []models.Product) ([]models.ProductResponse, error)
 	PatchProduct(id int, updates map[string]interface{}) error
 }
@@ -33,6 +41,10 @@ type ProductService struct {
 
 func NewProductService(repo repositories.ProductRepository, logger *zap.Logger) *ProductService {
 	return &ProductService{repo: repo, logger: logger}
+}
+
+func (s *ProductService) GetCategoryNameByID(id int) (string, error) {
+	return s.repo.GetCategoryNameByID(id)
 }
 
 func (s *ProductService) GetAll() ([]models.Product, error) {
@@ -163,6 +175,16 @@ func (s *ProductService) GetFiltered(
 
 	}
 	return result, nil
+}
+
+func (s *ProductService) GetFilteredRaw(
+	search, category string,
+	minPrice, maxPrice float64,
+	limit, offset int,
+	sort string,
+	availability *bool,
+) ([]models.Product, error) {
+	return s.repo.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort, availability)
 }
 
 func (s *ProductService) AddProductsBulk(products []models.Product) ([]models.ProductResponse, error) {

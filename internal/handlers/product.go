@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"chechnya-product/internal/cache"
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/utils"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
@@ -27,10 +29,11 @@ type ProductHandlerInterface interface {
 type ProductHandler struct {
 	service services.ProductServiceInterface
 	logger  *zap.Logger
+	cache   *cache.RedisCache
 }
 
-func NewProductHandler(service services.ProductServiceInterface, logger *zap.Logger) *ProductHandler {
-	return &ProductHandler{service: service, logger: logger}
+func NewProductHandler(service services.ProductServiceInterface, logger *zap.Logger, cache *cache.RedisCache) *ProductHandler {
+	return &ProductHandler{service: service, logger: logger, cache: cache}
 }
 
 // GetAll
@@ -69,14 +72,42 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	minPrice, _ := strconv.ParseFloat(query.Get("min_price"), 64)
 	maxPrice, _ := strconv.ParseFloat(query.Get("max_price"), 64)
 
-	products, err := h.service.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort, availability)
+	cacheKey := fmt.Sprintf("products:search=%s:cat=%s:min=%.2f:max=%.2f:limit=%d:offset=%d:sort=%s:avail=%s",
+		search, category, minPrice, maxPrice, limit, offset, sort, availabilityStr)
+
+	ctx := r.Context()
+	var cached []models.ProductCache
+
+	err := h.cache.GetOrSet(ctx, cacheKey, &cached, func() (any, error) {
+		products, err := h.service.GetFilteredRaw(search, category, minPrice, maxPrice, limit, offset, sort, availability)
+		if err != nil {
+			return nil, err
+		}
+		return models.ConvertProductsToCache(products), nil
+	})
 	if err != nil {
-		h.logger.Error("failed to fetch products", zap.Error(err))
+		h.logger.Error("cache fetch failed", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")
 		return
 	}
-	h.logger.Info("products fetched", zap.Int("count", len(products)))
-	utils.JSONResponse(w, http.StatusOK, "Products fetched", products)
+
+	products := models.ConvertCacheToProducts(cached)
+
+	var result []models.ProductResponse
+	for _, p := range products {
+		var categoryName string
+		if p.CategoryID.Valid {
+			name, err := h.service.GetCategoryNameByID(int(p.CategoryID.Int64))
+			if err == nil {
+				categoryName = name
+			}
+		}
+		response := utils.BuildProductResponse(&p, categoryName)
+		result = append(result, response)
+	}
+
+	h.logger.Info("products fetched (cached or fresh)", zap.Int("count", len(result)))
+	utils.JSONResponse(w, http.StatusOK, "Products fetched", result)
 }
 
 // GetByID
@@ -98,14 +129,21 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.service.GetByID(id)
+	ctx := r.Context()
+	cacheKey := fmt.Sprintf("product:%d", id)
+
+	var product models.Product
+
+	err = h.cache.GetOrSet(ctx, cacheKey, &product, func() (any, error) {
+		return h.service.GetByID(id)
+	})
 	if err != nil {
-		h.logger.Warn("product not found", zap.Int("id", id))
+		h.logger.Warn("failed to fetch product", zap.Int("id", id), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusNotFound, "Product not found")
 		return
 	}
 
-	h.logger.Info("product fetched", zap.Int("id", id))
+	h.logger.Info("product fetched (cached or fresh)", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Product fetched", product)
 }
 
@@ -144,6 +182,8 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to add product")
 		return
 	}
+
+	h.cache.ClearPrefix(r.Context(), "products:")
 
 	response := utils.BuildProductResponse(&product, "")
 	h.logger.Info("product added", zap.String("name", product.Name))
@@ -195,6 +235,8 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
 		return
 	}
+	h.cache.ClearPrefix(r.Context(), "products:")
+	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
 
 	h.logger.Info("product updated", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Product updated", response)
@@ -233,6 +275,8 @@ func (h *ProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to delete product")
 		return
 	}
+	h.cache.ClearPrefix(r.Context(), "products:")
+	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
 
 	h.logger.Info("product deleted", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Product deleted", nil)
@@ -277,6 +321,7 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to add products")
 		return
 	}
+	h.cache.ClearPrefix(r.Context(), "products:")
 
 	h.logger.Info("bulk products added", zap.Int("count", len(responses)))
 	utils.JSONResponse(w, http.StatusCreated, "Products added", responses)
@@ -349,6 +394,8 @@ func (h *ProductHandler) Patch(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product")
 		return
 	}
+	h.cache.ClearPrefix(r.Context(), "products:")
+	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
 
 	utils.JSONResponse(w, http.StatusOK, "Product updated", nil)
 }

@@ -3,6 +3,7 @@ package app
 import (
 	"chechnya-product/config"
 	_ "chechnya-product/docs"
+	"chechnya-product/internal/cache"
 	"chechnya-product/internal/handlers"
 	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/repositories"
@@ -19,7 +20,7 @@ import (
 	"time"
 )
 
-func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Server {
+func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCache *cache.RedisCache) *http.Server {
 	hub := ws.NewHub(logger)
 	go hub.Run()
 
@@ -48,7 +49,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB) *http.Se
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
 	cartHandler := handlers.NewCartHandler(cartService, logger)
-	productHandler := handlers.NewProductHandler(productService, logger)
+	productHandler := handlers.NewProductHandler(productService, logger, redisCache)
 	orderHandler := handlers.NewOrderHandler(orderService, logger)
 	categoryHandler := handlers.NewCategoryHandler(categoryService, logger)
 	logHandler := handlers.NewLogHandler(logger, "logs/app.log")
