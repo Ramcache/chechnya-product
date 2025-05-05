@@ -51,7 +51,7 @@ func (r *OrderRepo) GetByOwnerID(ownerID string) ([]models.Order, error) {
 
 func (r *OrderRepo) GetAll() ([]models.Order, error) {
 	var orders []models.Order
-	query := fmt.Sprintf("SELECT %s FROM orders WHERE owner_id = $1 ORDER BY created_at DESC", orderFields)
+	query := fmt.Sprintf("SELECT %s FROM orders ORDER BY created_at DESC", orderFields)
 	err := r.db.Select(&orders, query)
 
 	return orders, err

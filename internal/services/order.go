@@ -76,14 +76,7 @@ func (s *OrderService) GetOrders(ownerID string) ([]models.Order, error) {
 }
 
 func (s *OrderService) GetAllOrders() ([]models.Order, error) {
-	orders, err := s.orderRepo.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	if orders == nil {
-		return []models.Order{}, nil
-	}
-	return orders, nil
+	return s.orderRepo.GetAll()
 }
 
 func (s *OrderService) UpdateStatus(orderID int, status string) error {
