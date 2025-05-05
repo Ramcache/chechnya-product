@@ -6,12 +6,11 @@ import (
 	"chechnya-product/internal/ws"
 	"errors"
 	"fmt"
-	"time"
 )
 
 type OrderServiceInterface interface {
-	PlaceOrder(ownerID string, req models.PlaceOrderRequest) error
-	GetOrders(ownerID string) ([]models.Order, error)
+	PlaceOrder(ownerID string, req models.PlaceOrderRequest) (*models.Order, error)
+	GetOrders(ownerID string) ([]models.OrderWithItems, error)
 	GetAllOrders() ([]models.Order, error)
 	UpdateStatus(orderID int, status string) error
 	RepeatOrder(orderID int, ownerID string) error
@@ -39,38 +38,47 @@ func NewOrderService(
 	}
 }
 
-func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) error {
+func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) (*models.Order, error) {
+	// 1. Создаём заказ
 	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req)
 	if err != nil {
-		return fmt.Errorf("failed to create order: %w", err)
+		return nil, fmt.Errorf("failed to create order: %w", err)
 	}
 
-	// Очистим корзину после создания заказа
+	// 2. Очищаем корзину
 	if err := s.cartRepo.ClearCart(ownerID); err != nil {
-		return fmt.Errorf("order created but failed to clear cart: %w", err)
+		return nil, fmt.Errorf("order created but failed to clear cart: %w", err)
 	}
 
-	// Отправим уведомление через WebSocket, если используешь
+	// 3. Получаем заказ
+	order, err := s.orderRepo.GetByID(orderID)
+	if err != nil {
+		return nil, fmt.Errorf("order created, but failed to fetch: %w", err)
+	}
+
+	// 4. Получаем товары заказа
+	items, err := s.orderRepo.GetOrderItems(orderID)
+	if err != nil {
+		return nil, fmt.Errorf("order created, but failed to fetch items: %w", err)
+	}
+	order.Items = items
+
+	// 5. Уведомляем WebSocket (если есть)
 	if s.hub != nil {
-		s.hub.BroadcastNewOrder(models.Order{
-			ID:        orderID,
-			OwnerID:   ownerID,
-			Total:     req.Total,
-			Status:    req.Status,
-			CreatedAt: time.Now(),
-		})
+		s.hub.BroadcastNewOrder(*order)
 	}
 
-	return nil
+	// 6. Возвращаем заказ
+	return order, nil
 }
 
-func (s *OrderService) GetOrders(ownerID string) ([]models.Order, error) {
-	orders, err := s.orderRepo.GetByOwnerID(ownerID)
+func (s *OrderService) GetOrders(ownerID string) ([]models.OrderWithItems, error) {
+	orders, err := s.orderRepo.GetWithItemsByOwnerID(ownerID)
 	if err != nil {
 		return nil, err
 	}
 	if orders == nil {
-		return []models.Order{}, nil
+		return []models.OrderWithItems{}, nil
 	}
 	return orders, nil
 }

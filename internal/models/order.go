@@ -26,19 +26,20 @@ type OrderItemRequest struct {
 }
 
 type Order struct {
-	ID                int       `db:"id"`
-	OwnerID           string    `db:"owner_id"`
-	Total             float64   `db:"total"`
-	CreatedAt         time.Time `db:"created_at"`
-	Status            string    `db:"status"`
-	Name              *string   `db:"name"`
-	Address           *string   `db:"address"`
-	DeliveryType      string    `db:"delivery_type"`
-	PaymentType       string    `db:"payment_type"`
-	ChangeFor         *float64  `db:"change_for"`
-	DeliveryFee       *float64  `db:"delivery_fee"`
-	DeliveryText      *string   `db:"delivery_text"`
-	FrontendCreatedAt *int64    `db:"frontend_created_at"`
+	ID                int         `db:"id"`
+	OwnerID           string      `db:"owner_id"`
+	Total             float64     `db:"total"`
+	CreatedAt         time.Time   `db:"created_at"`
+	Status            string      `db:"status"`
+	Name              *string     `db:"name"`
+	Address           *string     `db:"address"`
+	DeliveryType      string      `db:"delivery_type"`
+	PaymentType       string      `db:"payment_type"`
+	ChangeFor         *float64    `db:"change_for"`
+	DeliveryFee       *float64    `db:"delivery_fee"`
+	DeliveryText      *string     `db:"delivery_text"`
+	FrontendCreatedAt *int64      `db:"frontend_created_at"`
+	Items             []OrderItem `json:"items"`
 }
 
 type OrderStatusRequest struct {
@@ -53,17 +54,17 @@ type OrderItem struct {
 }
 
 type OrderWithItems struct {
-	ID        int             `json:"id"`
-	OwnerID   string          `json:"owner_id"`
-	Total     float64         `json:"total"`
-	Status    string          `json:"status"`
-	CreatedAt string          `json:"created_at"`
+	ID        int             `json:"id" db:"id"`
+	OwnerID   string          `json:"owner_id" db:"owner_id"`
+	Total     float64         `json:"total" db:"total"`
+	Status    string          `json:"status" db:"status"`
+	CreatedAt string          `json:"created_at" db:"created_at"`
 	Items     []OrderItemFull `json:"items"`
 }
 
 type OrderItemFull struct {
-	ProductID   int     `json:"product_id"`
-	ProductName string  `json:"product_name"`
-	Quantity    int     `json:"quantity"`
-	Price       float64 `json:"price"`
+	ProductID   int     `json:"product_id" db:"product_id"`
+	ProductName string  `json:"product_name" db:"product_name"`
+	Quantity    int     `json:"quantity" db:"quantity"`
+	Price       float64 `json:"price" db:"price"`
 }
