@@ -15,6 +15,7 @@ type OrderRepository interface {
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
 	GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error)
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error)
+	GetAllWithItems() ([]models.OrderWithItems, error)
 }
 
 type OrderRepo struct {
@@ -152,4 +153,36 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	}
 
 	return orderID, nil
+}
+
+func (r *OrderRepo) GetAllWithItems() ([]models.OrderWithItems, error) {
+	var orders []models.OrderWithItems
+
+	// Загружаем все заказы
+	err := r.db.Select(&orders, `
+		SELECT id, owner_id, total, status, created_at
+		FROM orders
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	// Для каждого заказа — товары
+	for i := range orders {
+		var items []models.OrderItemFull
+		err := r.db.Select(&items, `
+			SELECT p.id AS product_id, p.name AS product_name, oi.quantity, p.price
+			FROM order_items oi
+			JOIN products p ON oi.product_id = p.id
+			WHERE oi.order_id = $1
+		`, orders[i].ID)
+
+		if err != nil {
+			return nil, err
+		}
+		orders[i].Items = items
+	}
+
+	return orders, nil
 }

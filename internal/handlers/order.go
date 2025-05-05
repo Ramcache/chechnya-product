@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type OrderHandlerInterface interface {
@@ -117,6 +116,7 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("all orders retrieved", zap.Int("orders_count", len(orders)))
 	utils.JSONResponse(w, http.StatusOK, "All orders retrieved", orders)
+
 }
 
 // ExportOrdersCSV
@@ -152,7 +152,7 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 			strconv.Itoa(order.ID),
 			order.OwnerID,
 			utils.FormatFloat(order.Total),
-			order.CreatedAt.Format(time.RFC3339),
+			order.CreatedAt,
 		})
 	}
 }
