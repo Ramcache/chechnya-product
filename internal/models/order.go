@@ -48,9 +48,10 @@ type OrderStatusRequest struct {
 
 type OrderItem struct {
 	OrderID   int     `db:"order_id" json:"order_id"`
-	Name      *string `json:"name" db:"name"`
 	ProductID int     `db:"product_id" json:"product_id"`
+	Name      *string `db:"product_name" json:"name"`
 	Quantity  int     `db:"quantity" json:"quantity"`
+	Price     float64 `db:"price" json:"price"`
 }
 
 type OrderWithItems struct {

@@ -32,6 +32,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "main,migrations"
           target: /chechnya-product/
+          debug: true
 
       - name: 🧬 Run Goose migrations and restart app
         uses: appleboy/ssh-action@v1.0.3

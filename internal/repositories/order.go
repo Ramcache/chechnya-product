@@ -74,7 +74,7 @@ func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 func (r *OrderRepo) GetOrderItems(orderID int) ([]models.OrderItem, error) {
 	var items []models.OrderItem
 	err := r.db.Select(&items, `
-		SELECT product_id, quantity
+		SELECT order_id, product_id, product_name, quantity, price
 		FROM order_items
 		WHERE order_id = $1
 	`, orderID)
@@ -118,7 +118,6 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
 
 	var orderID int
 	err = tx.QueryRow(`
@@ -131,8 +130,8 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 		RETURNING id
 	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
 		req.Name, req.Address, req.DeliveryFee, req.DeliveryText, req.CreatedAt).Scan(&orderID)
-
 	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
@@ -143,9 +142,14 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 		`, orderID, item.ID, item.Quantity, item.Name, item.Price)
 
 		if err != nil {
+			tx.Rollback()
 			return 0, err
 		}
 	}
 
-	return orderID, tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return orderID, nil
 }
