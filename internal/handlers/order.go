@@ -107,9 +107,7 @@ func (h *OrderHandler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/orders [get]
 func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
-	ownerID := middleware.GetOwnerID(w, r)
-
-	orders, err := h.service.GetAllOrders(ownerID)
+	orders, err := h.service.GetAllOrders()
 	if err != nil {
 		h.logger.Error("failed to get all orders", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch all orders")
@@ -130,9 +128,8 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/orders/export [get]
 func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
-	ownerID := middleware.GetOwnerID(w, r)
 
-	orders, err := h.service.GetAllOrders(ownerID)
+	orders, err := h.service.GetAllOrders()
 	if err != nil {
 		h.logger.Error("failed to export orders to CSV", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch orders")

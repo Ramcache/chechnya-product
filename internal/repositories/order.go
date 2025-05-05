@@ -9,7 +9,7 @@ import (
 type OrderRepository interface {
 	CreateOrder(ownerID string, total float64) (int, error)
 	GetByOwnerID(ownerID string) ([]models.Order, error)
-	GetAll(ownerID string) ([]models.Order, error)
+	GetAll() ([]models.Order, error)
 	UpdateStatus(orderID int, status string) error
 	GetByID(orderID int) (*models.Order, error)
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
@@ -49,10 +49,10 @@ func (r *OrderRepo) GetByOwnerID(ownerID string) ([]models.Order, error) {
 	return orders, err
 }
 
-func (r *OrderRepo) GetAll(ownerID string) ([]models.Order, error) {
+func (r *OrderRepo) GetAll() ([]models.Order, error) {
 	var orders []models.Order
-	query := fmt.Sprintf("SELECT %s FROM orders WHERE owner_id = $1 ORDER BY created_at DESC", orderFields)
-	err := r.db.Select(&orders, query, ownerID)
+	query := fmt.Sprintf("SELECT %s FROM orders ORDER BY created_at DESC", orderFields)
+	err := r.db.Select(&orders, query)
 
 	return orders, err
 }
