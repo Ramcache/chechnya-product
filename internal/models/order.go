@@ -1,9 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type PlaceOrderRequest struct {
-	Name         string             `json:"name"`
+	Name         *string            `json:"name"`
 	Address      *string            `json:"address"`
 	Items        []OrderItemRequest `json:"items"`
 	Total        float64            `json:"total"`
@@ -18,7 +20,7 @@ type PlaceOrderRequest struct {
 
 type OrderItemRequest struct {
 	ID       int     `json:"id"`
-	Name     string  `json:"name"`
+	Name     *string `json:"name"`
 	Quantity int     `json:"quantity"`
 	Price    float64 `json:"price"`
 }
@@ -29,7 +31,7 @@ type Order struct {
 	Total             float64   `db:"total"`
 	CreatedAt         time.Time `db:"created_at"`
 	Status            string    `db:"status"`
-	Name              string    `db:"name"`
+	Name              *string   `db:"name"`
 	Address           *string   `db:"address"`
 	DeliveryType      string    `db:"delivery_type"`
 	PaymentType       string    `db:"payment_type"`
