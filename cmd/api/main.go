@@ -3,10 +3,13 @@ package main
 import (
 	"chechnya-product/config"
 	"chechnya-product/internal/app"
+	"chechnya-product/internal/cache"
 	"chechnya-product/internal/db"
 	"chechnya-product/internal/logger"
+	"context"
 	"errors"
 	"github.com/pressly/goose/v3"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -44,8 +47,21 @@ func main() {
 		return
 	}
 
+	redisClient := redis.NewClient(cfg.GetRedisOptions())
+
+	logger.Sugar().Infow("🔌 Подключение к Redis", "addr", cfg.RedisAddr)
+
+	logger.Sugar().Info("✅ Успешное подключение к Redis")
+
+	if err := redisClient.Ping(context.Background()).Err(); err != nil {
+		logger.Fatal("Не удалось подключиться к Redis", zap.Error(err))
+	}
+
+	// Обёртка RedisCache с TTL
+	redisCache := cache.NewRedisCache(redisClient, 0, logger)
+
 	// 🚀 Запуск сервера
-	srv := app.NewServer(cfg, logger, dbConn)
+	srv := app.NewServer(cfg, logger, dbConn, redisCache)
 	logger.Sugar().Infow("Server is running", "port", cfg.Port)
 
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {

@@ -59,6 +59,15 @@ func ParseIntParam(param string) (int, error) {
 	return strconv.Atoi(param)
 }
 
+func BuildProductListResponse(products []models.Product) []models.ProductResponse {
+	var result []models.ProductResponse
+	for _, p := range products {
+		resp := BuildProductResponse(&p, "")
+		result = append(result, resp)
+	}
+	return result
+}
+
 func BuildProductResponse(p *models.Product, categoryName string) models.ProductResponse {
 	var categoryID int
 	if p.CategoryID.Valid {
@@ -82,6 +91,7 @@ func BuildProductResponse(p *models.Product, categoryName string) models.Product
 		Availability: p.Availability,
 		CategoryID:   categoryID,
 		CategoryName: categoryName,
+		Rating:       0, // если нет, можно оставить 0
 		Url:          url,
 	}
 }

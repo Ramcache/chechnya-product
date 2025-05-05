@@ -8,7 +8,6 @@ import (
 )
 
 func NewLogger() (*zap.Logger, error) {
-	// INFO + WARN → logs/info.2025-05-03.log
 	infoWriter, err := rotatelogs.New(
 		"logs/info.%Y-%m-%d.log",
 		rotatelogs.WithMaxAge(7*24*time.Hour),
@@ -18,7 +17,6 @@ func NewLogger() (*zap.Logger, error) {
 		return nil, err
 	}
 
-	// ERROR → logs/error.2025-05-03.log
 	errorWriter, err := rotatelogs.New(
 		"logs/error.%Y-%m-%d.log",
 		rotatelogs.WithMaxAge(7*24*time.Hour),
