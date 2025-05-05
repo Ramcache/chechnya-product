@@ -11,7 +11,7 @@ import (
 type OrderServiceInterface interface {
 	PlaceOrder(ownerID string, req models.PlaceOrderRequest) (*models.Order, error)
 	GetOrders(ownerID string) ([]models.OrderWithItems, error)
-	GetAllOrders() ([]models.Order, error)
+	GetAllOrders() ([]models.OrderWithItems, error)
 	UpdateStatus(orderID int, status string) error
 	RepeatOrder(orderID int, ownerID string) error
 	GetOrderHistory(ownerID string) ([]models.OrderWithItems, error)
@@ -83,8 +83,8 @@ func (s *OrderService) GetOrders(ownerID string) ([]models.OrderWithItems, error
 	return orders, nil
 }
 
-func (s *OrderService) GetAllOrders() ([]models.Order, error) {
-	return s.orderRepo.GetAll()
+func (s *OrderService) GetAllOrders() ([]models.OrderWithItems, error) {
+	return s.orderRepo.GetAllWithItems()
 }
 
 func (s *OrderService) UpdateStatus(orderID int, status string) error {
