@@ -57,7 +57,7 @@ func main() {
 		logger.Fatal("Не удалось подключиться к Redis", zap.Error(err))
 	}
 
-	// Обёртка RedisCache с TTL
+	// Обёртка RedisCache
 	redisCache := cache.NewRedisCache(redisClient, 0, logger)
 
 	// 🚀 Запуск сервера
