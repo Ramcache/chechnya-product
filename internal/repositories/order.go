@@ -29,7 +29,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 const orderFields = `
 	id, owner_id, total, created_at, status,
 	name, address, delivery_type, payment_type, change_for,
-	delivery_fee, delivery_text, frontend_created_at
+	delivery_fee, delivery_text
 `
 
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
@@ -59,8 +59,21 @@ func (r *OrderRepo) GetAll() ([]models.Order, error) {
 }
 
 func (r *OrderRepo) UpdateStatus(orderID int, status string) error {
-	_, err := r.db.Exec(`UPDATE orders SET status = $1 WHERE id = $2`, status, orderID)
-	return err
+	res, err := r.db.Exec(`UPDATE orders SET status = $1 WHERE id = $2`, status, orderID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return fmt.Errorf("order with id %d not found", orderID)
+	}
+
+	return nil
 }
 
 func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
@@ -112,13 +125,13 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	err = tx.QueryRow(`
 		INSERT INTO orders (
 			owner_id, total, status, created_at, delivery_type, payment_type, 
-			change_for, name, address, delivery_fee, delivery_text, frontend_created_at
+			change_for, name, address, delivery_fee, delivery_text
 		) VALUES (
-			$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10, $11
+			$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10
 		)
 		RETURNING id
 	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
-		req.Name, req.Address, req.DeliveryFee, req.DeliveryText, req.CreatedAt).Scan(&orderID)
+		req.Name, req.Address, req.DeliveryFee, req.DeliveryText).Scan(&orderID)
 	if err != nil {
 		tx.Rollback()
 		return 0, err

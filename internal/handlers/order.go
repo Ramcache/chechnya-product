@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type OrderHandlerInterface interface {
@@ -32,20 +33,6 @@ type OrderHandler struct {
 
 func NewOrderHandler(service services.OrderServiceInterface, logger *zap.Logger) *OrderHandler {
 	return &OrderHandler{service: service, logger: logger}
-}
-
-const (
-	StatusNew        = "new"
-	StatusInProgress = "in_progress"
-	StatusCompleted  = "completed"
-	StatusCancelled  = "cancelled"
-)
-
-var allowedStatuses = map[string]bool{
-	StatusNew:        true,
-	StatusInProgress: true,
-	StatusCompleted:  true,
-	StatusCancelled:  true,
 }
 
 // PlaceOrder
@@ -184,7 +171,8 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 			order.DeliveryType,
 			order.PaymentType,
 			utils.FormatFloat(order.Total),
-			order.CreatedAt,
+			order.CreatedAt.Format(time.RFC3339),
+			// strconv.FormatInt(order.CreatedAt.UnixMilli(), 10)
 			itemsStr,
 		})
 	}
@@ -216,13 +204,13 @@ func (h *OrderHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !allowedStatuses[req.Status] {
+	if !models.AllowedOrderStatuses[req.Status] {
 		utils.ErrorJSON(w, http.StatusBadRequest, "Недопустимый статус")
 		return
 	}
 
 	if err := h.service.UpdateStatus(orderID, req.Status); err != nil {
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update status")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update status: "+err.Error())
 		return
 	}
 
