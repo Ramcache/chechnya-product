@@ -14,7 +14,7 @@ type OrderRepository interface {
 	GetByID(orderID int) (*models.Order, error)
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
 	GetWithItemsByOwnerID(ownerID string) ([]models.Order, error)
-	CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error)
+	CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error)
 	GetAllWithItems() ([]models.Order, error)
 }
 
@@ -115,7 +115,7 @@ func (r *OrderRepo) GetWithItemsByOwnerID(ownerID string) ([]models.Order, error
 	return orders, nil
 }
 
-func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error) {
+func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return 0, err
@@ -124,13 +124,14 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	var orderID int
 	err = tx.QueryRow(`
 		INSERT INTO orders (
-			owner_id, total, status, created_at, delivery_type, payment_type, 
-			change_for, name, address, delivery_fee, delivery_text
+					owner_id, total, status, created_at, delivery_type, payment_type, 
+					change_for, name, address, delivery_fee, delivery_text
 		) VALUES (
-			$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10
+					$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10
 		)
+
 		RETURNING id
-	`, ownerID, req.Total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
+	`, ownerID, total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
 		req.Name, req.Address, req.DeliveryFee, req.DeliveryText).Scan(&orderID)
 	if err != nil {
 		tx.Rollback()
