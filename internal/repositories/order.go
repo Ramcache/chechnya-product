@@ -13,9 +13,9 @@ type OrderRepository interface {
 	UpdateStatus(orderID int, status string) error
 	GetByID(orderID int) (*models.Order, error)
 	GetOrderItems(orderID int) ([]models.OrderItem, error)
-	GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error)
+	GetWithItemsByOwnerID(ownerID string) ([]models.Order, error)
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest) (int, error)
-	GetAllWithItems() ([]models.OrderWithItems, error)
+	GetAllWithItems() ([]models.Order, error)
 }
 
 type OrderRepo struct {
@@ -82,29 +82,17 @@ func (r *OrderRepo) GetOrderItems(orderID int) ([]models.OrderItem, error) {
 	return items, err
 }
 
-func (r *OrderRepo) GetWithItemsByOwnerID(ownerID string) ([]models.OrderWithItems, error) {
-	var orders []models.OrderWithItems
+func (r *OrderRepo) GetWithItemsByOwnerID(ownerID string) ([]models.Order, error) {
+	var orders []models.Order
 
-	// 1. Получаем заказы пользователя
-	err := r.db.Select(&orders, `
-		SELECT id, owner_id, total, status, created_at
-		FROM orders
-		WHERE owner_id = $1
-		ORDER BY created_at DESC
-	`, ownerID)
+	query := fmt.Sprintf("SELECT %s FROM orders WHERE owner_id = $1 ORDER BY created_at DESC", orderFields)
+	err := r.db.Select(&orders, query, ownerID)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Для каждого заказа — подтягиваем товары
 	for i := range orders {
-		var items []models.OrderItemFull
-		err := r.db.Select(&items, `
-			SELECT p.id AS product_id, p.name AS product_name, oi.quantity, p.price
-			FROM order_items oi
-			JOIN products p ON oi.product_id = p.id
-			WHERE oi.order_id = $1
-		`, orders[i].ID)
+		items, err := r.GetOrderItems(orders[i].ID)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +128,7 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 		_, err := tx.Exec(`
 			INSERT INTO order_items (order_id, product_id, quantity, product_name, price)
 			VALUES ($1, $2, $3, $4, $5)
-		`, orderID, item.ID, item.Quantity, item.Name, item.Price)
+		`, orderID, item.ProductID, item.Quantity, item.Name, item.Price)
 
 		if err != nil {
 			tx.Rollback()
@@ -155,29 +143,17 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	return orderID, nil
 }
 
-func (r *OrderRepo) GetAllWithItems() ([]models.OrderWithItems, error) {
-	var orders []models.OrderWithItems
+func (r *OrderRepo) GetAllWithItems() ([]models.Order, error) {
+	var orders []models.Order
 
-	// Загружаем все заказы
-	err := r.db.Select(&orders, `
-		SELECT id, owner_id, total, status, created_at
-		FROM orders
-		ORDER BY created_at DESC
-	`)
+	query := fmt.Sprintf("SELECT %s FROM orders ORDER BY created_at DESC", orderFields)
+	err := r.db.Select(&orders, query)
 	if err != nil {
 		return nil, err
 	}
 
-	// Для каждого заказа — товары
 	for i := range orders {
-		var items []models.OrderItemFull
-		err := r.db.Select(&items, `
-			SELECT p.id AS product_id, p.name AS product_name, oi.quantity, p.price
-			FROM order_items oi
-			JOIN products p ON oi.product_id = p.id
-			WHERE oi.order_id = $1
-		`, orders[i].ID)
-
+		items, err := r.GetOrderItems(orders[i].ID)
 		if err != nil {
 			return nil, err
 		}

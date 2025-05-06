@@ -7,10 +7,12 @@ import (
 	"chechnya-product/internal/utils"
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type OrderHandlerInterface interface {
@@ -129,7 +131,6 @@ func (h *OrderHandler) GetAllOrders(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/admin/orders/export [get]
 func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
-
 	orders, err := h.service.GetAllOrders()
 	if err != nil {
 		h.logger.Error("failed to export orders to CSV", zap.Error(err))
@@ -145,14 +146,46 @@ func (h *OrderHandler) ExportOrdersCSV(w http.ResponseWriter, r *http.Request) {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
-	writer.Write([]string{"Order ID", "Owner ID", "Total", "Created At"})
+	// Заголовки
+	writer.Write([]string{
+		"Order ID", "Owner ID", "Name", "Address", "Delivery Type",
+		"Payment Type", "Total", "Created At", "Items",
+	})
 
+	// Строки
 	for _, order := range orders {
+		// Список товаров в строку
+		var itemDescriptions []string
+		for _, item := range order.Items {
+			name := "Unnamed"
+			if item.Name != nil {
+				name = *item.Name
+			}
+			itemDescriptions = append(itemDescriptions,
+				fmt.Sprintf("%s x%d (%.2f)", name, item.Quantity, item.Price))
+		}
+		itemsStr := strings.Join(itemDescriptions, "; ")
+
+		// Адрес и имя (если nil — пустая строка)
+		name := ""
+		if order.Name != nil {
+			name = *order.Name
+		}
+		address := ""
+		if order.Address != nil {
+			address = *order.Address
+		}
+
 		writer.Write([]string{
 			strconv.Itoa(order.ID),
 			order.OwnerID,
+			name,
+			address,
+			order.DeliveryType,
+			order.PaymentType,
 			utils.FormatFloat(order.Total),
 			order.CreatedAt,
+			itemsStr,
 		})
 	}
 }
