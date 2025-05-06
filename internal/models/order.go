@@ -1,5 +1,10 @@
 package models
 
+import (
+	"encoding/json"
+	"time"
+)
+
 // PlaceOrderRequest запрос от клиента для оформления заказа
 type PlaceOrderRequest struct {
 	Name         *string     `json:"name"`
@@ -26,23 +31,44 @@ type OrderItem struct {
 
 // Order полный заказ, возвращаемый клиенту
 type Order struct {
-	ID                int         `json:"id" db:"id"`
-	OwnerID           string      `json:"owner_id" db:"owner_id"`
-	Total             float64     `json:"total" db:"total"`
-	CreatedAt         string      `json:"created_at" db:"created_at"`
-	Status            string      `json:"status" db:"status"`
-	Name              *string     `json:"name" db:"name"`
-	Address           *string     `json:"address" db:"address"`
-	DeliveryType      string      `json:"delivery_type" db:"delivery_type"`
-	PaymentType       string      `json:"payment_type" db:"payment_type"`
-	ChangeFor         *float64    `json:"change_for" db:"change_for"`
-	DeliveryFee       *float64    `json:"delivery_fee" db:"delivery_fee"`
-	DeliveryText      *string     `json:"delivery_text" db:"delivery_text"`
-	FrontendCreatedAt *int64      `json:"frontend_created_at" db:"frontend_created_at"`
-	Items             []OrderItem `json:"items"` // всегда с товарами
+	ID           int         `json:"id" db:"id"`
+	OwnerID      string      `json:"owner_id" db:"owner_id"`
+	Total        float64     `json:"total" db:"total"`
+	CreatedAt    time.Time   `json:"-" db:"created_at"`
+	DateOrders   int64       `json:"date_orders"`
+	Status       string      `json:"status" db:"status"`
+	Name         *string     `json:"name" db:"name"`
+	Address      *string     `json:"address" db:"address"`
+	DeliveryType string      `json:"delivery_type" db:"delivery_type"`
+	PaymentType  string      `json:"payment_type" db:"payment_type"`
+	ChangeFor    *float64    `json:"change_for" db:"change_for"`
+	DeliveryFee  *float64    `json:"delivery_fee" db:"delivery_fee"`
+	DeliveryText *string     `json:"delivery_text" db:"delivery_text"`
+	Items        []OrderItem `json:"items"`
 }
 
 // OrderStatusRequest используется при PATCH-запросе на обновление статуса
 type OrderStatusRequest struct {
 	Status string `json:"status" example:"в пути"`
+}
+
+var AllowedOrderStatuses = map[string]bool{
+	"новый":       true,
+	"в обработке": true,
+	"принят":      true,
+	"отклонен":    true,
+	"готов":       true,
+	"в пути":      true,
+	"доставлен":   true,
+}
+
+func (o *Order) MarshalJSON() ([]byte, error) {
+	type Alias Order
+	return json.Marshal(&struct {
+		*Alias
+		DateOrders int64 `json:"date_orders"`
+	}{
+		Alias:      (*Alias)(o),
+		DateOrders: o.CreatedAt.UnixMilli(),
+	})
 }

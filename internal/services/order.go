@@ -88,15 +88,7 @@ func (s *OrderService) GetAllOrders() ([]models.Order, error) {
 }
 
 func (s *OrderService) UpdateStatus(orderID int, status string) error {
-	allowed := map[string]bool{
-		"в обработке": true,
-		"принят":      true,
-		"отклонен":    true,
-		"готов":       true,
-		"в пути":      true,
-		"доставлен":   true,
-	}
-	if !allowed[status] {
+	if !models.AllowedOrderStatuses[status] {
 		return fmt.Errorf("недопустимый статус")
 	}
 
