@@ -39,36 +39,43 @@ func NewOrderService(
 }
 
 func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) (*models.Order, error) {
-	// 1. Создаём заказ
-	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req)
+	// 1. Считаем сумму заказа
+	var total float64
+	for _, item := range req.Items {
+		if item.Price != nil {
+			total += *item.Price * float64(item.Quantity)
+		}
+	}
+
+	// 2. Создаём заказ
+	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req, total)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create order: %w", err)
 	}
 
-	// 2. Очищаем корзину
+	// 3. Очищаем корзину
 	if err := s.cartRepo.ClearCart(ownerID); err != nil {
 		return nil, fmt.Errorf("order created but failed to clear cart: %w", err)
 	}
 
-	// 3. Получаем заказ
+	// 4. Получаем заказ
 	order, err := s.orderRepo.GetByID(orderID)
 	if err != nil {
 		return nil, fmt.Errorf("order created, but failed to fetch: %w", err)
 	}
 
-	// 4. Получаем товары заказа
+	// 5. Получаем товары заказа
 	items, err := s.orderRepo.GetOrderItems(orderID)
 	if err != nil {
 		return nil, fmt.Errorf("order created, but failed to fetch items: %w", err)
 	}
 	order.Items = items
 
-	// 5. Уведомляем WebSocket (если есть)
+	// 6. WebSocket
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}
 
-	// 6. Возвращаем заказ
 	return order, nil
 }
 

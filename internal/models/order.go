@@ -10,7 +10,6 @@ type PlaceOrderRequest struct {
 	Name         *string     `json:"name"`
 	Address      *string     `json:"address"`
 	Items        []OrderItem `json:"items"`
-	Total        float64     `json:"total"`
 	PaymentType  string      `json:"paymentType"`
 	Status       string      `json:"status"`
 	DeliveryType string      `json:"deliveryType"`
