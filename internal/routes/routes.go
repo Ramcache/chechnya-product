@@ -81,10 +81,13 @@ func RegisterAdminRoutes(
 	dashboard handlers.DashboardHandlerInterface,
 	jwt utils.JWTManagerInterface,
 	announcement handlers.AnnouncementHandlerInterface,
+	adminInterface handlers.AdminInterface,
 ) {
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTMiddleware(jwt))
 	admin.Use(middleware.OnlyAdmin())
+
+	admin.HandleFunc("/truncate", adminInterface.TruncateTableHandler).Methods("POST")
 
 	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
 
@@ -100,6 +103,7 @@ func RegisterAdminRoutes(
 	admin.HandleFunc("/orders", order.GetAllOrders).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/export", order.ExportOrdersCSV).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
+	admin.HandleFunc("/orders/{id}", order.DeleteOrder).Methods("DELETE")
 
 	// Управление категориями
 	admin.HandleFunc("/categories", category.Create).Methods(http.MethodPost)

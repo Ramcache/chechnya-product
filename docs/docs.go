@@ -501,6 +501,42 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/orders/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "Заказ"
+                ],
+                "summary": "Удаление заказа по ID (только для админов)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заказа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/orders/{id}/status": {
             "patch": {
                 "security": [
@@ -1368,7 +1404,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.OrderWithItems"
+                                "$ref": "#/definitions/models.Order"
                             }
                         }
                     },
@@ -1958,13 +1994,43 @@ const docTemplate = `{
         "models.Order": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "change_for": {
+                    "type": "number"
+                },
                 "created_at": {
+                    "type": "string"
+                },
+                "date_orders": {
+                    "type": "integer"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "delivery_text": {
+                    "type": "string"
+                },
+                "delivery_type": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OrderItem"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
                 "owner_id": {
+                    "type": "string"
+                },
+                "payment_type": {
                     "type": "string"
                 },
                 "status": {
@@ -1975,17 +2041,20 @@ const docTemplate = `{
                 }
             }
         },
-        "models.OrderItemFull": {
+        "models.OrderItem": {
             "type": "object",
             "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
                 "price": {
                     "type": "number"
                 },
                 "product_id": {
                     "type": "integer"
-                },
-                "product_name": {
-                    "type": "string"
                 },
                 "quantity": {
                     "type": "integer"
@@ -1998,32 +2067,6 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "в пути"
-                }
-            }
-        },
-        "models.OrderWithItems": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.OrderItemFull"
-                    }
-                },
-                "owner_id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "number"
                 }
             }
         },

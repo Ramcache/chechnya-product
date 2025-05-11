@@ -24,6 +24,7 @@ type OrderHandlerInterface interface {
 	UpdateStatus(w http.ResponseWriter, r *http.Request)
 	RepeatOrder(w http.ResponseWriter, r *http.Request)
 	GetOrderHistory(w http.ResponseWriter, r *http.Request)
+	DeleteOrder(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -241,7 +242,7 @@ func (h *OrderHandler) RepeatOrder(w http.ResponseWriter, r *http.Request) {
 // @Summary История заказов пользователя
 // @Tags Заказ
 // @Produce json
-// @Success 200 {array} models.OrderWithItems
+// @Success 200 {array} models.Order
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/orders/history [get]
 func (h *OrderHandler) GetOrderHistory(w http.ResponseWriter, r *http.Request) {
@@ -254,4 +255,30 @@ func (h *OrderHandler) GetOrderHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Order history retrieved", orders)
+}
+
+// DeleteOrder
+// @Summary Удаление заказа по ID (только для админов)
+// @Security BearerAuth
+// @Tags Заказ
+// @Param id path int true "ID заказа"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /api/admin/orders/{id} [delete]
+func (h *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	orderID, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный ID заказа")
+		return
+	}
+
+	if err := h.service.DeleteOrder(orderID); err != nil {
+		h.logger.Error("ошибка удаления заказа", zap.Int("order_id", orderID), zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Ошибка удаления: "+err.Error())
+		return
+	}
+
+	h.logger.Info("заказ удалён", zap.Int("order_id", orderID))
+	utils.JSONResponse(w, http.StatusOK, "Заказ удалён", nil)
 }

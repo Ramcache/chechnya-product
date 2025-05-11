@@ -15,6 +15,7 @@ type OrderServiceInterface interface {
 	UpdateStatus(orderID int, status string) error
 	RepeatOrder(orderID int, ownerID string) error
 	GetOrderHistory(ownerID string) ([]models.Order, error)
+	DeleteOrder(orderID int) error
 }
 
 type OrderService struct {
@@ -133,4 +134,8 @@ func (s *OrderService) RepeatOrder(orderID int, ownerID string) error {
 
 func (s *OrderService) GetOrderHistory(ownerID string) ([]models.Order, error) {
 	return s.orderRepo.GetWithItemsByOwnerID(ownerID)
+}
+
+func (s *OrderService) DeleteOrder(orderID int) error {
+	return s.orderRepo.DeleteOrder(orderID)
 }
