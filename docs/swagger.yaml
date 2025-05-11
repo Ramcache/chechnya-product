@@ -34,6 +34,11 @@ definitions:
       username:
         type: string
     type: object
+  handlers.TruncateRequest:
+    properties:
+      table:
+        type: string
+    type: object
   handlers.UserProfileResponse:
     properties:
       email:
@@ -816,6 +821,51 @@ paths:
       summary: Массовое добавление товаров (админ)
       tags:
       - Товар
+  /api/admin/truncate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Название таблицы для очистки
+        in: body
+        name: table
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.TruncateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Очистка таблицы с перезапуском ID
+      tags:
+      - Admin
+  /api/admin/truncate/all:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Очистить все таблицы (только админ)
+      tags:
+      - Admin
   /api/admin/users:
     post:
       consumes:
