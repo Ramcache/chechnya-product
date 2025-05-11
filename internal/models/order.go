@@ -10,20 +10,20 @@ type PlaceOrderRequest struct {
 	Name         *string     `json:"name"`
 	Address      *string     `json:"address"`
 	Items        []OrderItem `json:"items"`
-	PaymentType  string      `json:"paymentType"`
+	PaymentType  string      `json:"payment_type"`
 	Status       string      `json:"status"`
-	DeliveryType string      `json:"deliveryType"`
-	CreatedAt    int64       `json:"createdAt"`
-	DeliveryText string      `json:"deliveryText"`
-	DeliveryFee  float64     `json:"deliveryFee"`
-	ChangeFor    *float64    `json:"changeFor"`
+	DeliveryType string      `json:"delivery_type"`
+	CreatedAt    int64       `json:"created_at"`
+	DeliveryText string      `json:"delivery_text"`
+	DeliveryFee  float64     `json:"delivery_fee"`
+	ChangeFor    *float64    `json:"change_for"`
 }
 
 // OrderItem единица товара в заказе (универсальная модель)
 type OrderItem struct {
 	OrderID   int      `json:"order_id" db:"order_id"`
 	ProductID int      `json:"product_id" db:"product_id"`
-	Name      *string  `json:"name,omitempty" db:"product_name"`
+	Name      *string  `json:"name" db:"product_name"`
 	Quantity  int      `json:"quantity" db:"quantity"`
 	Price     *float64 `json:"price" db:"price"`
 }
@@ -33,7 +33,7 @@ type Order struct {
 	ID           int         `json:"id" db:"id"`
 	OwnerID      string      `json:"owner_id" db:"owner_id"`
 	Total        float64     `json:"total" db:"total"`
-	CreatedAt    time.Time   `json:"-" db:"created_at"`
+	CreatedAt    time.Time   `json:"created_at" db:"created_at"`
 	DateOrders   int64       `json:"date_orders"`
 	Status       string      `json:"status" db:"status"`
 	Name         *string     `json:"name" db:"name"`
