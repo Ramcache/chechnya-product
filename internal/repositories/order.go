@@ -78,7 +78,10 @@ func (r *OrderRepo) UpdateStatus(orderID int, status string) error {
 
 func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 	var order models.Order
-	err := r.db.Get(&order, `SELECT id, owner_id, total, created_at, status FROM orders WHERE id = $1`, orderID)
+	err := r.db.Get(&order, `
+    SELECT id, owner_id, total, created_at, status, name, address, delivery_type, payment_type, change_for, delivery_fee, delivery_text
+    FROM orders 
+    WHERE id = $1`, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,16 +126,29 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 
 	var orderID int
 	err = tx.QueryRow(`
-		INSERT INTO orders (
-					owner_id, total, status, created_at, delivery_type, payment_type, 
-					change_for, name, address, delivery_fee, delivery_text
-		) VALUES (
-					$1, $2, $3, NOW(), $4, $5, $6, $7, $8, $9, $10
-		)
+	INSERT INTO orders (
+		owner_id, total, status, created_at,
+		delivery_type, payment_type, change_for,
+		name, address, delivery_fee, delivery_text
+	) VALUES (
+		$1, $2, $3, NOW(),
+		$4, $5, $6,
+		$7, $8, $9, $10
+	)
+	RETURNING id
+`,
+		ownerID,
+		total,
+		req.Status,
+		req.DeliveryType,
+		req.PaymentType,
+		req.ChangeFor,
+		req.Name,
+		req.Address,
+		req.DeliveryFee,
+		req.DeliveryText,
+	).Scan(&orderID)
 
-		RETURNING id
-	`, ownerID, total, req.Status, req.DeliveryType, req.PaymentType, req.ChangeFor,
-		req.Name, req.Address, req.DeliveryFee, req.DeliveryText).Scan(&orderID)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
