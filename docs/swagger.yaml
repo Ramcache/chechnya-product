@@ -117,25 +117,47 @@ definitions:
     type: object
   models.Order:
     properties:
+      address:
+        type: string
+      change_for:
+        type: number
       created_at:
+        type: string
+      date_orders:
+        type: integer
+      delivery_fee:
+        type: number
+      delivery_text:
+        type: string
+      delivery_type:
         type: string
       id:
         type: integer
+      items:
+        items:
+          $ref: '#/definitions/models.OrderItem'
+        type: array
+      name:
+        type: string
       owner_id:
+        type: string
+      payment_type:
         type: string
       status:
         type: string
       total:
         type: number
     type: object
-  models.OrderItemFull:
+  models.OrderItem:
     properties:
+      name:
+        type: string
+      order_id:
+        type: integer
       price:
         type: number
       product_id:
         type: integer
-      product_name:
-        type: string
       quantity:
         type: integer
     type: object
@@ -144,23 +166,6 @@ definitions:
       status:
         example: в пути
         type: string
-    type: object
-  models.OrderWithItems:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/models.OrderItemFull'
-        type: array
-      owner_id:
-        type: string
-      status:
-        type: string
-      total:
-        type: number
     type: object
   models.Product:
     type: object
@@ -543,6 +548,28 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить все заказы (админ)
+      tags:
+      - Заказ
+  /api/admin/orders/{id}:
+    delete:
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаление заказа по ID (только для админов)
       tags:
       - Заказ
   /api/admin/orders/{id}/status:
@@ -1142,7 +1169,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.OrderWithItems'
+              $ref: '#/definitions/models.Order'
             type: array
         "500":
           description: Internal Server Error

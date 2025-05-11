@@ -100,6 +100,7 @@ func RegisterAdminRoutes(
 	admin.HandleFunc("/orders", order.GetAllOrders).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/export", order.ExportOrdersCSV).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
+	admin.HandleFunc("/orders/{id}", order.DeleteOrder).Methods("DELETE")
 
 	// Управление категориями
 	admin.HandleFunc("/categories", category.Create).Methods(http.MethodPost)

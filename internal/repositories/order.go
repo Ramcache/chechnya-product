@@ -16,6 +16,7 @@ type OrderRepository interface {
 	GetWithItemsByOwnerID(ownerID string) ([]models.Order, error)
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error)
 	GetAllWithItems() ([]models.Order, error)
+	DeleteOrder(orderID int) error
 }
 
 type OrderRepo struct {
@@ -191,4 +192,36 @@ func (r *OrderRepo) GetAllWithItems() ([]models.Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (r *OrderRepo) DeleteOrder(orderID int) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	// Удалим сначала товары заказа (связанные строки)
+	if _, err := tx.Exec(`DELETE FROM order_items WHERE order_id = $1`, orderID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Удалим сам заказ
+	res, err := tx.Exec(`DELETE FROM orders WHERE id = $1`, orderID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if rowsAffected == 0 {
+		tx.Rollback()
+		return fmt.Errorf("order with id %d not found", orderID)
+	}
+
+	return tx.Commit()
 }
