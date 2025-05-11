@@ -81,10 +81,13 @@ func RegisterAdminRoutes(
 	dashboard handlers.DashboardHandlerInterface,
 	jwt utils.JWTManagerInterface,
 	announcement handlers.AnnouncementHandlerInterface,
+	adminInterface handlers.AdminInterface,
 ) {
 	admin := r.PathPrefix("/api/admin").Subrouter()
 	admin.Use(middleware.JWTMiddleware(jwt))
 	admin.Use(middleware.OnlyAdmin())
+
+	admin.HandleFunc("/truncate", adminInterface.TruncateTableHandler).Methods("POST")
 
 	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
 

@@ -33,6 +33,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	dashboardRepo := repositories.NewDashboardRepository(dbConn)
 	announcementRepo := repositories.NewAnnouncementRepo(dbConn)
 	reviewRepo := repositories.NewReviewRepo(dbConn)
+	adminRepo := repositories.NewAdminRepo(dbConn)
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
 
@@ -45,6 +46,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	announcementService := services.NewAnnouncementService(announcementRepo, hub)
 	reviewService := services.NewReviewService(reviewRepo)
+	adminService := services.NewAdminService(adminRepo)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -56,6 +58,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	dashboardHandler := handlers.NewDashboardHandler(dashboardService, logger)
 	announcementHandler := handlers.NewAnnouncementHandler(announcementService, logger)
 	reviewHandler := handlers.NewReviewHandler(reviewService, logger)
+	adminHandler := handlers.NewAdminHandler(adminService, logger)
 
 	// --- Router ---
 	router := mux.NewRouter()
@@ -65,7 +68,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, jwtManager)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
-	routes.RegisterAdminRoutes(router, userHandler, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler)
+	routes.RegisterAdminRoutes(router, userHandler, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler, adminHandler)
 
 	// --- CORS ---
 	corsMiddleware := cors.New(cors.Options{
