@@ -47,6 +47,7 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 			total += *item.Price * float64(item.Quantity)
 		}
 	}
+	total += req.DeliveryFee
 
 	// 2. Создаём заказ
 	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req, total)

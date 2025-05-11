@@ -57,6 +57,7 @@ func (r *OrderRepo) GetAll() ([]models.Order, error) {
 	err := r.db.Select(&orders, query)
 
 	return orders, err
+
 }
 
 func (r *OrderRepo) UpdateStatus(orderID int, status string) error {

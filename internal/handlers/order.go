@@ -60,6 +60,7 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to place order")
 		return
 	}
+	h.logger.Info("🧪 CreatedAt:", zap.Time("created_at", order.CreatedAt), zap.Int64("millis", order.CreatedAt.UnixMilli()))
 
 	h.logger.Info("order placed", zap.String("owner_id", ownerID), zap.Int("order_id", order.ID))
 	utils.JSONResponse(w, http.StatusOK, "Order placed successfully", order)
