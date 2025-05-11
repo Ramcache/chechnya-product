@@ -8,6 +8,7 @@ import (
 // AdminRepoInterface интерфейс для админских операций с БД
 type AdminRepoInterface interface {
 	TruncateTable(tableName string) error
+	TruncateAllTables() error
 }
 
 // AdminRepo реализация AdminRepoInterface
@@ -28,7 +29,6 @@ func (r *AdminRepo) TruncateTable(tableName string) error {
 		"orders":        true,
 		"order_items":   true,
 		"users":         true,
-		"carts":         true,
 		"reviews":       true,
 	}
 
@@ -38,4 +38,22 @@ func (r *AdminRepo) TruncateTable(tableName string) error {
 
 	_, err := r.db.Exec(fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY CASCADE`, tableName))
 	return err
+}
+
+func (r *AdminRepo) TruncateAllTables() error {
+	tables := []string{"announcements", "cart_items", "categories", "order_items", "orders", "products", "reviews"}
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	for _, table := range tables {
+		if _, err := tx.Exec(fmt.Sprintf(`TRUNCATE TABLE %s RESTART IDENTITY CASCADE`, table)); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

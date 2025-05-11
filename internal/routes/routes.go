@@ -88,6 +88,7 @@ func RegisterAdminRoutes(
 	admin.Use(middleware.OnlyAdmin())
 
 	admin.HandleFunc("/truncate", adminInterface.TruncateTableHandler).Methods("POST")
+	admin.HandleFunc("/truncate/all", adminInterface.TruncateAllTablesHandler).Methods("POST")
 
 	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
 
