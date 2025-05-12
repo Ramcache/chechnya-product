@@ -25,6 +25,7 @@ type OrderHandlerInterface interface {
 	RepeatOrder(w http.ResponseWriter, r *http.Request)
 	GetOrderHistory(w http.ResponseWriter, r *http.Request)
 	DeleteOrder(w http.ResponseWriter, r *http.Request)
+	GetOrderByID(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -282,4 +283,31 @@ func (h *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("заказ удалён", zap.Int("order_id", orderID))
 	utils.JSONResponse(w, http.StatusOK, "Заказ удалён", nil)
+}
+
+// GetOrderByID
+// @Summary Получить заказ по ID
+// @Description Возвращает заказ с товарами по ID
+// @Tags Заказ
+// @Param id path int true "ID заказа"
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse{data=models.Order}
+// @Failure 400 {object} utils.ErrorResponse "Некорректный ID"
+// @Failure 404 {object} utils.ErrorResponse "Заказ не найден"
+// @Router /api/orders/{id} [get]
+func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	orderID, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid order ID")
+		return
+	}
+
+	order, err := h.service.GetOrderByID(orderID)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusNotFound, "Order not found")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Order fetched", order)
 }
