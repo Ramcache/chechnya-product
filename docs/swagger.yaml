@@ -1188,6 +1188,38 @@ paths:
       summary: Получить заказы пользователя
       tags:
       - Заказ
+  /api/orders/{id}:
+    get:
+      description: Возвращает заказ с товарами по ID
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Order'
+              type: object
+        "400":
+          description: Некорректный ID
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Заказ не найден
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить заказ по ID
+      tags:
+      - Заказ
   /api/orders/{id}/repeat:
     post:
       parameters:
