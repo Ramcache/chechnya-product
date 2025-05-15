@@ -76,13 +76,6 @@ func BuildProductResponse(p *models.Product, categoryName string) models.Product
 		categoryID = 0
 	}
 
-	var url string
-	if p.Url.Valid {
-		url = p.Url.String
-	} else {
-		url = ""
-	}
-
 	return models.ProductResponse{
 		ID:           p.ID,
 		Name:         p.Name,
@@ -92,7 +85,7 @@ func BuildProductResponse(p *models.Product, categoryName string) models.Product
 		CategoryID:   categoryID,
 		CategoryName: categoryName,
 		Rating:       0, // если нет, можно оставить 0
-		Url:          url,
+		Url:          p.Url.String,
 	}
 }
 
