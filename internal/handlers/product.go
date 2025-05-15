@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"chechnya-product/internal/services"
@@ -24,6 +26,7 @@ type ProductHandlerInterface interface {
 	Delete(w http.ResponseWriter, r *http.Request)
 	AddBulk(w http.ResponseWriter, r *http.Request)
 	Patch(w http.ResponseWriter, r *http.Request)
+	UploadPhoto(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -132,16 +135,11 @@ func (h *ProductHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cacheKey := fmt.Sprintf("product:%d", id)
 
-	var product models.Product
+	var product models.ProductResponse
 
 	err = h.cache.GetOrSet(ctx, cacheKey, &product, func() (any, error) {
 		return h.service.GetByID(id)
 	})
-	if err != nil {
-		h.logger.Warn("failed to fetch product", zap.Int("id", id), zap.Error(err))
-		utils.ErrorJSON(w, http.StatusNotFound, "Product not found")
-		return
-	}
 
 	h.logger.Info("product fetched (cached or fresh)", zap.Int("id", id))
 	utils.JSONResponse(w, http.StatusOK, "Product fetched", product)
@@ -421,4 +419,74 @@ func mapProductInputToProduct(input models.ProductInput) models.Product {
 	}
 
 	return product
+}
+
+// UploadPhoto загружает фото для продукта
+// @Summary      Загрузка фото для товара
+// @Description  Загружает изображение для товара по его ID. Доступно только администратору.
+// @Tags         Товар
+// @Security     BearerAuth
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        id    path      int     true  "ID товара"
+// @Param        photo formData  file    true  "Изображение товара"
+// @Success      200   {object}  map[string]string  "Ссылка на загруженное изображение"
+// @Failure      400   {object}  utils.ErrorResponse
+// @Failure      403   {object}  utils.ErrorResponse
+// @Failure      500   {object}  utils.ErrorResponse
+// @Router       /api/admin/products/{id}/upload-photo [post]
+func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil || claims.Role != "admin" {
+		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
+		return
+	}
+
+	idStr := mux.Vars(r)["id"]
+	id, err := utils.ParseIntParam(idStr)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to parse form")
+		return
+	}
+
+	file, handler, err := r.FormFile("photo")
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "No file uploaded")
+		return
+	}
+	defer file.Close()
+
+	filename := fmt.Sprintf("product-%d-%s", id, handler.Filename)
+	filepath := "./uploads/" + filename
+
+	dst, err := os.Create(filepath)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to save file")
+		return
+	}
+	defer dst.Close()
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to write file")
+		return
+	}
+
+	url := "/uploads/" + filename
+
+	err = h.service.PatchProduct(id, map[string]interface{}{"url": url})
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product url")
+		return
+	}
+
+	h.cache.ClearPrefix(r.Context(), "products:")
+	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
+
+	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": url})
 }

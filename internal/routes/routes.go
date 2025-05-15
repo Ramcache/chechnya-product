@@ -94,6 +94,7 @@ func RegisterAdminRoutes(
 	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
 
 	// Управление товарами
+	admin.HandleFunc("/products/{id}/upload-photo", product.UploadPhoto).Methods("POST")
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)
 	admin.HandleFunc("/products/bulk", product.AddBulk).Methods(http.MethodPost)
 
