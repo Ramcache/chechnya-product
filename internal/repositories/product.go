@@ -215,10 +215,11 @@ func (r *ProductRepo) GetByName(name string) (*models.Product, error) {
 }
 
 func (r *ProductRepo) CreateTx(tx *sqlx.Tx, p *models.Product) error {
-	query := `INSERT INTO products (name, description, price, availability, category_id)
-		  VALUES ($1, $2, $3, $4, $5)
-		  RETURNING id`
-	return tx.QueryRow(query, p.Name, p.Description, p.Price, p.Availability, p.CategoryID).Scan(&p.ID)
+	query := `INSERT INTO products (name, description, price, availability, category_id, url)
+	          VALUES ($1, $2, $3, $4, $5, $6)
+	          RETURNING id`
+
+	return tx.QueryRow(query, p.Name, p.Description, p.Price, p.Availability, p.CategoryID, p.Url).Scan(&p.ID)
 }
 
 func (r *ProductRepo) GetByNameTx(tx *sqlx.Tx, name string) (*models.Product, error) {

@@ -35,7 +35,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	reviewRepo := repositories.NewReviewRepo(dbConn)
 	adminRepo := repositories.NewAdminRepo(dbConn)
 	// --- JWT ---
-	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 72*time.Hour)
+	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 7200*time.Hour)
 
 	// --- Services ---
 	cartService := services.NewCartService(cartRepo, productRepo)
