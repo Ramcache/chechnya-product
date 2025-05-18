@@ -25,28 +25,28 @@ func NewUserHandler(service services.UserServiceInterface, logger *zap.Logger) *
 	return &UserHandler{service: service, logger: logger}
 }
 
-// Register handles user registration
-// @Summary      Register new user
-// @Description  Registers a new user with phone, password, username and email
+// Register — регистрация пользователя
+// @Summary      Зарегистрировать нового пользователя
+// @Description  Регистрирует нового пользователя по телефону, паролю, имени и e-mail
 // @Tags         Профиль
 // @Accept       json
-// @Param        register body RegisterRequest true "User registration data"
-// @Produce json
-// @Success 201 {object} utils.SuccessResponse
-// @Failure 400 {object} utils.ErrorResponse
+// @Param        register body RegisterRequest true "Данные для регистрации"
+// @Produce      json
+// @Success      201 {object} utils.SuccessResponse
+// @Failure      400 {object} utils.ErrorResponse
 // @Router       /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Warn("invalid register JSON", zap.Error(err))
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		h.logger.Warn("Некорректный JSON при регистрации", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
 		return
 	}
 
 	oldOwnerID := middleware.GetOwnerID(w, r)
 
 	if err := utils.ValidatePhone(req.Phone); err != nil {
-		h.logger.Warn("invalid phone format", zap.String("phone", req.Phone))
+		h.logger.Warn("Некорректный формат телефона", zap.String("phone", req.Phone))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -59,47 +59,48 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 		OwnerID:  oldOwnerID,
 	})
 	if err != nil {
-		h.logger.Warn("registration failed", zap.Error(err))
+		h.logger.Warn("Ошибка регистрации", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	// переносим корзину если есть
 	if cartErr := h.service.TransferCart(oldOwnerID, user.OwnerID); cartErr != nil {
-		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
+		h.logger.Warn("Ошибка переноса корзины", zap.String("от", oldOwnerID), zap.String("к", user.OwnerID), zap.Error(cartErr))
 	}
 
 	middleware.SetOwnerID(w, user.OwnerID)
-	h.logger.Info("cart transferred",
-		zap.String("from", oldOwnerID),
-		zap.String("to", user.OwnerID),
+	h.logger.Info("Корзина перенесена",
+		zap.String("от", oldOwnerID),
+		zap.String("к", user.OwnerID),
 	)
 
-	h.logger.Info("user registered", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
-	utils.JSONResponse(w, http.StatusCreated, "Registration successful", nil)
+	h.logger.Info("Пользователь зарегистрирован", zap.String("phone", user.Phone), zap.String("owner_id", user.OwnerID))
+	utils.JSONResponse(w, http.StatusCreated, "Регистрация успешна", nil)
 }
 
-// Login authenticates a user and returns JWT token
-// @Summary      User login
-// @Description  Logs in a user and returns JWT token on success
+// Login — аутентификация пользователя и выдача JWT
+// @Summary      Вход пользователя
+// @Description  Вход по телефону/почте и паролю. Возвращает JWT токен при успехе.
 // @Tags         Профиль
 // @Accept       json
 // @Produce      json
-// @Param        login body LoginRequest true "Phone and password"
-// @Success 200 {object} LoginResponse
-// @Failure 400 {object} utils.ErrorResponse
-// @Failure 401 {object} utils.ErrorResponse
+// @Param        login body LoginRequest true "Телефон/почта и пароль"
+// @Success      200 {object} LoginResponse
+// @Failure      400 {object} utils.ErrorResponse
+// @Failure      401 {object} utils.ErrorResponse
 // @Router       /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Warn("invalid login JSON", zap.Error(err))
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid JSON")
+		h.logger.Warn("Некорректный JSON при входе", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
 		return
 	}
 
 	if err := utils.ValidateIdentifier(req.Identifier); err != nil {
-		h.logger.Warn("invalid identifier", zap.String("identifier", req.Identifier), zap.Error(err))
+		h.logger.Warn("Некорректный идентификатор", zap.String("identifier", req.Identifier), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -111,55 +112,58 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password:   req.Password,
 	})
 	if err != nil {
-		h.logger.Warn("login failed", zap.String("identifier", req.Identifier), zap.Error(err))
+		h.logger.Warn("Ошибка входа", zap.String("identifier", req.Identifier), zap.Error(err))
 		if err.Error() == "phone not verified" {
-			utils.ErrorJSON(w, http.StatusForbidden, "Please verify your phone number first")
+			utils.ErrorJSON(w, http.StatusForbidden, "Сначала подтвердите номер телефона")
 		} else {
-			utils.ErrorJSON(w, http.StatusUnauthorized, "Invalid credentials")
+			utils.ErrorJSON(w, http.StatusUnauthorized, "Неверные данные для входа")
 		}
 		return
 	}
 
 	if cartErr := h.service.TransferCart(oldOwnerID, user.OwnerID); cartErr != nil {
-		h.logger.Warn("cart transfer failed", zap.String("from", oldOwnerID), zap.String("to", user.OwnerID), zap.Error(cartErr))
+		h.logger.Warn("Ошибка переноса корзины", zap.String("от", oldOwnerID), zap.String("к", user.OwnerID), zap.Error(cartErr))
 	}
 
 	middleware.SetOwnerID(w, user.OwnerID)
 
-	h.logger.Info("user logged in",
+	h.logger.Info("Пользователь вошёл",
 		zap.String("identifier", req.Identifier),
 		zap.String("owner_id", user.OwnerID),
 	)
 
-	utils.JSONResponse(w, http.StatusOK, "Login successful", map[string]string{"token": token})
+	utils.JSONResponse(w, http.StatusOK, "Вход выполнен успешно", map[string]string{
+		"token":    token,
+		"username": user.Username,
+	})
 }
 
-// Me returns current user profile
-// @Summary      Get current user
-// @Description  Returns profile info of authenticated user
+// Me — получить профиль текущего пользователя
+// @Summary      Получить профиль пользователя
+// @Description  Возвращает данные профиля для авторизованного пользователя
 // @Tags         Профиль
 // @Security     BearerAuth
 // @Produce      json
-// @Success 200 {object} UserProfileResponse
-// @Failure      401 {string} string "Unauthorized"
-// @Failure      404 {string} string "User not found"
+// @Success      200 {object} UserProfileResponse
+// @Failure      401 {string} string "Не авторизован"
+// @Failure      404 {string} string "Пользователь не найден"
 // @Router       /api/me [get]
 func (h *UserHandler) Me(w http.ResponseWriter, r *http.Request) {
 	claims := middleware.GetUserClaims(r)
 	if claims == nil {
-		utils.ErrorJSON(w, http.StatusUnauthorized, "Unauthorized")
+		utils.ErrorJSON(w, http.StatusUnauthorized, "Не авторизован")
 		return
 	}
 
 	user, err := h.service.GetByID(claims.UserID)
 	if err != nil || user == nil {
-		h.logger.Warn("user not found", zap.Int("user_id", claims.UserID))
-		utils.ErrorJSON(w, http.StatusNotFound, "User not found")
+		h.logger.Warn("Пользователь не найден", zap.Int("user_id", claims.UserID))
+		utils.ErrorJSON(w, http.StatusNotFound, "Пользователь не найден")
 		return
 	}
 
-	h.logger.Info("user profile requested", zap.Int("user_id", user.ID), zap.String("phone", user.Phone))
-	utils.JSONResponse(w, http.StatusOK, "User profile", map[string]interface{}{
+	h.logger.Info("Запрошен профиль пользователя", zap.Int("user_id", user.ID), zap.String("phone", user.Phone))
+	utils.JSONResponse(w, http.StatusOK, "Профиль пользователя", map[string]interface{}{
 		"id":         user.ID,
 		"username":   user.Username,
 		"email":      user.Email,
@@ -174,8 +178,8 @@ type CreateByPhoneRequest struct {
 	Phone string `json:"phone"`
 }
 
-// CreateUserByPhone создает пользователя по номеру телефона
-// @Summary Создать пользователя по номеру
+// CreateUserByPhone — создать пользователя по номеру телефона
+// @Summary Создать пользователя по номеру телефона
 // @Tags Админ
 // @Accept json
 // @Produce json
@@ -186,7 +190,7 @@ type CreateByPhoneRequest struct {
 func (h *UserHandler) CreateUserByPhone(w http.ResponseWriter, r *http.Request) {
 	var req CreateByPhoneRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid request")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный запрос")
 		return
 	}
 
@@ -196,7 +200,7 @@ func (h *UserHandler) CreateUserByPhone(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusCreated, "User created", map[string]interface{}{
+	utils.JSONResponse(w, http.StatusCreated, "Пользователь создан", map[string]interface{}{
 		"phone":    user.Phone,
 		"password": password,
 	})
