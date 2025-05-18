@@ -116,7 +116,7 @@ var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-
 // ValidatePhone проверяет формат международного номера телефона
 func ValidatePhone(phone string) error {
 	if !phoneRegex.MatchString(phone) {
-		return errors.New("invalid phone format: expected format +71234567890")
+		return errors.New("Некорректный формат номера: пример +71234567890")
 	}
 	return nil
 }
