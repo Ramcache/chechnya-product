@@ -26,6 +26,7 @@ type OrderHandlerInterface interface {
 	GetOrderHistory(w http.ResponseWriter, r *http.Request)
 	DeleteOrder(w http.ResponseWriter, r *http.Request)
 	GetOrderByID(w http.ResponseWriter, r *http.Request)
+	LeaveReview(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -35,6 +36,11 @@ type OrderHandler struct {
 
 func NewOrderHandler(service services.OrderServiceInterface, logger *zap.Logger) *OrderHandler {
 	return &OrderHandler{service: service, logger: logger}
+}
+
+type OrderReviewRequest struct {
+	Comment *string `json:"comment"`
+	Rating  *int    `json:"rating"`
 }
 
 // PlaceOrder
@@ -310,4 +316,35 @@ func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Order fetched", order)
+}
+
+// LeaveReview оставляет отзыв к заказу
+// @Summary Оставить отзыв к заказу
+// @Tags Заказ
+// @Param id path int true "ID заказа"
+// @Accept json
+// @Produce json
+// @Param review body OrderReviewRequest true "Комментарий и оценка (1–5)"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /api/orders/{id}/review [patch]
+func (h *OrderHandler) LeaveReview(w http.ResponseWriter, r *http.Request) {
+	orderID, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный ID заказа")
+		return
+	}
+
+	var req OrderReviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Ошибка разбора запроса")
+		return
+	}
+
+	if err := h.service.UpdateReview(orderID, req.Comment, req.Rating); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Отзыв добавлен", nil)
 }

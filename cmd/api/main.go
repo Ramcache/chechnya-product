@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -16,6 +17,11 @@ import (
 	"os"
 )
 
+// @title Chechnya Product API
+// @version 1.0
+// @description Backend for orders and reviews
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	// 🪵 Логгер
 	logger, err := logger.NewLogger()
