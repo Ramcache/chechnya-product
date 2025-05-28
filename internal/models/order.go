@@ -19,6 +19,7 @@ type PlaceOrderRequest struct {
 	ChangeFor    *float64    `json:"change_for"`
 	Comment      *string     `json:"comment"`
 	Rating       *int        `json:"rating"`
+	OrderComment *string     `json:"order_comment"`
 }
 
 // OrderItem единица товара в заказе (универсальная модель)
@@ -48,6 +49,7 @@ type Order struct {
 	Comment      *string     `json:"comment" db:"comment"`
 	Rating       *int        `json:"rating" db:"rating"`
 	Items        []OrderItem `json:"items"`
+	OrderComment *string     `json:"order_comment" db:"order_comment"`
 }
 
 // OrderStatusRequest используется при PATCH-запросе на обновление статуса

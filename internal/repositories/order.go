@@ -31,7 +31,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 const orderFields = `
 	id, owner_id, total, created_at, status,
 	name, address, delivery_type, payment_type, change_for,
-	delivery_fee, delivery_text, comment, rating
+	delivery_fee, delivery_text, comment, rating, order_comment
 `
 
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
@@ -134,11 +134,13 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 	INSERT INTO orders (
 		owner_id, total, status, created_at,
 		delivery_type, payment_type, change_for,
-		name, address, delivery_fee, delivery_text
+		name, address, delivery_fee, delivery_text,
+		order_comment
 	) VALUES (
 		$1, $2, $3, NOW(),
 		$4, $5, $6,
-		$7, $8, $9, $10
+		$7, $8, $9, $10,
+		$11
 	)
 	RETURNING id
 `,
@@ -152,6 +154,7 @@ func (r *OrderRepo) CreateFullOrder(ownerID string, req models.PlaceOrderRequest
 		req.Address,
 		req.DeliveryFee,
 		req.DeliveryText,
+		req.OrderComment,
 	).Scan(&orderID)
 
 	if err != nil {
