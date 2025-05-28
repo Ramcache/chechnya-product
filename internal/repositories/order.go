@@ -82,11 +82,13 @@ func (r *OrderRepo) UpdateStatus(orderID int, status string) error {
 func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 	var order models.Order
 	err := r.db.Get(&order, `
-	SELECT id, owner_id, total, created_at, status, name, address,
-		delivery_type, payment_type, change_for, delivery_fee, delivery_text,
-		comment, rating
+    SELECT id, owner_id, total, created_at, status, name, address,
+           delivery_type, payment_type, change_for, delivery_fee, delivery_text,
+           comment, rating, order_comment
     FROM orders 
-    WHERE id = $1`, orderID)
+    WHERE id = $1
+`, orderID)
+
 	if err != nil {
 		return nil, err
 	}
