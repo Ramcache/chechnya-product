@@ -49,6 +49,7 @@ func RegisterPublicRoutes(
 	public.HandleFunc("/api/orders/{id}/review", order.LeaveReview).Methods("PATCH")
 	public.HandleFunc("/orders/{id}/repeat", order.RepeatOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders/history", order.GetOrderHistory).Methods(http.MethodGet)
+	public.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
 	public.HandleFunc("/orders/{id}", order.GetOrderByID).Methods("GET")
 
 	// Объявления
@@ -106,7 +107,6 @@ func RegisterAdminRoutes(
 	// Управление заказами
 	admin.HandleFunc("/orders", order.GetAllOrders).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/export", order.ExportOrdersCSV).Methods(http.MethodGet)
-	admin.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
 	admin.HandleFunc("/orders/{id}", order.DeleteOrder).Methods("DELETE")
 
 	// Управление категориями
