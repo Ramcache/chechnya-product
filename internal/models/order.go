@@ -17,6 +17,8 @@ type PlaceOrderRequest struct {
 	DeliveryText string      `json:"delivery_text"`
 	DeliveryFee  float64     `json:"delivery_fee"`
 	ChangeFor    *float64    `json:"change_for"`
+	Comment      *string     `json:"comment"`
+	Rating       *int        `json:"rating"`
 }
 
 // OrderItem единица товара в заказе (универсальная модель)
@@ -43,6 +45,8 @@ type Order struct {
 	ChangeFor    *float64    `json:"change_for" db:"change_for"`
 	DeliveryFee  *float64    `json:"delivery_fee" db:"delivery_fee"`
 	DeliveryText *string     `json:"delivery_text" db:"delivery_text"`
+	Comment      *string     `json:"comment" db:"comment"`
+	Rating       *int        `json:"rating" db:"rating"`
 	Items        []OrderItem `json:"items"`
 }
 
@@ -52,13 +56,13 @@ type OrderStatusRequest struct {
 }
 
 var AllowedOrderStatuses = map[string]bool{
-	"новый":       true,
-	"в обработке": true,
-	"принят":      true,
-	"отклонен":    true,
-	"готов":       true,
-	"в пути":      true,
-	"доставлен":   true,
+	"новый":      true,
+	"принят":     true,
+	"собирается": true,
+	"отклонен":   true,
+	"готов":      true,
+	"в пути":     true,
+	"доставлен":  true,
 }
 
 func (o *Order) MarshalJSON() ([]byte, error) {

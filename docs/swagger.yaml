@@ -1,3 +1,4 @@
+basePath: /api
 definitions:
   handlers.AddToCartRequest:
     properties:
@@ -22,6 +23,13 @@ definitions:
     properties:
       token:
         type: string
+    type: object
+  handlers.OrderReviewRequest:
+    properties:
+      comment:
+        type: string
+      rating:
+        type: integer
     type: object
   handlers.RegisterRequest:
     properties:
@@ -126,6 +134,8 @@ definitions:
         type: string
       change_for:
         type: number
+      comment:
+        type: string
       created_at:
         type: string
       date_orders:
@@ -148,6 +158,8 @@ definitions:
         type: string
       payment_type:
         type: string
+      rating:
+        type: integer
       status:
         type: string
       total:
@@ -266,8 +278,12 @@ definitions:
       quantity:
         type: integer
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: Backend for orders and reviews
+  title: Chechnya Product API
+  version: "1.0"
 paths:
   /api/admin/announcements:
     post:
@@ -930,7 +946,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Создать пользователя по номеру
+      summary: Создать пользователя по номеру телефона
       tags:
       - Админ
   /api/announcements:
@@ -1145,9 +1161,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Logs in a user and returns JWT token on success
+      description: Вход по телефону/почте и паролю. Возвращает JWT токен при успехе.
       parameters:
-      - description: Phone and password
+      - description: Телефон/почта и пароль
         in: body
         name: login
         required: true
@@ -1168,12 +1184,12 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: User login
+      summary: Вход пользователя
       tags:
       - Профиль
   /api/me:
     get:
-      description: Returns profile info of authenticated user
+      description: Возвращает данные профиля для авторизованного пользователя
       produces:
       - application/json
       responses:
@@ -1182,16 +1198,16 @@ paths:
           schema:
             $ref: '#/definitions/handlers.UserProfileResponse'
         "401":
-          description: Unauthorized
+          description: Не авторизован
           schema:
             type: string
         "404":
-          description: User not found
+          description: Пользователь не найден
           schema:
             type: string
       security:
       - BearerAuth: []
-      summary: Get current user
+      summary: Получить профиль пользователя
       tags:
       - Профиль
   /api/order:
@@ -1282,6 +1298,36 @@ paths:
       security:
       - BearerAuth: []
       summary: Повторить заказ
+      tags:
+      - Заказ
+  /api/orders/{id}/review:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Комментарий и оценка (1–5)
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.OrderReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Оставить отзыв к заказу
       tags:
       - Заказ
   /api/orders/history:
@@ -1492,9 +1538,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Registers a new user with phone, password, username and email
+      description: Регистрирует нового пользователя по телефону, паролю, имени и e-mail
       parameters:
-      - description: User registration data
+      - description: Данные для регистрации
         in: body
         name: register
         required: true
@@ -1511,7 +1557,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Register new user
+      summary: Зарегистрировать нового пользователя
       tags:
       - Профиль
   /ws/announcements:

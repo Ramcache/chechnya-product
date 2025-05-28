@@ -17,6 +17,7 @@ type OrderRepository interface {
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error)
 	GetAllWithItems() ([]models.Order, error)
 	DeleteOrder(orderID int) error
+	UpdateReview(orderID int, comment *string, rating *int) error
 }
 
 type OrderRepo struct {
@@ -30,7 +31,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 const orderFields = `
 	id, owner_id, total, created_at, status,
 	name, address, delivery_type, payment_type, change_for,
-	delivery_fee, delivery_text
+	delivery_fee, delivery_text, comment, rating
 `
 
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
@@ -81,7 +82,9 @@ func (r *OrderRepo) UpdateStatus(orderID int, status string) error {
 func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 	var order models.Order
 	err := r.db.Get(&order, `
-    SELECT id, owner_id, total, created_at, status, name, address, delivery_type, payment_type, change_for, delivery_fee, delivery_text
+	SELECT id, owner_id, total, created_at, status, name, address,
+		delivery_type, payment_type, change_for, delivery_fee, delivery_text,
+		comment, rating
     FROM orders 
     WHERE id = $1`, orderID)
 	if err != nil {
@@ -225,4 +228,13 @@ func (r *OrderRepo) DeleteOrder(orderID int) error {
 	}
 
 	return tx.Commit()
+}
+
+func (r *OrderRepo) UpdateReview(orderID int, comment *string, rating *int) error {
+	_, err := r.db.Exec(`
+		UPDATE orders
+		SET comment = $1, rating = $2
+		WHERE id = $3
+	`, comment, rating, orderID)
+	return err
 }

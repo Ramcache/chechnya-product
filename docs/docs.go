@@ -1040,7 +1040,7 @@ const docTemplate = `{
                 "tags": [
                     "Админ"
                 ],
-                "summary": "Создать пользователя по номеру",
+                "summary": "Создать пользователя по номеру телефона",
                 "parameters": [
                     {
                         "description": "Номер телефона",
@@ -1392,7 +1392,7 @@ const docTemplate = `{
         },
         "/api/login": {
             "post": {
-                "description": "Logs in a user and returns JWT token on success",
+                "description": "Вход по телефону/почте и паролю. Возвращает JWT токен при успехе.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1402,10 +1402,10 @@ const docTemplate = `{
                 "tags": [
                     "Профиль"
                 ],
-                "summary": "User login",
+                "summary": "Вход пользователя",
                 "parameters": [
                     {
-                        "description": "Phone and password",
+                        "description": "Телефон/почта и пароль",
                         "name": "login",
                         "in": "body",
                         "required": true,
@@ -1443,14 +1443,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns profile info of authenticated user",
+                "description": "Возвращает данные профиля для авторизованного пользователя",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Профиль"
                 ],
-                "summary": "Get current user",
+                "summary": "Получить профиль пользователя",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1459,13 +1459,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Не авторизован",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "404": {
-                        "description": "User not found",
+                        "description": "Пользователь не найден",
                         "schema": {
                             "type": "string"
                         }
@@ -1627,6 +1627,52 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/orders/{id}/review": {
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Заказ"
+                ],
+                "summary": "Оставить отзыв к заказу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заказа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Комментарий и оценка (1–5)",
+                        "name": "review",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.OrderReviewRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1927,7 +1973,7 @@ const docTemplate = `{
         },
         "/api/register": {
             "post": {
-                "description": "Registers a new user with phone, password, username and email",
+                "description": "Регистрирует нового пользователя по телефону, паролю, имени и e-mail",
                 "consumes": [
                     "application/json"
                 ],
@@ -1937,10 +1983,10 @@ const docTemplate = `{
                 "tags": [
                     "Профиль"
                 ],
-                "summary": "Register new user",
+                "summary": "Зарегистрировать нового пользователя",
                 "parameters": [
                     {
-                        "description": "User registration data",
+                        "description": "Данные для регистрации",
                         "name": "register",
                         "in": "body",
                         "required": true,
@@ -2038,6 +2084,17 @@ const docTemplate = `{
             "properties": {
                 "token": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.OrderReviewRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
                 }
             }
         },
@@ -2200,6 +2257,9 @@ const docTemplate = `{
                 "change_for": {
                     "type": "number"
                 },
+                "comment": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2232,6 +2292,9 @@ const docTemplate = `{
                 },
                 "payment_type": {
                     "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "string"
@@ -2419,12 +2482,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Chechnya Product API",
+	Description:      "Backend for orders and reviews",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

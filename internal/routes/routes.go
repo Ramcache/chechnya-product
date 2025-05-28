@@ -46,6 +46,7 @@ func RegisterPublicRoutes(
 	// Заказы
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders", order.GetUserOrders).Methods(http.MethodGet)
+	public.HandleFunc("/api/orders/{id}/review", order.LeaveReview).Methods("PATCH")
 	public.HandleFunc("/orders/{id}/repeat", order.RepeatOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders/history", order.GetOrderHistory).Methods(http.MethodGet)
 	public.HandleFunc("/orders/{id}", order.GetOrderByID).Methods("GET")
