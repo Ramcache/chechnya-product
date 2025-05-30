@@ -1646,6 +1646,50 @@ const docTemplate = `{
             }
         },
         "/api/orders/{id}/review": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Отзывы заказов"
+                ],
+                "summary": "Получить отзыв к заказу",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID заказа",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.OrderReview"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "consumes": [
                     "application/json"
@@ -2287,6 +2331,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "order_comment": {
+                    "type": "string"
+                },
                 "owner_id": {
                     "type": "string"
                 },
@@ -2320,6 +2367,26 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "quantity": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.OrderReview": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "rating": {
                     "type": "integer"
                 }
             }

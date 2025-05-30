@@ -154,6 +154,8 @@ definitions:
         type: array
       name:
         type: string
+      order_comment:
+        type: string
       owner_id:
         type: string
       payment_type:
@@ -176,6 +178,19 @@ definitions:
       product_id:
         type: integer
       quantity:
+        type: integer
+    type: object
+  models.OrderReview:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_id:
+        type: integer
+      rating:
         type: integer
     type: object
   models.OrderStatusRequest:
@@ -1301,6 +1316,32 @@ paths:
       tags:
       - Заказ
   /api/orders/{id}/review:
+    get:
+      parameters:
+      - description: ID заказа
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.OrderReview'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить отзыв к заказу
+      tags:
+      - Отзывы заказов
     patch:
       consumes:
       - application/json
