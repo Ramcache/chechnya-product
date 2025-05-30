@@ -27,6 +27,7 @@ type OrderHandlerInterface interface {
 	DeleteOrder(w http.ResponseWriter, r *http.Request)
 	GetOrderByID(w http.ResponseWriter, r *http.Request)
 	LeaveReview(w http.ResponseWriter, r *http.Request)
+	GetReview(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -327,24 +328,37 @@ func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 // @Param review body OrderReviewRequest true "Комментарий и оценка (1–5)"
 // @Success 200 {object} utils.SuccessResponse
 // @Failure 400 {object} utils.ErrorResponse
-// @Router /api/orders/{id}/review [patch]
+// @Router /api/orders/{id}/review [patch],03
 func (h *OrderHandler) LeaveReview(w http.ResponseWriter, r *http.Request) {
-	orderID, err := strconv.Atoi(mux.Vars(r)["id"])
-	if err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный ID заказа")
-		return
-	}
-
+	orderID, _ := strconv.Atoi(mux.Vars(r)["id"])
 	var req OrderReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Ошибка разбора запроса")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
 		return
 	}
-
-	if err := h.service.UpdateReview(orderID, req.Comment, req.Rating); err != nil {
+	if err := h.service.AddReview(orderID, req.Comment, req.Rating); err != nil {
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	utils.JSONResponse(w, http.StatusOK, "Отзыв сохранён", nil)
+}
 
-	utils.JSONResponse(w, http.StatusOK, "Отзыв добавлен", nil)
+// GetReview
+// @Summary Получить отзыв к заказу
+// @Tags Отзывы заказов
+// @Produce json
+// @Param id path int true "ID заказа"
+// @Success 200 {object} utils.SuccessResponse{data=models.OrderReview}
+// @Failure 404 {object} utils.ErrorResponse
+// @Router /api/orders/{id}/review [get]
+func (h *OrderHandler) GetReview(w http.ResponseWriter, r *http.Request) {
+	orderID, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	review, err := h.service.GetByOrderReviewID(orderID)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusNotFound, "Отзыв не найден")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Отзыв получен", review)
 }
