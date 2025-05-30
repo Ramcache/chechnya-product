@@ -77,3 +77,11 @@ func (o *Order) MarshalJSON() ([]byte, error) {
 		DateOrders: o.CreatedAt.UnixMilli(),
 	})
 }
+
+type OrderReview struct {
+	ID        int     `json:"id" db:"id"`
+	OrderID   int     `json:"order_id" db:"order_id"`
+	Rating    *int    `json:"rating" db:"rating"`
+	Comment   *string `json:"comment" db:"comment"`
+	CreatedAt string  `json:"created_at" db:"created_at"`
+}

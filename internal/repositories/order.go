@@ -18,6 +18,8 @@ type OrderRepository interface {
 	GetAllWithItems() ([]models.Order, error)
 	DeleteOrder(orderID int) error
 	UpdateReview(orderID int, comment *string, rating *int) error
+	AddReview(orderID int, comment *string, rating *int) error
+	GetReviewByOrderID(orderID int) (*models.OrderReview, error)
 }
 
 type OrderRepo struct {
@@ -242,4 +244,21 @@ func (r *OrderRepo) UpdateReview(orderID int, comment *string, rating *int) erro
 		WHERE id = $3
 	`, comment, rating, orderID)
 	return err
+}
+
+func (r *OrderRepo) AddReview(orderID int, comment *string, rating *int) error {
+	_, err := r.db.Exec(`
+		INSERT INTO order_reviews (order_id, comment, rating)
+		VALUES ($1, $2, $3)
+	`, orderID, comment, rating)
+	return err
+}
+
+func (r *OrderRepo) GetReviewByOrderID(orderID int) (*models.OrderReview, error) {
+	var review models.OrderReview
+	err := r.db.Get(&review, `SELECT * FROM order_reviews WHERE order_id = $1`, orderID)
+	if err != nil {
+		return nil, err
+	}
+	return &review, nil
 }

@@ -18,6 +18,8 @@ type OrderServiceInterface interface {
 	DeleteOrder(orderID int) error
 	GetOrderByID(orderID int) (*models.Order, error)
 	UpdateReview(orderID int, comment *string, rating *int) error
+	AddReview(orderID int, comment *string, rating *int) error
+	GetByOrderReviewID(orderID int) (*models.OrderReview, error)
 }
 
 type OrderService struct {
@@ -163,4 +165,24 @@ func (s *OrderService) UpdateReview(orderID int, comment *string, rating *int) e
 		return fmt.Errorf("рейтинг должен быть от 1 до 5")
 	}
 	return s.orderRepo.UpdateReview(orderID, comment, rating)
+}
+
+func (s *OrderService) AddReview(orderID int, comment *string, rating *int) error {
+	if rating != nil && (*rating < 1 || *rating > 5) {
+		return fmt.Errorf("рейтинг должен быть от 1 до 5")
+	}
+
+	order, err := s.orderRepo.GetByID(orderID)
+	if err != nil {
+		return fmt.Errorf("заказ не найден")
+	}
+	if order.Status != "доставлен" {
+		return fmt.Errorf("оставлять отзыв можно только после доставки")
+	}
+
+	return s.orderRepo.AddReview(orderID, comment, rating)
+}
+
+func (s *OrderService) GetByOrderReviewID(orderID int) (*models.OrderReview, error) {
+	return s.orderRepo.GetReviewByOrderID(orderID)
 }
