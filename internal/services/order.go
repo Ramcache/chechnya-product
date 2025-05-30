@@ -167,7 +167,7 @@ func (s *OrderService) UpdateReview(orderID int, comment *string, rating *int) e
 	return s.orderRepo.UpdateReview(orderID, comment, rating)
 }
 
-func (s *OrderService) Add(orderID int, comment *string, rating *int) error {
+func (s *OrderService) AddReview(orderID int, comment *string, rating *int) error {
 	if rating != nil && (*rating < 1 || *rating > 5) {
 		return fmt.Errorf("рейтинг должен быть от 1 до 5")
 	}
