@@ -1499,6 +1499,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/order-reviews": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Отзывы заказов"
+                ],
+                "summary": "Получить все отзывы на заказы",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.OrderReview"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/orders": {
             "get": {
                 "description": "Возвращает список заказов для текущего owner_id",
@@ -1698,7 +1731,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Заказ"
+                    "Отзывы заказов"
                 ],
                 "summary": "Оставить отзыв к заказу",
                 "parameters": [

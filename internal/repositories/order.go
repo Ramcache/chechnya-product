@@ -17,9 +17,9 @@ type OrderRepository interface {
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error)
 	GetAllWithItems() ([]models.Order, error)
 	DeleteOrder(orderID int) error
-	UpdateReview(orderID int, comment *string, rating *int) error
 	AddReview(orderID int, comment *string, rating *int) error
 	GetReviewByOrderID(orderID int) (*models.OrderReview, error)
+	GetAllOrderReviews() ([]models.OrderReview, error)
 }
 
 type OrderRepo struct {
@@ -33,7 +33,7 @@ func NewOrderRepo(db *sqlx.DB) *OrderRepo {
 const orderFields = `
 	id, owner_id, total, created_at, status,
 	name, address, delivery_type, payment_type, change_for,
-	delivery_fee, delivery_text, comment, rating, order_comment
+	delivery_fee, delivery_text, order_comment
 `
 
 func (r *OrderRepo) CreateOrder(ownerID string, total float64) (int, error) {
@@ -85,10 +85,11 @@ func (r *OrderRepo) GetByID(orderID int) (*models.Order, error) {
 	var order models.Order
 	err := r.db.Get(&order, `
     SELECT id, owner_id, total, created_at, status, name, address,
-           delivery_type, payment_type, change_for, delivery_fee, delivery_text,
-           comment, rating, order_comment
-    FROM orders 
-    WHERE id = $1
+       delivery_type, payment_type, change_for, delivery_fee, delivery_text,
+       order_comment
+	FROM orders 
+	WHERE id = $1
+
 `, orderID)
 
 	if err != nil {
@@ -237,15 +238,6 @@ func (r *OrderRepo) DeleteOrder(orderID int) error {
 	return tx.Commit()
 }
 
-func (r *OrderRepo) UpdateReview(orderID int, comment *string, rating *int) error {
-	_, err := r.db.Exec(`
-		UPDATE orders
-		SET comment = $1, rating = $2
-		WHERE id = $3
-	`, comment, rating, orderID)
-	return err
-}
-
 func (r *OrderRepo) AddReview(orderID int, comment *string, rating *int) error {
 	_, err := r.db.Exec(`
 		INSERT INTO order_reviews (order_id, comment, rating)
@@ -261,4 +253,12 @@ func (r *OrderRepo) GetReviewByOrderID(orderID int) (*models.OrderReview, error)
 		return nil, err
 	}
 	return &review, nil
+}
+
+func (r *OrderRepo) GetAllOrderReviews() ([]models.OrderReview, error) {
+	var reviews []models.OrderReview
+	err := r.db.Select(&reviews, `
+		SELECT * FROM order_reviews ORDER BY created_at DESC
+	`)
+	return reviews, err
 }
