@@ -28,6 +28,7 @@ type OrderHandlerInterface interface {
 	GetOrderByID(w http.ResponseWriter, r *http.Request)
 	LeaveReview(w http.ResponseWriter, r *http.Request)
 	GetReview(w http.ResponseWriter, r *http.Request)
+	GetAllReview(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -321,7 +322,7 @@ func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 
 // LeaveReview оставляет отзыв к заказу
 // @Summary Оставить отзыв к заказу
-// @Tags Заказ
+// @Tags Отзывы заказов
 // @Param id path int true "ID заказа"
 // @Accept json
 // @Produce json
@@ -361,4 +362,21 @@ func (h *OrderHandler) GetReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Отзыв получен", review)
+}
+
+// GetAllReview
+// @Summary Получить все отзывы на заказы
+// @Tags Отзывы заказов
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.OrderReview
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/order-reviews [get]
+func (h *OrderHandler) GetAllReview(w http.ResponseWriter, r *http.Request) {
+	reviews, err := h.service.GetAllReview()
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось получить отзывы")
+		return
+	}
+	utils.JSONResponse(w, http.StatusOK, "Отзывы получены", reviews)
 }

@@ -46,12 +46,13 @@ func RegisterPublicRoutes(
 	// Заказы
 	public.HandleFunc("/order", order.PlaceOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders", order.GetUserOrders).Methods(http.MethodGet)
-	public.HandleFunc("/orders/{id}/review", order.LeaveReview).Methods("PATCH")
+	public.HandleFunc("/order-reviews", order.GetAllReview).Methods(http.MethodGet)
+	public.HandleFunc("/orders/{id}/review", order.LeaveReview).Methods(http.MethodPatch)
 	public.HandleFunc("/orders/{id}/review", order.GetReview).Methods(http.MethodGet)
 	public.HandleFunc("/orders/{id}/repeat", order.RepeatOrder).Methods(http.MethodPost)
 	public.HandleFunc("/orders/history", order.GetOrderHistory).Methods(http.MethodGet)
 	public.HandleFunc("/orders/{id}/status", order.UpdateStatus).Methods(http.MethodPatch)
-	public.HandleFunc("/orders/{id}", order.GetOrderByID).Methods("GET")
+	public.HandleFunc("/orders/{id}", order.GetOrderByID).Methods(http.MethodGet)
 
 	// Объявления
 	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)
@@ -91,13 +92,13 @@ func RegisterAdminRoutes(
 	admin.Use(middleware.JWTMiddleware(jwt))
 	admin.Use(middleware.OnlyAdmin())
 
-	admin.HandleFunc("/truncate", adminInterface.TruncateTableHandler).Methods("POST")
-	admin.HandleFunc("/truncate/all", adminInterface.TruncateAllTablesHandler).Methods("POST")
+	admin.HandleFunc("/truncate", adminInterface.TruncateTableHandler).Methods(http.MethodPost)
+	admin.HandleFunc("/truncate/all", adminInterface.TruncateAllTablesHandler).Methods(http.MethodPost)
 
-	admin.HandleFunc("/users", user.CreateUserByPhone).Methods("POST")
+	admin.HandleFunc("/users", user.CreateUserByPhone).Methods(http.MethodPost)
 
 	// Управление товарами
-	admin.HandleFunc("/products/{id}/upload-photo", product.UploadPhoto).Methods("POST")
+	admin.HandleFunc("/products/{id}/upload-photo", product.UploadPhoto).Methods(http.MethodPost)
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)
 	admin.HandleFunc("/products/bulk", product.AddBulk).Methods(http.MethodPost)
 
@@ -108,7 +109,7 @@ func RegisterAdminRoutes(
 	// Управление заказами
 	admin.HandleFunc("/orders", order.GetAllOrders).Methods(http.MethodGet)
 	admin.HandleFunc("/orders/export", order.ExportOrdersCSV).Methods(http.MethodGet)
-	admin.HandleFunc("/orders/{id}", order.DeleteOrder).Methods("DELETE")
+	admin.HandleFunc("/orders/{id}", order.DeleteOrder).Methods(http.MethodDelete)
 
 	// Управление категориями
 	admin.HandleFunc("/categories", category.Create).Methods(http.MethodPost)

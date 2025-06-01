@@ -1242,6 +1242,26 @@ paths:
       summary: Оформить заказ
       tags:
       - Заказ
+  /api/order-reviews:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.OrderReview'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить все отзывы на заказы
+      tags:
+      - Отзывы заказов
   /api/orders:
     get:
       description: Возвращает список заказов для текущего owner_id
@@ -1370,7 +1390,7 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: Оставить отзыв к заказу
       tags:
-      - Заказ
+      - Отзывы заказов
   /api/orders/history:
     get:
       produces:

@@ -17,9 +17,9 @@ type OrderServiceInterface interface {
 	GetOrderHistory(ownerID string) ([]models.Order, error)
 	DeleteOrder(orderID int) error
 	GetOrderByID(orderID int) (*models.Order, error)
-	UpdateReview(orderID int, comment *string, rating *int) error
 	AddReview(orderID int, comment *string, rating *int) error
 	GetByOrderReviewID(orderID int) (*models.OrderReview, error)
+	GetAllReview() ([]models.OrderReview, error)
 }
 
 type OrderService struct {
@@ -160,13 +160,6 @@ func (s *OrderService) GetOrderByID(orderID int) (*models.Order, error) {
 	return order, nil
 }
 
-func (s *OrderService) UpdateReview(orderID int, comment *string, rating *int) error {
-	if rating != nil && (*rating < 1 || *rating > 5) {
-		return fmt.Errorf("рейтинг должен быть от 1 до 5")
-	}
-	return s.orderRepo.UpdateReview(orderID, comment, rating)
-}
-
 func (s *OrderService) AddReview(orderID int, comment *string, rating *int) error {
 	if rating != nil && (*rating < 1 || *rating > 5) {
 		return fmt.Errorf("рейтинг должен быть от 1 до 5")
@@ -185,4 +178,8 @@ func (s *OrderService) AddReview(orderID int, comment *string, rating *int) erro
 
 func (s *OrderService) GetByOrderReviewID(orderID int) (*models.OrderReview, error) {
 	return s.orderRepo.GetReviewByOrderID(orderID)
+}
+
+func (s *OrderService) GetAllReview() ([]models.OrderReview, error) {
+	return s.orderRepo.GetAllOrderReviews()
 }
