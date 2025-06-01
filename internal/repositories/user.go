@@ -18,6 +18,8 @@ type UserRepository interface {
 	GetByUsername(username string) (*models.User, error)
 	GetByOwnerID(ownerID string) (*models.User, error)
 	FindByPhoneOrEmail(identifier string) (*models.User, error)
+	GetAllUsers() ([]models.User, error)
+	GetUserByID(id int) (*models.User, error)
 }
 
 // Репозиторий пользователей
@@ -122,4 +124,27 @@ func (r *UserRepo) FindByPhoneOrEmail(identifier string) (*models.User, error) {
 		return r.GetByPhone(identifier)
 	}
 	return r.GetByUsername(identifier)
+}
+
+func (r *UserRepo) GetAllUsers() ([]models.User, error) {
+	var users []models.User
+	err := r.db.Select(&users, `
+		SELECT id, username, email, phone, role, is_verified, owner_id, created_at, password_hash
+		FROM users
+		ORDER BY created_at DESC
+	`)
+	return users, err
+}
+
+func (r *UserRepo) GetUserByID(id int) (*models.User, error) {
+	var user models.User
+	err := r.db.Get(&user, `
+		SELECT id, username, email, phone, role, is_verified, owner_id, created_at, password_hash
+		FROM users
+		WHERE id = $1
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

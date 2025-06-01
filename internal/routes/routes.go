@@ -96,6 +96,8 @@ func RegisterAdminRoutes(
 	admin.HandleFunc("/truncate/all", adminInterface.TruncateAllTablesHandler).Methods(http.MethodPost)
 
 	admin.HandleFunc("/users", user.CreateUserByPhone).Methods(http.MethodPost)
+	admin.HandleFunc("/users/{id}", user.GetUserByID).Methods(http.MethodGet)
+	admin.HandleFunc("/users/all", user.GetAllUsers).Methods(http.MethodGet)
 
 	// Управление товарами
 	admin.HandleFunc("/products/{id}/upload-photo", product.UploadPhoto).Methods(http.MethodPost)
