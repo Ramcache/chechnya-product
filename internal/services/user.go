@@ -21,6 +21,8 @@ type UserServiceInterface interface {
 	GetByOwnerID(ownerID string) (*models.User, error)
 	TransferCart(oldOwnerID, newOwnerID string) error
 	CreateByPhone(phone string) (*models.User, string, error)
+	GetAllUsers() ([]models.User, error)
+	GetUserByID(id int) (*models.User, error)
 }
 
 type UserService struct {
@@ -210,4 +212,12 @@ func (s *UserService) CreateByPhone(phone string) (*models.User, string, error) 
 	}
 
 	return user, password, nil
+}
+
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	return s.repo.GetAllUsers()
+}
+
+func (s *UserService) GetUserByID(id int) (*models.User, error) {
+	return s.repo.GetUserByID(id)
 }

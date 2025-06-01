@@ -5,8 +5,10 @@ import (
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
+	"strconv"
 )
 
 type UserHandlerInterface interface {
@@ -14,6 +16,8 @@ type UserHandlerInterface interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Me(w http.ResponseWriter, r *http.Request)
 	CreateUserByPhone(w http.ResponseWriter, r *http.Request)
+	GetAllUsers(w http.ResponseWriter, r *http.Request)
+	GetUserByID(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
@@ -204,4 +208,50 @@ func (h *UserHandler) CreateUserByPhone(w http.ResponseWriter, r *http.Request) 
 		"phone":    user.Phone,
 		"password": password,
 	})
+}
+
+// GetAllUsers возвращает список всех зарегистрированных пользователей
+// @Summary Получить всех пользователей
+// @Tags Профиль
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.User
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/admin/users/all [get]
+func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.service.GetAllUsers()
+	if err != nil {
+		h.logger.Error("не удалось получить пользователей", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка получения пользователей")
+		return
+	}
+	utils.JSONResponse(w, http.StatusOK, "Пользователи получены", users)
+}
+
+// GetUserByID возвращает пользователя по ID
+// @Summary Получить пользователя по ID
+// @Tags Пользователи
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID пользователя"
+// @Success 200 {object} utils.SuccessResponse{data=models.User}
+// @Failure 400 {object} utils.ErrorResponse "Некорректный ID"
+// @Failure 404 {object} utils.ErrorResponse "Пользователь не найден"
+// @Router /api/admin/users/{id} [get]
+func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный ID")
+		return
+	}
+
+	user, err := h.service.GetUserByID(id)
+	if err != nil {
+		h.logger.Warn("пользователь не найден", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusNotFound, "Пользователь не найден")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Пользователь найден", user)
 }
