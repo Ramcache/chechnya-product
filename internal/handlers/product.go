@@ -471,22 +471,32 @@ func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer dst.Close()
+
 	_, err = io.Copy(dst, file)
 	if err != nil {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to write file")
 		return
 	}
 
-	url := "/uploads/" + filename
+	// Определяем протокол
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
 
-	err = h.service.PatchProduct(id, map[string]interface{}{"url": url})
+	// Формируем полный URL
+	fullURL := fmt.Sprintf("%s://%s/uploads/%s", scheme, r.Host, filename)
+
+	// Обновляем ссылку в БД
+	err = h.service.PatchProduct(id, map[string]interface{}{"url": fullURL})
 	if err != nil {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product url")
 		return
 	}
 
+	// Очищаем кэш
 	h.cache.ClearPrefix(r.Context(), "products:")
 	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
 
-	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": url})
+	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": fullURL})
 }

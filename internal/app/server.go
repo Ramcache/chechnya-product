@@ -66,6 +66,9 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	router.Use(middleware.LoggerMiddleware(logger))
 	router.HandleFunc("/ws/orders", hub.HandleConnections)
 	router.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
+	// Раздача файлов из папки "uploads" по пути "/uploads/*"
+	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
+
 	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, jwtManager)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
 	routes.RegisterAdminRoutes(router, userHandler, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler, adminHandler)
