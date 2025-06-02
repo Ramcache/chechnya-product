@@ -449,7 +449,7 @@ func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = r.ParseMultipartForm(10 << 20)
+	err = r.ParseMultipartForm(10 << 20) // 10MB лимит
 	if err != nil {
 		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to parse form")
 		return
@@ -463,9 +463,9 @@ func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	filename := fmt.Sprintf("product-%d-%s", id, handler.Filename)
-	filepath := "./uploads/" + filename
+	savePath := "./uploads/" + filename
 
-	dst, err := os.Create(filepath)
+	dst, err := os.Create(savePath)
 	if err != nil {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to save file")
 		return
@@ -478,17 +478,11 @@ func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Определяем протокол
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
+	// Жёстко задаём домен
+	publicURL := fmt.Sprintf("https://chechnya-product.ru/uploads/%s", filename)
 
-	// Формируем полный URL
-	fullURL := fmt.Sprintf("%s://%s/uploads/%s", scheme, r.Host, filename)
-
-	// Обновляем ссылку в БД
-	err = h.service.PatchProduct(id, map[string]interface{}{"url": fullURL})
+	// Сохраняем URL в БД
+	err = h.service.PatchProduct(id, map[string]interface{}{"url": publicURL})
 	if err != nil {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product url")
 		return
@@ -498,5 +492,6 @@ func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
 	h.cache.ClearPrefix(r.Context(), "products:")
 	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
 
-	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": fullURL})
+	// Возвращаем корректную ссылку
+	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": publicURL})
 }
