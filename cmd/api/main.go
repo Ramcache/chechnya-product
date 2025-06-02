@@ -52,8 +52,6 @@ func main() {
 		logger.Sugar().Info("Migrations completed.")
 		return
 	}
-	http.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
-
 	redisClient := redis.NewClient(cfg.GetRedisOptions())
 
 	logger.Sugar().Infow("🔌 Подключение к Redis", "addr", cfg.RedisAddr)
