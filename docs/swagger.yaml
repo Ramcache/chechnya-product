@@ -1690,6 +1690,32 @@ paths:
       summary: Зарегистрировать нового пользователя
       tags:
       - Профиль
+  /api/upload/{filename}:
+    delete:
+      parameters:
+      - description: Имя файла
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Удалить изображение
+      tags:
+      - Загрузка
   /ws/announcements:
     get:
       responses:

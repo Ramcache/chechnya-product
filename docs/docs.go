@@ -2165,6 +2165,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/upload/{filename}": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Загрузка"
+                ],
+                "summary": "Удалить изображение",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Имя файла",
+                        "name": "filename",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/ws/announcements": {
             "get": {
                 "tags": [
