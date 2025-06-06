@@ -30,6 +30,7 @@ type ProductHandlerInterface interface {
 	Patch(w http.ResponseWriter, r *http.Request)
 	UploadImage(w http.ResponseWriter, r *http.Request)
 	DeleteImage(w http.ResponseWriter, r *http.Request)
+	ListUploadedFiles(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -477,7 +478,7 @@ func (h *ProductHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} utils.SuccessResponse
 // @Failure 400 {object} utils.ErrorResponse
 // @Failure 404 {object} utils.ErrorResponse
-// @Router /api/upload/{filename} [delete]
+// @Router /admin/api/upload/{filename} [delete]
 func (h *ProductHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	filename := mux.Vars(r)["filename"]
 	if filename == "" {
@@ -498,4 +499,41 @@ func (h *ProductHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Файл удалён", nil)
+}
+
+// ListUploadedFiles возвращает список всех загруженных изображений
+// @Summary Получить список изображений
+// @Tags Загрузка
+// @Produce json
+// @Success 200 {array} models.UploadedFile
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /admin/api/upload [get]
+func (h *ProductHandler) ListUploadedFiles(w http.ResponseWriter, r *http.Request) {
+	files, err := os.ReadDir("uploads")
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось прочитать папку")
+		return
+	}
+
+	var result []models.UploadedFile
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+
+		result = append(result, models.UploadedFile{
+			Name: file.Name(),
+			URL:  fmt.Sprintf("https://yourdomain.com/uploads/%s", file.Name()),
+			Size: info.Size(),
+			Time: info.ModTime().Format(time.RFC3339),
+		})
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Файлы получены", result)
 }

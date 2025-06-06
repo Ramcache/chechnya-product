@@ -270,6 +270,17 @@ definitions:
       sold:
         type: integer
     type: object
+  models.UploadedFile:
+    properties:
+      name:
+        type: string
+      size:
+        type: integer
+      time:
+        type: string
+      url:
+        type: string
+    type: object
   models.User:
     properties:
       created_at:
@@ -328,6 +339,23 @@ info:
   version: "1.0"
 paths:
   /admin/api/upload:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UploadedFile'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Получить список изображений
+      tags:
+      - Загрузка
     post:
       consumes:
       - multipart/form-data
@@ -356,6 +384,32 @@ paths:
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
       summary: Загрузить изображение
+      tags:
+      - Загрузка
+  /admin/api/upload/{filename}:
+    delete:
+      parameters:
+      - description: Имя файла
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Удалить изображение
       tags:
       - Загрузка
   /api/admin/announcements:
@@ -1690,32 +1744,6 @@ paths:
       summary: Зарегистрировать нового пользователя
       tags:
       - Профиль
-  /api/upload/{filename}:
-    delete:
-      parameters:
-      - description: Имя файла
-        in: path
-        name: filename
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-      summary: Удалить изображение
-      tags:
-      - Загрузка
   /ws/announcements:
     get:
       responses:
