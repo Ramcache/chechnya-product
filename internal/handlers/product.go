@@ -29,6 +29,7 @@ type ProductHandlerInterface interface {
 	AddBulk(w http.ResponseWriter, r *http.Request)
 	Patch(w http.ResponseWriter, r *http.Request)
 	UploadImage(w http.ResponseWriter, r *http.Request)
+	DeleteImage(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -466,4 +467,35 @@ func (h *ProductHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, "Изображение загружено", map[string]string{
 		"url": url,
 	})
+}
+
+// DeleteImage удаляет изображение по имени файла
+// @Summary Удалить изображение
+// @Tags Загрузка
+// @Produce json
+// @Param filename path string true "Имя файла"
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Router /api/upload/{filename} [delete]
+func (h *ProductHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
+	filename := mux.Vars(r)["filename"]
+	if filename == "" {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Имя файла не указано")
+		return
+	}
+
+	filePath := filepath.Join("uploads", filename)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		utils.ErrorJSON(w, http.StatusNotFound, "Файл не найден")
+		return
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось удалить файл")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Файл удалён", nil)
 }
