@@ -100,7 +100,7 @@ func RegisterAdminRoutes(
 	admin.HandleFunc("/users/{id}", user.GetUserByID).Methods(http.MethodGet)
 
 	// Управление товарами
-	admin.HandleFunc("/products/{id}/upload-photo", product.UploadPhoto).Methods(http.MethodPost)
+	admin.HandleFunc("/upload", product.UploadImage).Methods(http.MethodPost)
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)
 	admin.HandleFunc("/products/bulk", product.AddBulk).Methods(http.MethodPost)
 
