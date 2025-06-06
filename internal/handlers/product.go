@@ -13,7 +13,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"chechnya-product/internal/services"
 )
@@ -26,7 +28,7 @@ type ProductHandlerInterface interface {
 	Delete(w http.ResponseWriter, r *http.Request)
 	AddBulk(w http.ResponseWriter, r *http.Request)
 	Patch(w http.ResponseWriter, r *http.Request)
-	UploadPhoto(w http.ResponseWriter, r *http.Request)
+	UploadImage(w http.ResponseWriter, r *http.Request)
 }
 
 type ProductHandler struct {
@@ -421,77 +423,47 @@ func mapProductInputToProduct(input models.ProductInput) models.Product {
 	return product
 }
 
-// UploadPhoto загружает фото для продукта
-// @Summary      Загрузка фото для товара
-// @Description  Загружает изображение для товара по его ID. Доступно только администратору.
-// @Tags         Товар
-// @Security     BearerAuth
-// @Accept       multipart/form-data
-// @Produce      json
-// @Param        id    path      int     true  "ID товара"
-// @Param        photo formData  file    true  "Изображение товара"
-// @Success      200   {object}  map[string]string  "Ссылка на загруженное изображение"
-// @Failure      400   {object}  utils.ErrorResponse
-// @Failure      403   {object}  utils.ErrorResponse
-// @Failure      500   {object}  utils.ErrorResponse
-// @Router       /api/admin/products/{id}/upload-photo [post]
-func (h *ProductHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
-	claims := middleware.GetUserClaims(r)
-	if claims == nil || claims.Role != "admin" {
-		utils.ErrorJSON(w, http.StatusForbidden, "Access denied")
-		return
-	}
-
-	idStr := mux.Vars(r)["id"]
-	id, err := utils.ParseIntParam(idStr)
+// UploadImage загружает изображение и возвращает ссылку
+// @Summary Загрузить изображение
+// @Tags Загрузка
+// @Accept multipart/form-data
+// @Produce json
+// @Param image formData file true "Файл изображения"
+// @Success 200 {object} utils.SuccessResponse{data=map[string]string}
+// @Failure 400 {object} utils.ErrorResponse
+// @Router /admin/api/upload [post]
+func (h *ProductHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
+	// Парсим multipart
+	file, header, err := r.FormFile("image")
 	if err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid product ID")
-		return
-	}
-
-	err = r.ParseMultipartForm(10 << 20) // 10MB лимит
-	if err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Failed to parse form")
-		return
-	}
-
-	file, handler, err := r.FormFile("photo")
-	if err != nil {
-		utils.ErrorJSON(w, http.StatusBadRequest, "No file uploaded")
+		utils.ErrorJSON(w, http.StatusBadRequest, "Файл не получен")
 		return
 	}
 	defer file.Close()
 
-	filename := fmt.Sprintf("product-%d-%s", id, handler.Filename)
-	savePath := "./uploads/" + filename
+	// Генерируем уникальное имя
+	filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+	savePath := filepath.Join("uploads", filename)
 
-	dst, err := os.Create(savePath)
+	// Создаём файл
+	out, err := os.Create(savePath)
 	if err != nil {
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to save file")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось сохранить файл")
 		return
 	}
-	defer dst.Close()
+	defer out.Close()
 
-	_, err = io.Copy(dst, file)
+	// Копируем содержимое
+	_, err = io.Copy(out, file)
 	if err != nil {
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to write file")
-		return
-	}
-
-	// Жёстко задаём домен
-	publicURL := fmt.Sprintf("https://chechnya-product.ru/uploads/%s", filename)
-
-	// Сохраняем URL в БД
-	err = h.service.PatchProduct(id, map[string]interface{}{"url": publicURL})
-	if err != nil {
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to update product url")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка при сохранении файла")
 		return
 	}
 
-	// Очищаем кэш
-	h.cache.ClearPrefix(r.Context(), "products:")
-	h.cache.Delete(r.Context(), fmt.Sprintf("product:%d", id))
+	// Ссылка на файл
+	url := fmt.Sprintf("https://chechnya-product.ru/uploads/%s", filename)
 
-	// Возвращаем корректную ссылку
-	utils.JSONResponse(w, http.StatusOK, "Photo uploaded", map[string]string{"url": publicURL})
+	utils.JSONResponse(w, http.StatusOK, "Изображение загружено", map[string]string{
+		"url": url,
+	})
 }

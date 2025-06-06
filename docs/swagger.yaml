@@ -327,6 +327,37 @@ info:
   title: Chechnya Product API
   version: "1.0"
 paths:
+  /admin/api/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Файл изображения
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Загрузить изображение
+      tags:
+      - Загрузка
   /api/admin/announcements:
     post:
       consumes:
@@ -837,48 +868,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Обновить товар (админ)
-      tags:
-      - Товар
-  /api/admin/products/{id}/upload-photo:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Загружает изображение для товара по его ID. Доступно только администратору.
-      parameters:
-      - description: ID товара
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Изображение товара
-        in: formData
-        name: photo
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Ссылка на загруженное изображение
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Загрузка фото для товара
       tags:
       - Товар
   /api/admin/products/bulk:
