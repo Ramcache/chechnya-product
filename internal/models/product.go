@@ -53,3 +53,10 @@ type ProductPatch struct {
 	CategoryID   *int
 	Url          *string
 }
+
+type UploadedFile struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Size int64  `json:"size"`
+	Time string `json:"time"`
+}

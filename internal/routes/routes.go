@@ -101,6 +101,7 @@ func RegisterAdminRoutes(
 
 	// Управление товарами
 	admin.HandleFunc("/upload", product.UploadImage).Methods(http.MethodPost)
+	admin.HandleFunc("/upload", product.ListUploadedFiles).Methods(http.MethodGet)
 	admin.HandleFunc("/upload/{filename}", product.DeleteImage).Methods(http.MethodDelete)
 
 	admin.HandleFunc("/products", product.Add).Methods(http.MethodPost)
