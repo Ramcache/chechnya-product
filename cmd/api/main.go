@@ -15,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 // @title Chechnya Product API
@@ -63,7 +64,8 @@ func main() {
 	}
 
 	// Обёртка RedisCache
-	redisCache := cache.NewRedisCache(redisClient, 0, logger)
+	ttl := time.Duration(cfg.RedisTTLMinutes) * time.Minute
+	redisCache := cache.NewRedisCache(redisClient, ttl, logger)
 
 	// 🚀 Запуск сервера
 	srv := app.NewServer(cfg, logger, dbConn, redisCache)

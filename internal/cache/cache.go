@@ -23,39 +23,38 @@ func NewRedisCache(client *redis.Client, ttl time.Duration, logger *zap.Logger) 
 }
 
 // GetOrSet проверяет кэш и, если промах — вызывает fetch() и сохраняет результат
-func (c *RedisCache) GetOrSet(ctx context.Context, key string, dest any, fetch func() (any, error)) error {
+func (c *RedisCache) GetOrSet(ctx context.Context, key string, target any, fetch func() (any, error)) error {
+	// Попробовать получить из кэша
 	val, err := c.client.Get(ctx, key).Result()
 	if err == nil {
-		c.logger.Info("📦 Кэш HIT", zap.String("key", key))
-		return json.Unmarshal([]byte(val), dest)
+		return json.Unmarshal([]byte(val), target)
 	}
 
 	if err != redis.Nil {
-		c.logger.Error("🚨 Ошибка при чтении из Redis", zap.String("key", key), zap.Error(err))
-		return err
+		c.logger.Warn("Redis Get error", zap.Error(err))
+		// Возвращать nil, чтобы не падал весь API
 	}
 
-	c.logger.Info("💨 Кэш MISS — получаем заново", zap.String("key", key))
-
-	result, err := fetch()
+	// Получаем данные заново
+	data, err := fetch()
 	if err != nil {
-		c.logger.Error("❌ Ошибка при получении данных", zap.String("key", key), zap.Error(err))
 		return err
 	}
 
-	data, err := json.Marshal(result)
+	bytes, err := json.Marshal(data)
 	if err != nil {
-		c.logger.Error("❌ Ошибка сериализации результата", zap.Error(err))
 		return err
 	}
 
-	if err := c.client.Set(ctx, key, data, c.ttl).Err(); err != nil {
-		c.logger.Warn("⚠️ Не удалось сохранить в Redis", zap.String("key", key), zap.Error(err))
+	// 🕒 Устанавливаем TTL (например, 10 минут)
+	err = c.client.Set(ctx, key, bytes, 10*time.Minute).Err()
+	if err != nil {
+		c.logger.Warn("Redis Set error", zap.Error(err))
 	}
 
-	// декодируем обратно
-	raw, _ := json.Marshal(result)
-	return json.Unmarshal(raw, dest)
+	// Присваиваем результат
+	encoded, _ := json.Marshal(data)
+	return json.Unmarshal(encoded, target)
 }
 
 func (c *RedisCache) ClearPrefix(ctx context.Context, prefix string) error {
