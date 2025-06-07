@@ -433,7 +433,7 @@ func mapProductInputToProduct(input models.ProductInput) models.Product {
 // @Param image formData file true "Файл изображения"
 // @Success 200 {object} utils.SuccessResponse{data=map[string]string}
 // @Failure 400 {object} utils.ErrorResponse
-// @Router /admin/api/upload [post]
+// @Router /api/admin/upload [post]
 func (h *ProductHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	// Парсим multipart
 	file, header, err := r.FormFile("image")
@@ -478,7 +478,7 @@ func (h *ProductHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} utils.SuccessResponse
 // @Failure 400 {object} utils.ErrorResponse
 // @Failure 404 {object} utils.ErrorResponse
-// @Router /admin/api/upload/{filename} [delete]
+// @Router /api/admin//upload/{filename} [delete]
 func (h *ProductHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	filename := mux.Vars(r)["filename"]
 	if filename == "" {
@@ -507,7 +507,7 @@ func (h *ProductHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Success 200 {array} models.UploadedFile
 // @Failure 500 {object} utils.ErrorResponse
-// @Router /admin/api/upload [get]
+// @Router /api/admin/upload [get]
 func (h *ProductHandler) ListUploadedFiles(w http.ResponseWriter, r *http.Request) {
 	files, err := os.ReadDir("uploads")
 	if err != nil {
@@ -529,7 +529,7 @@ func (h *ProductHandler) ListUploadedFiles(w http.ResponseWriter, r *http.Reques
 
 		result = append(result, models.UploadedFile{
 			Name: file.Name(),
-			URL:  fmt.Sprintf("https://yourdomain.com/uploads/%s", file.Name()),
+			URL:  fmt.Sprintf("https://chechnya-product.ru/uploads/%s", file.Name()),
 			Size: info.Size(),
 			Time: info.ModTime().Format(time.RFC3339),
 		})
