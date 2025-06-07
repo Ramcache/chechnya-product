@@ -323,24 +323,40 @@ func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 // LeaveReview оставляет отзыв к заказу
 // @Summary Оставить отзыв к заказу
 // @Tags Отзывы заказов
+// @Security BearerAuth
 // @Param id path int true "ID заказа"
 // @Accept json
 // @Produce json
 // @Param review body OrderReviewRequest true "Комментарий и оценка (1–5)"
 // @Success 200 {object} utils.SuccessResponse
 // @Failure 400 {object} utils.ErrorResponse
-// @Router /api/orders/{id}/review [patch],03
+// @Router /api/orders/{id}/review [patch]
 func (h *OrderHandler) LeaveReview(w http.ResponseWriter, r *http.Request) {
 	orderID, _ := strconv.Atoi(mux.Vars(r)["id"])
 	var req OrderReviewRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
 		return
 	}
-	if err := h.service.AddReview(orderID, req.Comment, req.Rating); err != nil {
+
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Пользователь не найден")
+		return
+	}
+
+	userID, err := strconv.Atoi(strconv.Itoa(claims.UserID)) // claims.UserID должен быть строкой
+	if err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный userID")
+		return
+	}
+
+	if err := h.service.AddReview(orderID, req.Comment, req.Rating, userID); err != nil {
 		utils.ErrorJSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
 	utils.JSONResponse(w, http.StatusOK, "Отзыв сохранён", nil)
 }
 
