@@ -17,7 +17,7 @@ type OrderRepository interface {
 	CreateFullOrder(ownerID string, req models.PlaceOrderRequest, total float64) (int, error)
 	GetAllWithItems() ([]models.Order, error)
 	DeleteOrder(orderID int) error
-	AddReview(orderID int, comment *string, rating *int) error
+	AddReview(orderID int, comment *string, rating *int, userID int) error
 	GetReviewByOrderID(orderID int) (*models.OrderReview, error)
 	GetAllOrderReviews() ([]models.OrderReview, error)
 }
@@ -238,11 +238,11 @@ func (r *OrderRepo) DeleteOrder(orderID int) error {
 	return tx.Commit()
 }
 
-func (r *OrderRepo) AddReview(orderID int, comment *string, rating *int) error {
+func (r *OrderRepo) AddReview(orderID int, comment *string, rating *int, userID int) error {
 	_, err := r.db.Exec(`
-		INSERT INTO order_reviews (order_id, comment, rating)
-		VALUES ($1, $2, $3)
-	`, orderID, comment, rating)
+		INSERT INTO order_reviews (order_id, comment, rating, user_id)
+		VALUES ($1, $2, $3, $4)
+	`, orderID, comment, rating, userID)
 	return err
 }
 
@@ -258,7 +258,10 @@ func (r *OrderRepo) GetReviewByOrderID(orderID int) (*models.OrderReview, error)
 func (r *OrderRepo) GetAllOrderReviews() ([]models.OrderReview, error) {
 	var reviews []models.OrderReview
 	err := r.db.Select(&reviews, `
-		SELECT * FROM order_reviews ORDER BY created_at DESC
+		SELECT orr.id, orr.order_id, orr.user_id, u.username, orr.rating, orr.comment, orr.created_at
+		FROM order_reviews orr
+		LEFT JOIN users u ON orr.user_id = u.id
+		ORDER BY orr.created_at DESC
 	`)
 	return reviews, err
 }

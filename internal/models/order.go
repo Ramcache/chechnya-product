@@ -79,9 +79,11 @@ func (o *Order) MarshalJSON() ([]byte, error) {
 }
 
 type OrderReview struct {
-	ID        int     `json:"id" db:"id"`
-	OrderID   int     `json:"order_id" db:"order_id"`
-	Rating    *int    `json:"rating" db:"rating"`
-	Comment   *string `json:"comment" db:"comment"`
+	ID        int     `db:"id" json:"id"`
+	OrderID   int     `db:"order_id" json:"order_id"`
+	UserID    *int    `db:"user_id" json:"user_id,omitempty"`
+	Username  *string `db:"username" json:"username,omitempty"`
+	Rating    *int    `db:"rating" json:"rating,omitempty"`
+	Comment   *string `db:"comment" json:"comment,omitempty"`
 	CreatedAt string  `json:"created_at" db:"created_at"`
 }
