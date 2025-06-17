@@ -1,6 +1,6 @@
 package models
 
-type PushSubscription struct {
+type SubscribeRequest struct {
 	Endpoint string `json:"endpoint"`
 	Keys     struct {
 		P256dh string `json:"p256dh"`

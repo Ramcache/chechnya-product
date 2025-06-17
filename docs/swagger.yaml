@@ -42,6 +42,22 @@ definitions:
       username:
         type: string
     type: object
+  handlers.SaveSubscriptionRequest:
+    properties:
+      auth:
+        type: string
+      endpoint:
+        type: string
+      p256dh:
+        type: string
+    type: object
+  handlers.SendPushRequest:
+    properties:
+      message:
+        type: string
+      title:
+        type: string
+    type: object
   handlers.TruncateRequest:
     properties:
       table:
@@ -1863,6 +1879,56 @@ paths:
       summary: Обновить отзыв
       tags:
       - Отзывы
+  /api/push/send:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Уведомление
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SendPushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Отправить push-уведомление
+      tags:
+      - Push
+  /api/push/subscribe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Подписка
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SaveSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Сохранить push-подписку
+      tags:
+      - Push
   /api/register:
     post:
       consumes:

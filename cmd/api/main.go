@@ -7,7 +7,6 @@ import (
 	"chechnya-product/internal/cache"
 	"chechnya-product/internal/db"
 	"chechnya-product/internal/logger"
-	"chechnya-product/internal/utils"
 	"context"
 	"errors"
 	"github.com/pressly/goose/v3"
@@ -67,10 +66,9 @@ func main() {
 	// Обёртка RedisCache
 	ttl := time.Duration(cfg.RedisTTLMinutes) * time.Minute
 	redisCache := cache.NewRedisCache(redisClient, ttl, logger)
-	pushStore := utils.NewInMemoryPushStore()
 
 	// 🚀 Запуск сервера
-	srv := app.NewServer(cfg, logger, dbConn, redisCache, pushStore)
+	srv := app.NewServer(cfg, logger, dbConn, redisCache)
 	logger.Sugar().Infow("Server is running", "port", cfg.Port)
 
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
