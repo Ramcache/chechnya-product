@@ -109,7 +109,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	products := models.ConvertCacheToProducts(cached)
 
-	var result []models.ProductResponse
+	result := make([]models.ProductResponse, 0) // ← Гарантированно не nil
 	for _, p := range products {
 		var categoryName string
 		if p.CategoryID.Valid {
@@ -122,6 +122,7 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		result = append(result, response)
 	}
 
+	// JSON-маршалинг теперь всегда отдаст [] вместо null
 	response := map[string]interface{}{
 		"items":  result,
 		"total":  total,
