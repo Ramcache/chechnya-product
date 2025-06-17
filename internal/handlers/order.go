@@ -47,10 +47,12 @@ type OrderReviewRequest struct {
 
 // PlaceOrder
 // @Summary Оформить заказ
-// @Description Оформляет заказ из текущей корзины owner_id
+// @Description Оформляет заказ из текущей корзины по owner_id. Можно указать координаты (latitude и longitude), чтобы рассчитать доставку.
 // @Tags Заказ
+// @Accept json
 // @Produce json
-// @Success 200 {object} utils.SuccessResponse
+// @Param order body models.PlaceOrderRequest true "Данные заказа с координатами"
+// @Success 200 {object} utils.SuccessResponse{data=models.Order}
 // @Failure 400 {object} utils.ErrorResponse
 // @Router /api/order [post]
 func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
