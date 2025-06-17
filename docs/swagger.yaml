@@ -1622,13 +1622,13 @@ paths:
       - Заказ
   /api/products:
     get:
-      description: Получает список товаров с возможностью фильтрации
+      description: Получает список товаров с возможностью фильтрации и пагинации
       parameters:
-      - description: Поиск по названию
+      - description: Поиск по названию или описанию
         in: query
         name: search
         type: string
-      - description: Фильтр по категории
+      - description: ID категории
         in: query
         name: category
         type: string
@@ -1640,27 +1640,30 @@ paths:
         in: query
         name: max_price
         type: number
-      - description: Сортировка
+      - description: Сортировка (price_asc, price_desc, name_asc, name_desc, available_first)
         in: query
         name: sort
         type: string
-      - description: Ограничение количества результатов
+      - description: Ограничение количества результатов на странице
         in: query
         name: limit
         type: integer
-      - description: Сдвиг для пагинации
+      - description: Смещение для пагинации
         in: query
         name: offset
         type: integer
+      - description: Фильтр по наличию
+        in: query
+        name: availability
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Результат с пагинацией
           schema:
-            items:
-              $ref: '#/definitions/models.ProductResponse'
-            type: array
+            additionalProperties: true
+            type: object
         "500":
           description: Internal Server Error
           schema:

@@ -2045,7 +2045,7 @@ const docTemplate = `{
         },
         "/api/products": {
             "get": {
-                "description": "Получает список товаров с возможностью фильтрации",
+                "description": "Получает список товаров с возможностью фильтрации и пагинации",
                 "produces": [
                     "application/json"
                 ],
@@ -2056,13 +2056,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Поиск по названию",
+                        "description": "Поиск по названию или описанию",
                         "name": "search",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Фильтр по категории",
+                        "description": "ID категории",
                         "name": "category",
                         "in": "query"
                     },
@@ -2080,31 +2080,35 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Сортировка",
+                        "description": "Сортировка (price_asc, price_desc, name_asc, name_desc, available_first)",
                         "name": "sort",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Ограничение количества результатов",
+                        "description": "Ограничение количества результатов на странице",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Сдвиг для пагинации",
+                        "description": "Смещение для пагинации",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Фильтр по наличию",
+                        "name": "availability",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Результат с пагинацией",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.ProductResponse"
-                            }
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "500": {

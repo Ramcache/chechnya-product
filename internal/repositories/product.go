@@ -34,6 +34,11 @@ type ProductRepository interface {
 	UpdateAvailabilityTx(tx *sqlx.Tx, id int, availability bool) error
 	GetAverageRating(productID int) (float64, error)
 	PatchProduct(id int, patch models.ProductPatch) error
+	CountFiltered(
+		search, category string,
+		minPrice, maxPrice float64,
+		availability *bool,
+	) (int, error)
 }
 
 type ProductRepo struct {
@@ -309,4 +314,45 @@ func (r *ProductRepo) PatchProduct(id int, patch models.ProductPatch) error {
 
 	_, err := r.db.Exec(query, args...)
 	return err
+}
+
+func (r *ProductRepo) CountFiltered(
+	search, category string,
+	minPrice, maxPrice float64,
+	availability *bool,
+) (int, error) {
+	query := `SELECT COUNT(*) FROM products WHERE 1=1`
+	args := []interface{}{}
+	i := 1
+
+	if search != "" {
+		query += fmt.Sprintf(" AND (LOWER(name) LIKE $%d OR LOWER(description) LIKE $%d)", i, i)
+		args = append(args, "%"+strings.ToLower(search)+"%")
+		i++
+	}
+	if category != "" {
+		query += fmt.Sprintf(" AND category_id = $%d", i)
+		categoryID, _ := strconv.Atoi(category)
+		args = append(args, categoryID)
+		i++
+	}
+	if availability != nil {
+		query += fmt.Sprintf(" AND availability = $%d", i)
+		args = append(args, *availability)
+		i++
+	}
+	if minPrice > 0 {
+		query += fmt.Sprintf(" AND price >= $%d", i)
+		args = append(args, minPrice)
+		i++
+	}
+	if maxPrice > 0 {
+		query += fmt.Sprintf(" AND price <= $%d", i)
+		args = append(args, maxPrice)
+		i++
+	}
+
+	var total int
+	err := r.db.Get(&total, query, args...)
+	return total, err
 }

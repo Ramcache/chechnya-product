@@ -32,6 +32,18 @@ type ProductServiceInterface interface {
 	GetCategoryNameByID(id int) (string, error)
 	AddProductsBulk(products []models.Product) ([]models.ProductResponse, error)
 	PatchProduct(id int, updates map[string]interface{}) error
+	GetPaginated(
+		search, category string,
+		minPrice, maxPrice float64,
+		limit, offset int,
+		sort string,
+		availability *bool,
+	) ([]models.ProductResponse, int, error)
+	CountFiltered(
+		search, category string,
+		minPrice, maxPrice float64,
+		availability *bool,
+	) (int, error)
 }
 
 type ProductService struct {
@@ -290,4 +302,32 @@ func buildProductPatch(updates map[string]interface{}) models.ProductPatch {
 	}
 
 	return patch
+}
+
+func (s *ProductService) GetPaginated(
+	search, category string,
+	minPrice, maxPrice float64,
+	limit, offset int,
+	sort string,
+	availability *bool,
+) ([]models.ProductResponse, int, error) {
+	products, err := s.GetFiltered(search, category, minPrice, maxPrice, limit, offset, sort, availability)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := s.repo.CountFiltered(search, category, minPrice, maxPrice, availability)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return products, total, nil
+}
+
+func (s *ProductService) CountFiltered(
+	search, category string,
+	minPrice, maxPrice float64,
+	availability *bool,
+) (int, error) {
+	return s.repo.CountFiltered(search, category, minPrice, maxPrice, availability)
 }
