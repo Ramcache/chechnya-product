@@ -45,17 +45,18 @@ func NewProductHandler(service services.ProductServiceInterface, logger *zap.Log
 
 // GetAll
 // @Summary Получить список товаров
-// @Description Получает список товаров с возможностью фильтрации
+// @Description Получает список товаров с возможностью фильтрации и пагинации
 // @Tags Товар
 // @Produce json
-// @Param search query string false "Поиск по названию"
-// @Param category query string false "Фильтр по категории"
+// @Param search query string false "Поиск по названию или описанию"
+// @Param category query string false "ID категории"
 // @Param min_price query number false "Минимальная цена"
 // @Param max_price query number false "Максимальная цена"
-// @Param sort query string false "Сортировка"
-// @Param limit query int false "Ограничение количества результатов"
-// @Param offset query int false "Сдвиг для пагинации"
-// @Success 200 {array} models.ProductResponse
+// @Param sort query string false "Сортировка (price_asc, price_desc, name_asc, name_desc, available_first)"
+// @Param limit query int false "Ограничение количества результатов на странице"
+// @Param offset query int false "Смещение для пагинации"
+// @Param availability query bool false "Фильтр по наличию"
+// @Success 200 {object} map[string]interface{} "Результат с пагинацией"
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /api/products [get]
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -64,8 +65,8 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	category := query.Get("category")
 	sort := query.Get("sort")
 	availabilityStr := query.Get("availability")
-	var availability *bool
 
+	var availability *bool
 	if availabilityStr == "true" {
 		val := true
 		availability = &val
@@ -84,17 +85,25 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	var cached []models.ProductCache
+	var total int
 
 	err := h.cache.GetOrSet(ctx, cacheKey, &cached, func() (any, error) {
-		products, err := h.service.GetFilteredRaw(search, category, minPrice, maxPrice, limit, offset, sort, availability)
+		rawProducts, err := h.service.GetFilteredRaw(search, category, minPrice, maxPrice, limit, offset, sort, availability)
 		if err != nil {
 			return nil, err
 		}
-		return models.ConvertProductsToCache(products), nil
+
+		totalCount, err := h.service.CountFiltered(search, category, minPrice, maxPrice, availability)
+		if err != nil {
+			return nil, err
+		}
+
+		total = totalCount
+		return models.ConvertProductsToCache(rawProducts), nil
 	})
 	if err != nil {
 		h.logger.Error("cache fetch failed", zap.Error(err))
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to fetch products")
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка при получении товаров")
 		return
 	}
 
@@ -113,8 +122,15 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		result = append(result, response)
 	}
 
+	response := map[string]interface{}{
+		"items":  result,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	}
+
 	h.logger.Info("products fetched (cached or fresh)", zap.Int("count", len(result)))
-	utils.JSONResponse(w, http.StatusOK, "Products fetched", result)
+	utils.JSONResponse(w, http.StatusOK, "Товары получены", response)
 }
 
 // GetByID
