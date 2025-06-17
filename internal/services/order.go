@@ -3,6 +3,7 @@ package services
 import (
 	"chechnya-product/internal/models"
 	"chechnya-product/internal/repositories"
+	"chechnya-product/internal/utils"
 	"chechnya-product/internal/ws"
 	"errors"
 	"fmt"
@@ -43,6 +44,13 @@ func NewOrderService(
 	}
 }
 
+const (
+	warehouseLat  = 43.191913
+	warehouseLon  = 45.284494
+	pricePerKm    = 10.0  // стоимость за 1 км
+	maxDistanceKm = 200.0 // максимум расстояния
+)
+
 func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) (*models.Order, error) {
 	// 1. Считаем сумму заказа
 	var total float64
@@ -51,33 +59,42 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 			total += *item.Price * float64(item.Quantity)
 		}
 	}
+
+	// 2. Если есть координаты — считаем доставку
+	if req.Latitude != nil && req.Longitude != nil {
+		distance := utils.CalculateDistanceKm(warehouseLat, warehouseLon, *req.Latitude, *req.Longitude)
+		if distance > maxDistanceKm {
+			return nil, fmt.Errorf("Вы находитесь за пределами зоны доставки")
+		}
+		req.DeliveryFee = pricePerKm * distance
+	}
 	total += req.DeliveryFee
 
-	// 2. Создаём заказ
+	// 3. Создаём заказ
 	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req, total)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create order: %w", err)
 	}
 
-	// 3. Очищаем корзину
+	// 4. Очищаем корзину
 	if err := s.cartRepo.ClearCart(ownerID); err != nil {
 		return nil, fmt.Errorf("order created but failed to clear cart: %w", err)
 	}
 
-	// 4. Получаем заказ
+	// 5. Получаем заказ
 	order, err := s.orderRepo.GetByID(orderID)
 	if err != nil {
 		return nil, fmt.Errorf("order created, but failed to fetch: %w", err)
 	}
 
-	// 5. Получаем товары заказа
+	// 6. Получаем товары заказа
 	items, err := s.orderRepo.GetOrderItems(orderID)
 	if err != nil {
 		return nil, fmt.Errorf("order created, but failed to fetch items: %w", err)
 	}
 	order.Items = items
 
-	// 6. WebSocket
+	// 7. WebSocket
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}

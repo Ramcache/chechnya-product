@@ -20,6 +20,8 @@ type PlaceOrderRequest struct {
 	Comment      *string     `json:"comment"`
 	Rating       *int        `json:"rating"`
 	OrderComment *string     `json:"order_comment"`
+	Latitude     *float64    `json:"latitude"`
+	Longitude    *float64    `json:"longitude"`
 }
 
 // OrderItem единица товара в заказе (универсальная модель)
@@ -50,6 +52,8 @@ type Order struct {
 	Rating       *int        `json:"rating" db:"rating"`
 	Items        []OrderItem `json:"items"`
 	OrderComment *string     `json:"order_comment" db:"order_comment"`
+	Latitude     *float64    `json:"latitude" db:"latitude"`
+	Longitude    *float64    `json:"longitude" db:"longitude"`
 }
 
 // OrderStatusRequest используется при PATCH-запросе на обновление статуса
