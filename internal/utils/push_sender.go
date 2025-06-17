@@ -11,7 +11,7 @@ var (
 	VAPIDPrivateKey = "ТВОЙ_PRIVATE_KEY"
 )
 
-func SendPush(sub models.PushSubscription, title, body string) error {
+func SendPush(sub models.SubscribeRequest, title, body string) error {
 	subscription := &webpush.Subscription{
 		Endpoint: sub.Endpoint,
 		Keys: webpush.Keys{

@@ -59,7 +59,8 @@ func RegisterPublicRoutes(
 	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)
 	public.HandleFunc("/announcements/{id}", announcement.GetByID).Methods(http.MethodGet)
 
-	public.HandleFunc("/push/subscribe", push.Subscribe).Methods("POST")
+	public.HandleFunc("/push/subscribe", push.SaveSubscription).Methods(http.MethodPost)
+	public.HandleFunc("/push/send", push.SendPush).Methods(http.MethodPost)
 
 	// Отзывы
 	public.HandleFunc("/products/{id}/reviews", review.GetReviews).Methods(http.MethodGet)
