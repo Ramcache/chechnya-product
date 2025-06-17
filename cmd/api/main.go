@@ -19,8 +19,8 @@ import (
 )
 
 // @title Chechnya Product API
-// @version 1.0
-// @description Backend for orders and reviews
+// @version 5.0
+// @description Backend for products shop
 // @host localhost:8080
 // @BasePath /api
 func main() {

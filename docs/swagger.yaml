@@ -395,9 +395,9 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Backend for orders and reviews
+  description: Backend for products shop
   title: Chechnya Product API
-  version: "1.0"
+  version: "5.0"
 paths:
   /api/admin//upload/{filename}:
     delete:
