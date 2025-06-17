@@ -287,6 +287,8 @@ definitions:
     type: object
   models.User:
     properties:
+      address:
+        type: string
       created_at:
         type: string
       email:
@@ -1350,6 +1352,86 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить профиль пользователя
+      tags:
+      - Профиль
+  /api/me/address:
+    delete:
+      description: Очищает поле адреса у текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Адрес удалён
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "401":
+          description: Не авторизован
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Ошибка удаления адреса
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удалить адрес пользователя
+      tags:
+      - Профиль
+    get:
+      description: Возвращает адрес текущего авторизованного пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Адрес пользователя
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Не авторизован
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Ошибка получения адреса
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить адрес пользователя
+      tags:
+      - Профиль
+    put:
+      consumes:
+      - application/json
+      description: Обновляет или добавляет адрес текущего пользователя
+      parameters:
+      - description: Новый адрес
+        in: body
+        name: address
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Адрес обновлён
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Некорректный JSON
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Не авторизован
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Ошибка обновления адреса
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновить адрес пользователя
       tags:
       - Профиль
   /api/order:

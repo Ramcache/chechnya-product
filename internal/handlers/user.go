@@ -18,6 +18,9 @@ type UserHandlerInterface interface {
 	CreateUserByPhone(w http.ResponseWriter, r *http.Request)
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
 	GetUserByID(w http.ResponseWriter, r *http.Request)
+	UpdateAddress(w http.ResponseWriter, r *http.Request)
+	GetAddress(w http.ResponseWriter, r *http.Request)
+	ClearAddress(w http.ResponseWriter, r *http.Request)
 }
 
 type UserHandler struct {
@@ -254,4 +257,96 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Пользователь найден", user)
+}
+
+// UpdateAddress — обновить адрес пользователя
+// @Summary Обновить адрес пользователя
+// @Description Обновляет или добавляет адрес текущего пользователя
+// @Tags Профиль
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param address body models.User true "Новый адрес"
+// @Success 200 {object} utils.SuccessResponse "Адрес обновлён"
+// @Failure 400 {object} utils.ErrorResponse "Некорректный JSON"
+// @Failure 401 {object} utils.ErrorResponse "Не авторизован"
+// @Failure 500 {object} utils.ErrorResponse "Ошибка обновления адреса"
+// @Router /api/me/address [put]
+func (h *UserHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		utils.ErrorJSON(w, http.StatusUnauthorized, "Не авторизован")
+		return
+	}
+
+	var payload struct {
+		Address *string `json:"address"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
+		return
+	}
+
+	err := h.service.UpdateAddress(claims.UserID, payload.Address)
+	if err != nil {
+		h.logger.Error("Ошибка обновления адреса", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка обновления адреса")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Адрес обновлён", nil)
+}
+
+// GetAddress — получить адрес пользователя
+// @Summary Получить адрес пользователя
+// @Description Возвращает адрес текущего авторизованного пользователя
+// @Tags Профиль
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} models.User"Адрес пользователя"
+// @Failure 401 {object} utils.ErrorResponse "Не авторизован"
+// @Failure 500 {object} utils.ErrorResponse "Ошибка получения адреса"
+// @Router /api/me/address [get]
+func (h *UserHandler) GetAddress(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		utils.ErrorJSON(w, http.StatusUnauthorized, "Не авторизован")
+		return
+	}
+
+	address, err := h.service.GetAddress(claims.UserID)
+	if err != nil {
+		h.logger.Error("Ошибка получения адреса", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка получения адреса")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Адрес получен", map[string]*string{"address": address})
+}
+
+// ClearAddress — удалить адрес пользователя
+// @Summary Удалить адрес пользователя
+// @Description Очищает поле адреса у текущего пользователя
+// @Tags Профиль
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} utils.SuccessResponse "Адрес удалён"
+// @Failure 401 {object} utils.ErrorResponse "Не авторизован"
+// @Failure 500 {object} utils.ErrorResponse "Ошибка удаления адреса"
+// @Router /api/me/address [delete]
+func (h *UserHandler) ClearAddress(w http.ResponseWriter, r *http.Request) {
+	claims := middleware.GetUserClaims(r)
+	if claims == nil {
+		utils.ErrorJSON(w, http.StatusUnauthorized, "Не авторизован")
+		return
+	}
+
+	err := h.service.ClearAddress(claims.UserID)
+	if err != nil {
+		h.logger.Error("Ошибка удаления адреса", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка удаления адреса")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "Адрес удалён", nil)
 }

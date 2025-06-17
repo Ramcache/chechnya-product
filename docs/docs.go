@@ -1616,6 +1616,133 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/me/address": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает адрес текущего авторизованного пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Профиль"
+                ],
+                "summary": "Получить адрес пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Адрес пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка получения адреса",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновляет или добавляет адрес текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Профиль"
+                ],
+                "summary": "Обновить адрес пользователя",
+                "parameters": [
+                    {
+                        "description": "Новый адрес",
+                        "name": "address",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Адрес обновлён",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный JSON",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка обновления адреса",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Очищает поле адреса у текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Профиль"
+                ],
+                "summary": "Удалить адрес пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Адрес удалён",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Не авторизован",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка удаления адреса",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/order": {
             "post": {
                 "description": "Оформляет заказ из текущей корзины owner_id",
@@ -2715,6 +2842,9 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },

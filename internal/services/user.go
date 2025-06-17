@@ -23,6 +23,9 @@ type UserServiceInterface interface {
 	CreateByPhone(phone string) (*models.User, string, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserByID(id int) (*models.User, error)
+	UpdateAddress(userID int, address *string) error
+	GetAddress(userID int) (*string, error)
+	ClearAddress(userID int) error
 }
 
 type UserService struct {
@@ -220,4 +223,16 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 
 func (s *UserService) GetUserByID(id int) (*models.User, error) {
 	return s.repo.GetUserByID(id)
+}
+
+func (s *UserService) ClearAddress(userID int) error {
+	return s.repo.ClearAddress(userID)
+}
+
+func (s *UserService) GetAddress(userID int) (*string, error) {
+	return s.repo.GetAddress(userID)
+}
+
+func (s *UserService) UpdateAddress(userID int, address *string) error {
+	return s.repo.UpdateAddress(userID, address)
 }

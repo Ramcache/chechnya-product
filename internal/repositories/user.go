@@ -20,6 +20,9 @@ type UserRepository interface {
 	FindByPhoneOrEmail(identifier string) (*models.User, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserByID(id int) (*models.User, error)
+	UpdateAddress(userID int, address *string) error
+	GetAddress(userID int) (*string, error)
+	ClearAddress(userID int) error
 }
 
 // Репозиторий пользователей
@@ -147,4 +150,34 @@ func (r *UserRepo) GetUserByID(id int) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepo) UpdateAddress(userID int, address *string) error {
+	query := `UPDATE users SET address = $1 WHERE id = $2`
+	_, err := r.db.Exec(query, address, userID)
+	if err != nil {
+		return fmt.Errorf("не удалось обновить адрес: %w", err)
+	}
+	return nil
+}
+
+func (r *UserRepo) GetAddress(userID int) (*string, error) {
+	var address *string
+	err := r.db.Get(&address, "SELECT address FROM users WHERE id = $1", userID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("не удалось получить адрес: %w", err)
+	}
+	return address, nil
+}
+
+func (r *UserRepo) ClearAddress(userID int) error {
+	query := `UPDATE users SET address = NULL WHERE id = $1`
+	_, err := r.db.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("не удалось очистить адрес: %w", err)
+	}
+	return nil
 }
