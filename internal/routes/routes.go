@@ -74,6 +74,10 @@ func RegisterPrivateRoutes(
 	private := r.PathPrefix("/api").Subrouter()
 	private.Use(middleware.JWTMiddleware(jwt))
 	private.HandleFunc("/me", user.Me).Methods(http.MethodGet)
+
+	private.HandleFunc("/me/address", user.UpdateAddress).Methods(http.MethodPut)
+	private.HandleFunc("/me/address", user.GetAddress).Methods(http.MethodGet)
+	private.HandleFunc("/me/address", user.ClearAddress).Methods(http.MethodDelete)
 }
 
 func RegisterAdminRoutes(
