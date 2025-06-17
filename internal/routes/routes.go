@@ -18,6 +18,7 @@ func RegisterPublicRoutes(
 	order handlers.OrderHandlerInterface,
 	announcement handlers.AnnouncementHandlerInterface,
 	review handlers.ReviewHandlerInterface,
+	push handlers.PushHandlerInterface,
 	jwt utils.JWTManagerInterface,
 ) {
 	public := r.PathPrefix("/api").Subrouter()
@@ -57,6 +58,8 @@ func RegisterPublicRoutes(
 	// Объявления
 	public.HandleFunc("/announcements", announcement.GetAll).Methods(http.MethodGet)
 	public.HandleFunc("/announcements/{id}", announcement.GetByID).Methods(http.MethodGet)
+
+	public.HandleFunc("/push/subscribe", push.Subscribe).Methods("POST")
 
 	// Отзывы
 	public.HandleFunc("/products/{id}/reviews", review.GetReviews).Methods(http.MethodGet)

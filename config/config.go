@@ -20,6 +20,8 @@ type Config struct {
 	RedisAddr       string
 	RedisPassword   string
 	RedisTTLMinutes int
+	VAPIDPublicKey  string
+	VAPIDPrivateKey string
 }
 
 func LoadConfig() (*Config, error) {
@@ -42,6 +44,8 @@ func LoadConfig() (*Config, error) {
 		RedisAddr:       os.Getenv("REDIS_ADDR"),
 		RedisPassword:   os.Getenv("REDIS_PASSWORD"),
 		RedisTTLMinutes: ttlMinutes,
+		VAPIDPublicKey:  os.Getenv("VAPID_PUBLIC_KEY"),
+		VAPIDPrivateKey: os.Getenv("VAPID_PRIVATE_KEY"),
 	}
 
 	if cfg.Port == "" || cfg.JWTSecret == "" || cfg.RedisAddr == "" {

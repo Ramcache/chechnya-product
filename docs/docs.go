@@ -1745,7 +1745,10 @@ const docTemplate = `{
         },
         "/api/order": {
             "post": {
-                "description": "Оформляет заказ из текущей корзины owner_id",
+                "description": "Оформляет заказ из текущей корзины по owner_id. Можно указать координаты (latitude и longitude), чтобы рассчитать доставку.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -1753,11 +1756,34 @@ const docTemplate = `{
                     "Заказ"
                 ],
                 "summary": "Оформить заказ",
+                "parameters": [
+                    {
+                        "description": "Данные заказа с координатами",
+                        "name": "order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PlaceOrderRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.SuccessResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.SuccessResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.Order"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -2640,6 +2666,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.OrderItem"
                     }
                 },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2715,6 +2747,59 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "в пути"
+                }
+            }
+        },
+        "models.PlaceOrderRequest": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "change_for": {
+                    "type": "number"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "integer"
+                },
+                "delivery_fee": {
+                    "type": "number"
+                },
+                "delivery_text": {
+                    "type": "string"
+                },
+                "delivery_type": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OrderItem"
+                    }
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order_comment": {
+                    "type": "string"
+                },
+                "payment_type": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

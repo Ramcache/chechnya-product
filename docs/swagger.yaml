@@ -152,6 +152,10 @@ definitions:
         items:
           $ref: '#/definitions/models.OrderItem'
         type: array
+      latitude:
+        type: number
+      longitude:
+        type: number
       name:
         type: string
       order_comment:
@@ -201,6 +205,41 @@ definitions:
     properties:
       status:
         example: в пути
+        type: string
+    type: object
+  models.PlaceOrderRequest:
+    properties:
+      address:
+        type: string
+      change_for:
+        type: number
+      comment:
+        type: string
+      created_at:
+        type: integer
+      delivery_fee:
+        type: number
+      delivery_text:
+        type: string
+      delivery_type:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/models.OrderItem'
+        type: array
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      order_comment:
+        type: string
+      payment_type:
+        type: string
+      rating:
+        type: integer
+      status:
         type: string
     type: object
   models.Product:
@@ -1436,14 +1475,29 @@ paths:
       - Профиль
   /api/order:
     post:
-      description: Оформляет заказ из текущей корзины owner_id
+      consumes:
+      - application/json
+      description: Оформляет заказ из текущей корзины по owner_id. Можно указать координаты
+        (latitude и longitude), чтобы рассчитать доставку.
+      parameters:
+      - description: Данные заказа с координатами
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.PlaceOrderRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utils.SuccessResponse'
+            allOf:
+            - $ref: '#/definitions/utils.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Order'
+              type: object
         "400":
           description: Bad Request
           schema:
