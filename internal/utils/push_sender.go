@@ -4,11 +4,12 @@ import (
 	"chechnya-product/internal/models"
 	"encoding/json"
 	"github.com/SherClockHolmes/webpush-go"
+	"os"
 )
 
 var (
-	VAPIDPublicKey  = "ТВОЙ_PUBLIC_KEY"
-	VAPIDPrivateKey = "ТВОЙ_PRIVATE_KEY"
+	VAPIDPublicKey  = os.Getenv("VAPID_PUBLIC_KEY")
+	VAPIDPrivateKey = os.Getenv("VAPID_PRIVATE_KEY")
 )
 
 func SendPush(sub models.SubscribeRequest, title, body string) error {
