@@ -27,6 +27,7 @@ type OrderService struct {
 	cartRepo    repositories.CartRepository
 	orderRepo   repositories.OrderRepository
 	productRepo repositories.ProductRepository
+	pushService PushService
 	hub         *ws.Hub
 }
 
@@ -59,16 +60,16 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 			total += *item.Price * float64(item.Quantity)
 		}
 	}
+	total += req.DeliveryFee
 
-	// 2. Если есть координаты — считаем доставку
+	// 2. Если есть координаты, пересчитаем доставку
 	if req.Latitude != nil && req.Longitude != nil {
 		distance := utils.CalculateDistanceKm(warehouseLat, warehouseLon, *req.Latitude, *req.Longitude)
 		if distance > maxDistanceKm {
-			return nil, fmt.Errorf("Вы находитесь за пределами зоны доставки")
+			return nil, fmt.Errorf("Вы за пределами зоны доставки")
 		}
 		req.DeliveryFee = pricePerKm * distance
 	}
-	total += req.DeliveryFee
 
 	// 3. Создаём заказ
 	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req, total)
@@ -94,10 +95,11 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	}
 	order.Items = items
 
-	// 7. WebSocket
+	// 7. WebSocket и уведомление
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}
+	go s.pushService.SendPushToAdmins(order)
 
 	return order, nil
 }

@@ -15,6 +15,7 @@ import (
 type PushServiceInterface interface {
 	Save(sub *models.PushSubscription) error
 	SendToAll(title, message string) error
+	SendPushToAdmins(order *models.Order)
 }
 
 type PushService struct {
