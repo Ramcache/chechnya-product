@@ -45,8 +45,8 @@ func (s *PushService) SendToAll(title, message string) error {
 	vapidEmail := "mailto:ramaro@internet.ru"
 
 	payload, _ := json.Marshal(map[string]string{
-		"title":   title,
-		"message": message,
+		"title": title,
+		"body":  message,
 	})
 
 	for _, sub := range subs {
@@ -107,7 +107,7 @@ func (s *PushService) SendPushToAdmins(order *models.Order) {
 			TTL:             60,
 			VAPIDPublicKey:  os.Getenv("VAPID_PUBLIC_KEY"),
 			VAPIDPrivateKey: os.Getenv("VAPID_PRIVATE_KEY"),
-			Subscriber:      "mailto:admin@example.com",
+			Subscriber:      "mailto:ramaro@internet.ru",
 		})
 
 		if err != nil {
