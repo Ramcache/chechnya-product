@@ -9,6 +9,7 @@ type PushRepository interface {
 	Save(sub *models.PushSubscription) error
 	GetAllByUser(userID int) ([]models.PushSubscription, error)
 	GetAllSubscriptions() ([]models.PushSubscription, error)
+	GetAdminSubscriptions() ([]models.PushSubscription, error)
 }
 
 type pushRepo struct {
@@ -37,5 +38,16 @@ func (r *pushRepo) GetAllByUser(userID int) ([]models.PushSubscription, error) {
 func (r *pushRepo) GetAllSubscriptions() ([]models.PushSubscription, error) {
 	var subs []models.PushSubscription
 	err := r.db.Select(&subs, `SELECT endpoint, p256dh, auth FROM push_subscriptions`)
+	return subs, err
+}
+
+func (r *pushRepo) GetAdminSubscriptions() ([]models.PushSubscription, error) {
+	var subs []models.PushSubscription
+	err := r.db.Select(&subs, `
+		SELECT ps.*
+		FROM push_subscriptions ps
+		JOIN users u ON ps.user_id = u.id
+		WHERE u.role = 'admin'
+	`)
 	return subs, err
 }

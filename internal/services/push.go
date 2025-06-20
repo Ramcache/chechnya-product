@@ -6,7 +6,10 @@ import (
 	"chechnya-product/internal/repositories"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/SherClockHolmes/webpush-go"
+	"log"
+	"os"
 )
 
 type PushServiceInterface interface {
@@ -72,4 +75,44 @@ func (s *PushService) SendToAll(title, message string) error {
 	}
 
 	return nil
+}
+
+func (s *PushService) SendPushToAdmins(order *models.Order) {
+	// 1. Получить всех админов с подпиской
+	adminSubs, err := s.repo.GetAdminSubscriptions()
+	if err != nil {
+		log.Printf("не удалось получить подписки админов: %v", err)
+		return
+	}
+
+	// 2. Сформировать payload
+	message := map[string]string{
+		"title": "Новый заказ",
+		"body":  fmt.Sprintf("Новый заказ #%d на сумму %.2f", order.ID, order.Total),
+	}
+	payload, _ := json.Marshal(message)
+
+	// 3. Отправить всем админам
+	for _, sub := range adminSubs {
+		webpushSub := &webpush.Subscription{
+			Endpoint: sub.Endpoint,
+			Keys: webpush.Keys{
+				P256dh: sub.P256DH,
+				Auth:   sub.Auth,
+			},
+		}
+
+		resp, err := webpush.SendNotification(payload, webpushSub, &webpush.Options{
+			TTL:             60,
+			VAPIDPublicKey:  os.Getenv("VAPID_PUBLIC_KEY"),
+			VAPIDPrivateKey: os.Getenv("VAPID_PRIVATE_KEY"),
+			Subscriber:      "mailto:admin@example.com",
+		})
+
+		if err != nil {
+			log.Printf("ошибка отправки пуша: %v", err)
+			continue
+		}
+		defer resp.Body.Close()
+	}
 }
