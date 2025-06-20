@@ -24,6 +24,10 @@ func (r *pushRepo) Save(sub *models.PushSubscription) error {
 	query := `
 	INSERT INTO push_subscriptions (endpoint, p256dh, auth, user_id)
 	VALUES (:endpoint, :p256dh, :auth, :user_id)
+	ON CONFLICT (endpoint) DO UPDATE
+	SET p256dh = EXCLUDED.p256dh,
+	    auth = EXCLUDED.auth,
+	    user_id = EXCLUDED.user_id
 	`
 	_, err := r.db.NamedExec(query, sub)
 	return err
