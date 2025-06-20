@@ -31,8 +31,8 @@ type SaveSubscriptionRequest struct {
 }
 
 type SendPushRequest struct {
-	Title   string `json:"title"`
-	Message string `json:"message"`
+	Title string `json:"title"`
+	Body  string `json:"body"`
 }
 
 // SaveSubscription
@@ -90,7 +90,7 @@ func (h *PushHandler) SendPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.SendToAll(req.Title, req.Message); err != nil {
+	if err := h.service.SendToAll(req.Title, req.Body); err != nil {
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка отправки")
 		return
 	}
