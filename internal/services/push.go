@@ -60,6 +60,13 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
 	if len(sub.Keys.P256dh) < 80 || len(sub.Keys.Auth) < 16 {
 		return errors.New("ключи слишком короткие — возможно, подписка повреждена")
 	}
+	s.logger.Debug("📦 Входящая подписка",
+		zap.String("endpoint", sub.Endpoint),
+		zap.String("p256dh", sub.Keys.P256dh),
+		zap.String("auth", sub.Keys.Auth),
+		zap.Int("p256dh_len", len(sub.Keys.P256dh)),
+		zap.Int("auth_len", len(sub.Keys.Auth)),
+	)
 
 	resp, err := webpush.SendNotification(payload, &sub, &webpush.Options{
 		Subscriber:      "mailto:support@chechnya-product.ru",
