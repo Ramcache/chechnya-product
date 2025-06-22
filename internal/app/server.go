@@ -34,6 +34,8 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	announcementRepo := repositories.NewAnnouncementRepo(dbConn)
 	reviewRepo := repositories.NewReviewRepo(dbConn)
 	adminRepo := repositories.NewAdminRepo(dbConn)
+	pushRepo := repositories.NewPushRepo(dbConn)
+
 	// --- JWT ---
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, 7200*time.Hour)
 
@@ -47,6 +49,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	announcementService := services.NewAnnouncementService(announcementRepo, hub)
 	reviewService := services.NewReviewService(reviewRepo)
 	adminService := services.NewAdminService(adminRepo)
+	pushService := services.NewPushService(pushRepo, logger, cfg)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
@@ -59,6 +62,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	announcementHandler := handlers.NewAnnouncementHandler(announcementService, logger)
 	reviewHandler := handlers.NewReviewHandler(reviewService, logger)
 	adminHandler := handlers.NewAdminHandler(adminService, logger)
+	pushHandler := handlers.NewPushHandler(pushService, logger)
 	// --- Router ---
 	router := mux.NewRouter()
 	router.Use(middleware.RecoveryMiddleware(logger))
@@ -68,7 +72,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	// Раздача файлов из папки "uploads" по пути "/uploads/*"
 	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
-	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, jwtManager)
+	routes.RegisterPublicRoutes(router, userHandler, productHandler, categoryHandler, cartHandler, orderHandler, announcementHandler, reviewHandler, pushHandler, jwtManager)
 	routes.RegisterPrivateRoutes(router, userHandler, jwtManager)
 	routes.RegisterAdminRoutes(router, userHandler, productHandler, orderHandler, categoryHandler, logHandler, dashboardHandler, jwtManager, announcementHandler, adminHandler)
 
