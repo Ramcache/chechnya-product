@@ -22,11 +22,11 @@ func NewPushRepo(db *sqlx.DB) *PushRepository {
 
 func (r *PushRepository) SaveSubscription(sub models.Subscription) error {
 	_, err := r.db.Exec(`
-	INSERT INTO push_subscriptions (endpoint, p256dh, auth)
-	VALUES ($1, $2, $3)
+	INSERT INTO push_subscriptions (endpoint, p256dh, auth, is_admin)
+	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (endpoint)
-	DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth;
-	`, sub.Endpoint, sub.P256dh, sub.Auth)
+	DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, is_admin = EXCLUDED.is_admin;
+`, sub.Endpoint, sub.P256dh, sub.Auth, sub.IsAdmin)
 
 	if err != nil {
 		log.Println("❌ Ошибка при сохранении подписки:", err)
@@ -35,7 +35,7 @@ func (r *PushRepository) SaveSubscription(sub models.Subscription) error {
 }
 
 func (r *PushRepository) GetAllSubscriptions() ([]models.Subscription, error) {
-	rows, err := r.db.Query(`SELECT endpoint, p256dh, auth FROM push_subscriptions`)
+	rows, err := r.db.Query(`SELECT endpoint, p256dh, auth, is_admin FROM push_subscriptions`)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +44,12 @@ func (r *PushRepository) GetAllSubscriptions() ([]models.Subscription, error) {
 	var subs []models.Subscription
 	for rows.Next() {
 		sub := models.Subscription{}
-		if err := rows.Scan(&sub.Endpoint, &sub.P256dh, &sub.Auth); err != nil {
-			return nil, err
+		if err := rows.Scan(&sub.Endpoint, &sub.P256dh, &sub.Auth, &sub.IsAdmin); err != nil {
+			subs = append(subs, sub)
 		}
-		subs = append(subs, sub)
 	}
 	return subs, nil
+
 }
 
 func (r *PushRepository) DeleteByEndpoint(endpoint string) error {

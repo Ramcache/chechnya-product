@@ -17,9 +17,10 @@ var base64URLRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 var base64urlPattern = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 type PushServiceInterface interface {
-	SendPush(sub webpush.Subscription, message string) error
+	SendPush(sub webpush.Subscription, message string, isAdmin bool) error
 	Broadcast(message string) error
 	DeleteByEndpoint(endpoint string) error
+	SendPushToAdmins(message string) error
 }
 
 type PushService struct {
@@ -32,7 +33,7 @@ func NewPushService(repo repositories.PushRepositoryInterface, logger *zap.Logge
 	return &PushService{repo: repo, logger: logger, cfg: cfg}
 }
 
-func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
+func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin bool) error {
 	if message == "" {
 		return errors.New("message is empty")
 	}
@@ -47,7 +48,9 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
 		Endpoint: sub.Endpoint,
 		P256dh:   sub.Keys.P256dh,
 		Auth:     sub.Keys.Auth,
+		IsAdmin:  isAdmin,
 	})
+
 	if err != nil {
 		s.logger.Warn("не удалось сохранить подписку", zap.Error(err))
 	}
@@ -111,10 +114,33 @@ func (s *PushService) Broadcast(message string) error {
 				Auth:   sub.Auth,
 			},
 		}
-		_ = s.SendPush(webSub, message)
+		_ = s.SendPush(webSub, message, true)
 	}
 	return nil
 }
 func (s *PushService) DeleteByEndpoint(endpoint string) error {
 	return s.repo.DeleteByEndpoint(endpoint)
+}
+
+func (s *PushService) SendPushToAdmins(message string) error {
+	subs, err := s.repo.GetAllSubscriptions()
+	if err != nil {
+		return err
+	}
+
+	for _, sub := range subs {
+		if !sub.IsAdmin {
+			continue
+		}
+		webSub := webpush.Subscription{
+			Endpoint: sub.Endpoint,
+			Keys: webpush.Keys{
+				P256dh: sub.P256dh,
+				Auth:   sub.Auth,
+			},
+		}
+		_ = s.SendPush(webSub, message, true) // `true` тут не нужен, но можно оставить
+	}
+
+	return nil
 }
