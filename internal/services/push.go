@@ -9,7 +9,10 @@ import (
 	"errors"
 	"github.com/SherClockHolmes/webpush-go"
 	"go.uber.org/zap"
+	"regexp"
 )
+
+var base64URLRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 type PushServiceInterface interface {
 	SendPush(sub webpush.Subscription, message string) error
@@ -45,6 +48,18 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
 		"title": "Новое сообщение",
 		"body":  message,
 	})
+	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
+		return errors.New("ключи подписки отсутствуют")
+	}
+
+	if !base64URLRegex.MatchString(sub.Keys.P256dh) || !base64URLRegex.MatchString(sub.Keys.Auth) {
+		s.logger.Warn("невалидный формат ключей", zap.String("p256dh", sub.Keys.P256dh), zap.String("auth", sub.Keys.Auth))
+		return errors.New("невалидный формат ключей (ожидается base64url)")
+	}
+
+	if len(sub.Keys.P256dh) < 80 || len(sub.Keys.Auth) < 16 {
+		return errors.New("ключи слишком короткие — возможно, подписка повреждена")
+	}
 
 	resp, err := webpush.SendNotification(payload, &sub, &webpush.Options{
 		Subscriber:      "mailto:support@chechnya-product.ru",
