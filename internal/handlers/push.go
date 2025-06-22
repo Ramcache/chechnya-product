@@ -27,6 +27,7 @@ func NewPushHandler(service services.PushServiceInterface, logger *zap.Logger) *
 type pushRequest struct {
 	Subscription webpush.Subscription `json:"subscription"`
 	Message      string               `json:"message"`
+	IsAdmin      bool                 `json:"isAdmin"`
 }
 
 // SendNotification
@@ -48,7 +49,7 @@ func (h *PushHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.SendPush(req.Subscription, req.Message); err != nil {
+	if err := h.service.SendPush(req.Subscription, req.Message, req.IsAdmin); err != nil {
 		h.logger.Error("ошибка отправки push", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка отправки push")
 		return

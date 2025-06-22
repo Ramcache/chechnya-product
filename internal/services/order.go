@@ -27,6 +27,7 @@ type OrderService struct {
 	cartRepo    repositories.CartRepository
 	orderRepo   repositories.OrderRepository
 	productRepo repositories.ProductRepository
+	pushService PushServiceInterface
 	hub         *ws.Hub
 }
 
@@ -34,12 +35,14 @@ func NewOrderService(
 	cartRepo repositories.CartRepository,
 	orderRepo repositories.OrderRepository,
 	productRepo repositories.ProductRepository,
+	pushService PushServiceInterface,
 	hub *ws.Hub,
 ) *OrderService {
 	return &OrderService{
 		cartRepo:    cartRepo,
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
+		pushService: pushService,
 		hub:         hub,
 	}
 }
@@ -98,6 +101,7 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}
+	_ = s.pushService.SendPushToAdmins("📦 Новый заказ поступил!")
 
 	return order, nil
 }
