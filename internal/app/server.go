@@ -43,13 +43,13 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	cartService := services.NewCartService(cartRepo, productRepo)
 	userService := services.NewUserService(userRepo, jwtManager, cartService)
 	productService := services.NewProductService(productRepo, logger)
-	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, hub)
 	categoryService := services.NewCategoryService(categoryRepo, logger)
 	dashboardService := services.NewDashboardService(dashboardRepo)
 	announcementService := services.NewAnnouncementService(announcementRepo, hub)
 	reviewService := services.NewReviewService(reviewRepo)
 	adminService := services.NewAdminService(adminRepo)
 	pushService := services.NewPushService(pushRepo, logger, cfg)
+	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, pushService, hub)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
