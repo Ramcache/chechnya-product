@@ -80,7 +80,7 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
 		Subscriber:      "mailto:support@chechnya-product.ru",
 		VAPIDPublicKey:  s.cfg.VAPIDPublicKey,
 		VAPIDPrivateKey: s.cfg.VAPIDPrivateKey,
-		TTL:             30,
+		TTL:             86400,
 	})
 	s.logger.Debug("🚀 Отправка пуша через webpush", zap.String("endpoint", sub.Endpoint))
 
