@@ -47,8 +47,9 @@ func (h *LogHandler) GetLogs(w http.ResponseWriter, r *http.Request) {
 	if logType == "" {
 		logType = "info"
 	}
-	if logType != "info" && logType != "error" {
-		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid log type: must be 'info' or 'error'")
+	validTypes := map[string]bool{"info": true, "error": true, "debug": true}
+	if !validTypes[logType] {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Invalid log type: must be 'info', 'error' or 'debug'")
 		return
 	}
 
