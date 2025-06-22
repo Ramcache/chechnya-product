@@ -67,6 +67,8 @@ func RegisterPublicRoutes(
 
 	public.HandleFunc("/push/send", push.SendNotification).Methods(http.MethodGet)
 	public.HandleFunc("/push/broadcast", push.Broadcast).Methods(http.MethodPost)
+	public.HandleFunc("/api/push/delete", push.DeleteSubscription).Methods(http.MethodDelete)
+
 }
 
 func RegisterPrivateRoutes(

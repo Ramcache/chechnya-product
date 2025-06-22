@@ -9,6 +9,7 @@ import (
 type PushRepositoryInterface interface {
 	SaveSubscription(sub models.Subscription) error
 	GetAllSubscriptions() ([]models.Subscription, error)
+	DeleteByEndpoint(endpoint string) error
 }
 
 type PushRepository struct {
@@ -49,4 +50,9 @@ func (r *PushRepository) GetAllSubscriptions() ([]models.Subscription, error) {
 		subs = append(subs, sub)
 	}
 	return subs, nil
+}
+
+func (r *PushRepository) DeleteByEndpoint(endpoint string) error {
+	_, err := r.db.Exec(`DELETE FROM push_subscriptions WHERE endpoint = $1`, endpoint)
+	return err
 }

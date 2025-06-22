@@ -14,6 +14,7 @@ import (
 type PushServiceInterface interface {
 	SendPush(sub webpush.Subscription, message string) error
 	Broadcast(message string) error
+	DeleteByEndpoint(endpoint string) error
 }
 
 type PushService struct {
@@ -81,4 +82,7 @@ func (s *PushService) Broadcast(message string) error {
 		_ = s.SendPush(webSub, message)
 	}
 	return nil
+}
+func (s *PushService) DeleteByEndpoint(endpoint string) error {
+	return s.repo.DeleteByEndpoint(endpoint)
 }
