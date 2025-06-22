@@ -2353,8 +2353,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/push/send": {
+        "/api/push/broadcast": {
             "post": {
+                "description": "Рассылает сообщение всем подписанным пользователям",
                 "consumes": [
                     "application/json"
                 ],
@@ -2364,54 +2365,18 @@ const docTemplate = `{
                 "tags": [
                     "Push"
                 ],
-                "summary": "Отправить push-уведомление",
+                "summary": "Массовая рассылка push-уведомлений",
                 "parameters": [
                     {
-                        "description": "Уведомление",
+                        "description": "Сообщение для рассылки",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.SendPushRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/utils.SuccessResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/push/subscribe": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Push"
-                ],
-                "summary": "Сохранить push-подписку",
-                "parameters": [
-                    {
-                        "description": "Подписка",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SaveSubscriptionRequest"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 ],
@@ -2424,6 +2389,99 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/push/delete": {
+            "delete": {
+                "description": "Удаляет подписку по endpoint",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push"
+                ],
+                "summary": "Удалить подписку",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL подписки",
+                        "name": "endpoint",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/push/send": {
+            "post": {
+                "description": "Отправляет уведомление одному пользователю по подписке",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push"
+                ],
+                "summary": "Отправить push-уведомление",
+                "parameters": [
+                    {
+                        "description": "Подписка и сообщение",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.pushRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -2575,31 +2633,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.SaveSubscriptionRequest": {
-            "type": "object",
-            "properties": {
-                "auth": {
-                    "type": "string"
-                },
-                "endpoint": {
-                    "type": "string"
-                },
-                "p256dh": {
-                    "type": "string"
-                }
-            }
-        },
-        "handlers.SendPushRequest": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.TruncateRequest": {
             "type": "object",
             "properties": {
@@ -2633,6 +2666,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "handlers.pushRequest": {
+            "type": "object"
         },
         "models.Announcement": {
             "type": "object",

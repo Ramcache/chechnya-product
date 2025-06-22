@@ -1,12 +1,11 @@
 -- +goose Up
-CREATE TABLE push_subscriptions (
-                                    id SERIAL PRIMARY KEY,
-                                    endpoint TEXT NOT NULL,
-                                    p256dh TEXT NOT NULL,
-                                    auth TEXT NOT NULL,
-                                    user_id INT REFERENCES users(id) ON DELETE CASCADE,
-                                    created_at TIMESTAMP DEFAULT now()
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+                                                  id SERIAL PRIMARY KEY,
+                                                  endpoint TEXT NOT NULL UNIQUE,
+                                                  p256dh TEXT NOT NULL,
+                                                  auth TEXT NOT NULL,
+                                                  created_at TIMESTAMP DEFAULT now()
 );
 
 -- +goose Down
-DROP TABLE push_subscriptions;
+DROP TABLE IF EXISTS push_subscriptions;

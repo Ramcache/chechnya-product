@@ -42,22 +42,6 @@ definitions:
       username:
         type: string
     type: object
-  handlers.SaveSubscriptionRequest:
-    properties:
-      auth:
-        type: string
-      endpoint:
-        type: string
-      p256dh:
-        type: string
-    type: object
-  handlers.SendPushRequest:
-    properties:
-      message:
-        type: string
-      title:
-        type: string
-    type: object
   handlers.TruncateRequest:
     properties:
       table:
@@ -79,6 +63,8 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  handlers.pushRequest:
     type: object
   models.Announcement:
     properties:
@@ -1879,42 +1865,20 @@ paths:
       summary: Обновить отзыв
       tags:
       - Отзывы
-  /api/push/send:
+  /api/push/broadcast:
     post:
       consumes:
       - application/json
+      description: Рассылает сообщение всем подписанным пользователям
       parameters:
-      - description: Уведомление
+      - description: Сообщение для рассылки
         in: body
         name: input
         required: true
         schema:
-          $ref: '#/definitions/handlers.SendPushRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.SuccessResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-      summary: Отправить push-уведомление
-      tags:
-      - Push
-  /api/push/subscribe:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Подписка
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.SaveSubscriptionRequest'
+          additionalProperties:
+            type: string
+          type: object
       produces:
       - application/json
       responses:
@@ -1926,7 +1890,68 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Сохранить push-подписку
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Массовая рассылка push-уведомлений
+      tags:
+      - Push
+  /api/push/delete:
+    delete:
+      description: Удаляет подписку по endpoint
+      parameters:
+      - description: URL подписки
+        in: query
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Удалить подписку
+      tags:
+      - Push
+  /api/push/send:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет уведомление одному пользователю по подписке
+      parameters:
+      - description: Подписка и сообщение
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.pushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Отправить push-уведомление
       tags:
       - Push
   /api/register:
