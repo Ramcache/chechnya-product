@@ -14,6 +14,8 @@ import (
 
 var base64URLRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
+var base64urlPattern = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+
 type PushServiceInterface interface {
 	SendPush(sub webpush.Subscription, message string) error
 	Broadcast(message string) error
@@ -34,7 +36,13 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
 	if message == "" {
 		return errors.New("message is empty")
 	}
-
+	if !base64urlPattern.MatchString(sub.Keys.P256dh) || !base64urlPattern.MatchString(sub.Keys.Auth) {
+		s.logger.Warn("❌ Ключи не в формате base64url",
+			zap.String("p256dh", sub.Keys.P256dh),
+			zap.String("auth", sub.Keys.Auth),
+		)
+		return errors.New("ключи подписки имеют неверный формат (ожидается base64url)")
+	}
 	err := s.repo.SaveSubscription(models.Subscription{
 		Endpoint: sub.Endpoint,
 		P256dh:   sub.Keys.P256dh,
