@@ -50,7 +50,6 @@ func (r *PushRepository) GetAllSubscriptions() ([]models.Subscription, error) {
 		subs = append(subs, sub)
 	}
 	return subs, nil
-
 }
 
 func (r *PushRepository) DeleteByEndpoint(endpoint string) error {

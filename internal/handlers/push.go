@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"chechnya-product/internal/middleware"
+	"chechnya-product/internal/models"
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/json"
@@ -14,7 +14,7 @@ type PushHandlerInterface interface {
 	SendNotification(w http.ResponseWriter, r *http.Request)
 	Broadcast(w http.ResponseWriter, r *http.Request)
 	DeleteSubscription(w http.ResponseWriter, r *http.Request)
-	SendTestPush(w http.ResponseWriter, r *http.Request)
+	Subscribe(w http.ResponseWriter, r *http.Request)
 }
 
 type PushHandler struct {
@@ -54,10 +54,7 @@ func (h *PushHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := middleware.GetUserRole(r)
-	isAdmin := role == "admin"
-
-	if err := h.service.SendPush(req.Subscription, req.Message, isAdmin); err != nil {
+	if err := h.service.SendPush(req.Subscription, req.Message); err != nil {
 		h.logger.Error("ошибка отправки push", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка отправки push")
 		return
@@ -126,38 +123,34 @@ func (h *PushHandler) DeleteSubscription(w http.ResponseWriter, r *http.Request)
 	utils.JSONResponse(w, http.StatusOK, "Подписка удалена", nil)
 }
 
-// SendTestPush
-// @Summary      Тестовый пуш
-// @Description  Отправляет push-сообщение по переданной подписке
-// @Tags         Push
-// @Accept       json
-// @Produce      json
-// @Param        request body pushRequest true "Пуш-подписка и сообщение"
-// @Success      200 {object} map[string]string
-// @Failure      400 {object} utils.ErrorResponse
-// @Failure      500 {object} utils.ErrorResponse
-// @Router       /api/push/test/send [post]
-func (h *PushHandler) SendTestPush(w http.ResponseWriter, r *http.Request) {
-	var req pushRequest
+// Subscribe
+// @Summary Подписка на push-уведомления
+// @Description Регистрирует push-подписку пользователя, сохраняет её в базе
+// @Tags Push
+// @Accept json
+// @Produce json
+// @Param input body models.PushSubscriptionRequest true "Объект подписки"
+// @Success 201 {object} utils.SuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/push/subscribe [post]
+func (h *PushHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	var req models.PushSubscriptionRequest
+
+	// Парсим JSON тело запроса
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Warn("не удалось распарсить тело запроса", zap.Error(err))
-		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
+		h.logger.Warn("Ошибка декодирования подписки", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный запрос")
 		return
 	}
 
-	h.logger.Debug("📦 Входящая подписка",
-		zap.String("endpoint", req.Subscription.Endpoint),
-		zap.String("p256dh", req.Subscription.Keys.P256dh),
-		zap.String("auth", req.Subscription.Keys.Auth),
-		zap.Int("p256dh_len", len(req.Subscription.Keys.P256dh)),
-		zap.Int("auth_len", len(req.Subscription.Keys.Auth)),
-	)
-
-	if err := h.service.SendPush(req.Subscription, req.Message, false); err != nil {
-		h.logger.Error("ошибка отправки push", zap.Error(err))
-		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось отправить push")
+	// Сохраняем подписку
+	if err := h.service.SaveSubscription(req.Subscription, req.IsAdmin); err != nil {
+		h.logger.Warn("Ошибка сохранения подписки", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось сохранить подписку")
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, "тест", nil)
+	h.logger.Info("Подписка успешно сохранена", zap.String("endpoint", req.Subscription.Endpoint))
+	utils.JSONResponse(w, http.StatusCreated, "Подписка успешно сохранена", nil)
 }
