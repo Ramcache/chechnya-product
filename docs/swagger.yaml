@@ -282,6 +282,8 @@ definitions:
       url:
         type: string
     type: object
+  models.PushSubscriptionRequest:
+    type: object
   models.Review:
     properties:
       comment:
@@ -1954,27 +1956,25 @@ paths:
       summary: Отправить push-уведомление
       tags:
       - Push
-  /api/push/test/send:
+  /api/push/subscribe:
     post:
       consumes:
       - application/json
-      description: Отправляет push-сообщение по переданной подписке
+      description: Регистрирует push-подписку пользователя, сохраняет её в базе
       parameters:
-      - description: Пуш-подписка и сообщение
+      - description: Объект подписки
         in: body
-        name: request
+        name: input
         required: true
         schema:
-          $ref: '#/definitions/handlers.pushRequest'
+          $ref: '#/definitions/models.PushSubscriptionRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/utils.SuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -1983,7 +1983,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Тестовый пуш
+      summary: Подписка на push-уведомления
       tags:
       - Push
   /api/register:

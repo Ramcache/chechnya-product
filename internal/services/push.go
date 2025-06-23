@@ -18,10 +18,11 @@ var base64URLRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 var base64urlPattern = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 type PushServiceInterface interface {
-	SendPush(sub webpush.Subscription, message string, isAdmin bool) error
+	SendPush(sub webpush.Subscription, message string) error
 	Broadcast(message string) error
 	DeleteByEndpoint(endpoint string) error
 	SendPushToAdmins(message string) error
+	SaveSubscription(sub webpush.Subscription, isAdmin bool) error
 }
 
 type PushService struct {
@@ -34,7 +35,7 @@ func NewPushService(repo repositories.PushRepositoryInterface, logger *zap.Logge
 	return &PushService{repo: repo, logger: logger, cfg: cfg}
 }
 
-func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin bool) error {
+func (s *PushService) SaveSubscription(sub webpush.Subscription, isAdmin bool) error {
 	// Проверка: ключи не пустые
 	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
 		return errors.New("ключи подписки отсутствуют")
@@ -63,21 +64,25 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 	})
 	if err != nil {
 		s.logger.Warn("❗ Не удалось сохранить подписку", zap.Error(err))
+		return err
 	}
 
-	// Готовим сообщение
+	return nil
+}
+
+func (s *PushService) SendPush(sub webpush.Subscription, message string) error {
+	// Подготавливаем payload
 	payload, _ := json.Marshal(map[string]string{
 		"title": "Новое сообщение",
 		"body":  message,
 	})
 
-	s.logger.Debug("📦 Входящая подписка",
+	s.logger.Debug("📦 Отправка пуша",
 		zap.String("endpoint", sub.Endpoint),
 		zap.Int("p256dh_len", len(sub.Keys.P256dh)),
 		zap.Int("auth_len", len(sub.Keys.Auth)),
 	)
 
-	// Отправка пуша
 	resp, err := webpush.SendNotification(payload, &sub, &webpush.Options{
 		Subscriber:      "mailto:support@chechnya-product.ru",
 		VAPIDPublicKey:  s.cfg.VAPIDPublicKey,
@@ -85,12 +90,9 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		TTL:             86400, // 1 день
 	})
 
-	s.logger.Debug("🚀 Отправка пуша", zap.String("endpoint", sub.Endpoint))
-
 	if err != nil {
 		s.logger.Error("❌ Webpush ошибка", zap.String("body", err.Error()))
 
-		// Удаляем неактивную подписку
 		if strings.Contains(err.Error(), "unsubscribed") || strings.Contains(err.Error(), "expired") {
 			_ = s.repo.DeleteByEndpoint(sub.Endpoint)
 			s.logger.Info("🗑️ Удалена неактивная подписка", zap.String("endpoint", sub.Endpoint))
@@ -100,7 +102,6 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 	}
 	defer resp.Body.Close()
 
-	// Чтение ответа
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
@@ -128,7 +129,7 @@ func (s *PushService) Broadcast(message string) error {
 				Auth:   sub.Auth,
 			},
 		}
-		_ = s.SendPush(webSub, message, true)
+		_ = s.SendPush(webSub, message)
 	}
 	return nil
 }
@@ -160,7 +161,7 @@ func (s *PushService) SendPushToAdmins(message string) error {
 			},
 		}
 
-		err := s.SendPush(webSub, message, true)
+		err := s.SendPush(webSub, message)
 		if err != nil {
 			failCount++
 			s.logger.Warn("❌ Ошибка отправки админу",

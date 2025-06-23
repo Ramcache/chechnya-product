@@ -2489,9 +2489,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/push/test/send": {
+        "/api/push/subscribe": {
             "post": {
-                "description": "Отправляет push-сообщение по переданной подписке",
+                "description": "Регистрирует push-подписку пользователя, сохраняет её в базе",
                 "consumes": [
                     "application/json"
                 ],
@@ -2501,26 +2501,23 @@ const docTemplate = `{
                 "tags": [
                     "Push"
                 ],
-                "summary": "Тестовый пуш",
+                "summary": "Подписка на push-уведомления",
                 "parameters": [
                     {
-                        "description": "Пуш-подписка и сообщение",
-                        "name": "request",
+                        "description": "Объект подписки",
+                        "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.pushRequest"
+                            "$ref": "#/definitions/models.PushSubscriptionRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
@@ -3048,6 +3045,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.PushSubscriptionRequest": {
+            "type": "object"
         },
         "models.Review": {
             "type": "object",

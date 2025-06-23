@@ -66,7 +66,7 @@ func RegisterPublicRoutes(
 	public.HandleFunc("/products/{id}/reviews", review.DeleteReview).Methods(http.MethodDelete)
 
 	public.HandleFunc("/push/send", push.SendNotification).Methods(http.MethodPost)
-	public.HandleFunc("/push/test/send", push.SendTestPush).Methods(http.MethodPost)
+	public.HandleFunc("/push/subscribe", push.Subscribe).Methods(http.MethodPost)
 	public.HandleFunc("/push/broadcast", push.Broadcast).Methods(http.MethodPost)
 	public.HandleFunc("/push/delete", push.DeleteSubscription).Methods(http.MethodDelete)
 
