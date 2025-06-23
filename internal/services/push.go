@@ -35,6 +35,12 @@ func NewPushService(repo repositories.PushRepositoryInterface, logger *zap.Logge
 }
 
 func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin bool) error {
+	// Проверка: ключи не пустые
+	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
+		return errors.New("ключи подписки отсутствуют")
+	}
+
+	// Проверка: формат base64url
 	if !base64urlPattern.MatchString(sub.Keys.P256dh) || !base64urlPattern.MatchString(sub.Keys.Auth) {
 		s.logger.Warn("❌ Ключи не в формате base64url",
 			zap.String("p256dh", sub.Keys.P256dh),
@@ -43,14 +49,12 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		return errors.New("ключи подписки имеют неверный формат (ожидается base64url)")
 	}
 
-	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
-		return errors.New("ключи подписки отсутствуют")
-	}
-
+	// Проверка длины
 	if len(sub.Keys.P256dh) < 80 || len(sub.Keys.Auth) < 16 {
 		return errors.New("ключи слишком короткие — возможно, подписка повреждена")
 	}
 
+	// Сохраняем подписку
 	err := s.repo.SaveSubscription(models.Subscription{
 		Endpoint: sub.Endpoint,
 		P256dh:   sub.Keys.P256dh,
@@ -58,9 +62,10 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		IsAdmin:  isAdmin,
 	})
 	if err != nil {
-		s.logger.Warn("не удалось сохранить подписку", zap.Error(err))
+		s.logger.Warn("❗ Не удалось сохранить подписку", zap.Error(err))
 	}
 
+	// Готовим сообщение
 	payload, _ := json.Marshal(map[string]string{
 		"title": "Новое сообщение",
 		"body":  message,
@@ -68,24 +73,24 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 
 	s.logger.Debug("📦 Входящая подписка",
 		zap.String("endpoint", sub.Endpoint),
-		zap.String("p256dh", sub.Keys.P256dh),
-		zap.String("auth", sub.Keys.Auth),
 		zap.Int("p256dh_len", len(sub.Keys.P256dh)),
 		zap.Int("auth_len", len(sub.Keys.Auth)),
 	)
 
+	// Отправка пуша
 	resp, err := webpush.SendNotification(payload, &sub, &webpush.Options{
 		Subscriber:      "mailto:support@chechnya-product.ru",
 		VAPIDPublicKey:  s.cfg.VAPIDPublicKey,
 		VAPIDPrivateKey: s.cfg.VAPIDPrivateKey,
-		TTL:             86400,
+		TTL:             86400, // 1 день
 	})
 
-	s.logger.Debug("🚀 Отправка пуша через webpush", zap.String("endpoint", sub.Endpoint))
+	s.logger.Debug("🚀 Отправка пуша", zap.String("endpoint", sub.Endpoint))
 
 	if err != nil {
-		s.logger.Error("webpush ошибка", zap.String("body", err.Error()))
+		s.logger.Error("❌ Webpush ошибка", zap.String("body", err.Error()))
 
+		// Удаляем неактивную подписку
 		if strings.Contains(err.Error(), "unsubscribed") || strings.Contains(err.Error(), "expired") {
 			_ = s.repo.DeleteByEndpoint(sub.Endpoint)
 			s.logger.Info("🗑️ Удалена неактивная подписка", zap.String("endpoint", sub.Endpoint))
@@ -95,11 +100,15 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 	}
 	defer resp.Body.Close()
 
+	// Чтение ответа
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
 	if resp.StatusCode >= 400 {
-		s.logger.Error("webpush ошибка", zap.String("body", buf.String()))
+		s.logger.Error("📛 Webpush ошибка",
+			zap.Int("status_code", resp.StatusCode),
+			zap.String("body", buf.String()),
+		)
 		return errors.New("web push failed")
 	}
 
@@ -134,6 +143,8 @@ func (s *PushService) SendPushToAdmins(message string) error {
 	}
 
 	adminCount := 0
+	successCount := 0
+	failCount := 0
 
 	for _, sub := range subs {
 		if !sub.IsAdmin {
@@ -148,9 +159,22 @@ func (s *PushService) SendPushToAdmins(message string) error {
 				Auth:   sub.Auth,
 			},
 		}
-		_ = s.SendPush(webSub, message, true) // 3-й аргумент можно не важен, т.к. это отправка, не сохранение
+
+		err := s.SendPush(webSub, message, true)
+		if err != nil {
+			failCount++
+			s.logger.Warn("❌ Ошибка отправки админу",
+				zap.String("endpoint", sub.Endpoint),
+				zap.Error(err))
+		} else {
+			successCount++
+		}
 	}
 
-	s.logger.Info("📨 Push отправлен администраторам", zap.Int("admin_count", adminCount))
+	s.logger.Info("📨 Push отправлен администраторам",
+		zap.Int("admins", adminCount),
+		zap.Int("успешно", successCount),
+		zap.Int("ошибки", failCount),
+	)
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"chechnya-product/internal/ws"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 )
 
 type OrderServiceInterface interface {
@@ -30,6 +31,7 @@ type OrderService struct {
 	userRepo    repositories.UserRepository
 	pushService PushServiceInterface
 	hub         *ws.Hub
+	logger      *zap.Logger
 }
 
 func NewOrderService(
@@ -39,6 +41,7 @@ func NewOrderService(
 	userRepo repositories.UserRepository,
 	pushService PushServiceInterface,
 	hub *ws.Hub,
+	logger *zap.Logger,
 ) *OrderService {
 	return &OrderService{
 		cartRepo:    cartRepo,
@@ -47,6 +50,7 @@ func NewOrderService(
 		userRepo:    userRepo,
 		pushService: pushService,
 		hub:         hub,
+		logger:      logger,
 	}
 }
 
@@ -71,7 +75,7 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	if req.Latitude != nil && req.Longitude != nil {
 		distance := utils.CalculateDistanceKm(warehouseLat, warehouseLon, *req.Latitude, *req.Longitude)
 		if distance > maxDistanceKm {
-			return nil, fmt.Errorf("Вы за пределами зоны доставки")
+			return nil, fmt.Errorf("вы за пределами зоны доставки")
 		}
 		req.DeliveryFee = pricePerKm * distance
 	}
@@ -79,39 +83,42 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	// 3. Создаём заказ
 	orderID, err := s.orderRepo.CreateFullOrder(ownerID, req, total)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create order: %w", err)
+		return nil, fmt.Errorf("не удалось создать заказ: %w", err)
 	}
 
 	// 4. Очищаем корзину
 	if err := s.cartRepo.ClearCart(ownerID); err != nil {
-		return nil, fmt.Errorf("order created but failed to clear cart: %w", err)
+		return nil, fmt.Errorf("заказ создан, но не удалось очистить корзину: %w", err)
 	}
 
-	// 5. Получаем заказ
+	// 5. Получаем заказ и товары
 	order, err := s.orderRepo.GetByID(orderID)
 	if err != nil {
-		return nil, fmt.Errorf("order created, but failed to fetch: %w", err)
+		return nil, fmt.Errorf("заказ создан, но не удалось получить данные: %w", err)
 	}
 
-	// 6. Получаем товары заказа
 	items, err := s.orderRepo.GetOrderItems(orderID)
 	if err != nil {
-		return nil, fmt.Errorf("order created, but failed to fetch items: %w", err)
+		return nil, fmt.Errorf("заказ создан, но не удалось получить товары: %w", err)
 	}
 	order.Items = items
 
-	// 7. WebSocket и уведомление
+	// 6. WebSocket уведомление
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}
-	username := ownerID // по умолчанию
 
-	if name, err := s.userRepo.GetUsernameByID(ownerID); err == nil && name != "" {
-		username = name
-	}
-
-	msg := fmt.Sprintf("📦 Новый заказ #%d от %s", order.ID, username)
-	_ = s.pushService.SendPushToAdmins(msg)
+	// 7. Push-уведомление для админов
+	go func(orderID int) {
+		username := ownerID
+		if name, err := s.userRepo.GetUsernameByID(ownerID); err == nil && name != "" {
+			username = name
+		}
+		msg := fmt.Sprintf("📦 Новый заказ #%d от %s", orderID, username)
+		if err := s.pushService.SendPushToAdmins(msg); err != nil {
+			s.logger.Warn("❌ Не удалось отправить push администраторам", zap.Error(err))
+		}
+	}(order.ID)
 
 	return order, nil
 }
