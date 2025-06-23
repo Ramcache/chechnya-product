@@ -36,6 +36,7 @@ func NewOrderService(
 	cartRepo repositories.CartRepository,
 	orderRepo repositories.OrderRepository,
 	productRepo repositories.ProductRepository,
+	userRepo repositories.UserRepository,
 	pushService PushServiceInterface,
 	hub *ws.Hub,
 ) *OrderService {
@@ -43,6 +44,7 @@ func NewOrderService(
 		cartRepo:    cartRepo,
 		orderRepo:   orderRepo,
 		productRepo: productRepo,
+		userRepo:    userRepo,
 		pushService: pushService,
 		hub:         hub,
 	}
