@@ -103,11 +103,6 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	}
 	order.Items = items
 
-	// 6. WebSocket уведомление
-	if s.hub != nil {
-		s.hub.BroadcastNewOrder(*order)
-	}
-
 	// 7. Push-уведомление для админов
 	go func(orderID int) {
 		username := ownerID
@@ -119,6 +114,11 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 			s.logger.Warn("❌ Не удалось отправить push администраторам", zap.Error(err))
 		}
 	}(order.ID)
+
+	// 6. WebSocket уведомление
+	if s.hub != nil {
+		s.hub.BroadcastNewOrder(*order)
+	}
 
 	return order, nil
 }
