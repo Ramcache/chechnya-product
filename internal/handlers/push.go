@@ -14,6 +14,7 @@ type PushHandlerInterface interface {
 	SendNotification(w http.ResponseWriter, r *http.Request)
 	Broadcast(w http.ResponseWriter, r *http.Request)
 	DeleteSubscription(w http.ResponseWriter, r *http.Request)
+	SendTestPush(w http.ResponseWriter, r *http.Request)
 }
 
 type PushHandler struct {
@@ -123,4 +124,40 @@ func (h *PushHandler) DeleteSubscription(w http.ResponseWriter, r *http.Request)
 
 	h.logger.Info("подписка удалена", zap.String("endpoint", endpoint))
 	utils.JSONResponse(w, http.StatusOK, "Подписка удалена", nil)
+}
+
+// SendTestPush
+// @Summary      Тестовый пуш
+// @Description  Отправляет push-сообщение по переданной подписке
+// @Tags         Push
+// @Accept       json
+// @Produce      json
+// @Param        request body pushRequest true "Пуш-подписка и сообщение"
+// @Success      200 {object} map[string]string
+// @Failure      400 {object} utils.ErrorResponse
+// @Failure      500 {object} utils.ErrorResponse
+// @Router       /api/push/test/send [post]
+func (h *PushHandler) SendTestPush(w http.ResponseWriter, r *http.Request) {
+	var req pushRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Warn("не удалось распарсить тело запроса", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusBadRequest, "Некорректный JSON")
+		return
+	}
+
+	h.logger.Debug("📦 Входящая подписка",
+		zap.String("endpoint", req.Subscription.Endpoint),
+		zap.String("p256dh", req.Subscription.Keys.P256dh),
+		zap.String("auth", req.Subscription.Keys.Auth),
+		zap.Int("p256dh_len", len(req.Subscription.Keys.P256dh)),
+		zap.Int("auth_len", len(req.Subscription.Keys.Auth)),
+	)
+
+	if err := h.service.SendPush(req.Subscription, req.Message, false); err != nil {
+		h.logger.Error("ошибка отправки push", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Не удалось отправить push")
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, "тест", nil)
 }

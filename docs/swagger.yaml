@@ -1954,6 +1954,38 @@ paths:
       summary: Отправить push-уведомление
       tags:
       - Push
+  /api/push/test/send:
+    post:
+      consumes:
+      - application/json
+      description: Отправляет push-сообщение по переданной подписке
+      parameters:
+      - description: Пуш-подписка и сообщение
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.pushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Тестовый пуш
+      tags:
+      - Push
   /api/register:
     post:
       consumes:
