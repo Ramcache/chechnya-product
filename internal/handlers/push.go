@@ -43,6 +43,10 @@ type pushRequest struct {
 // @Router /api/push/send [post]
 func (h *PushHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
 	var req pushRequest
+	if req.Message == "" {
+		req.Message = "🔔 Уведомление от Chechnya Product"
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Warn("невалидный JSON", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusBadRequest, "Невалидный JSON")

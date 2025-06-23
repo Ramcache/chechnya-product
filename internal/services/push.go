@@ -34,9 +34,7 @@ func NewPushService(repo repositories.PushRepositoryInterface, logger *zap.Logge
 }
 
 func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin bool) error {
-	if message == "" {
-		return errors.New("message is empty")
-	}
+
 	if !base64urlPattern.MatchString(sub.Keys.P256dh) || !base64urlPattern.MatchString(sub.Keys.Auth) {
 		s.logger.Warn("❌ Ключи не в формате base64url",
 			zap.String("p256dh", sub.Keys.P256dh),
