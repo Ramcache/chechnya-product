@@ -45,8 +45,9 @@ func (r *PushRepository) GetAllSubscriptions() ([]models.Subscription, error) {
 	for rows.Next() {
 		sub := models.Subscription{}
 		if err := rows.Scan(&sub.Endpoint, &sub.P256dh, &sub.Auth, &sub.IsAdmin); err != nil {
-			subs = append(subs, sub)
+			return nil, err
 		}
+		subs = append(subs, sub)
 	}
 	return subs, nil
 
