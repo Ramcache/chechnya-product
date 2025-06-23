@@ -10,6 +10,7 @@ import (
 	"github.com/SherClockHolmes/webpush-go"
 	"go.uber.org/zap"
 	"regexp"
+	"strings"
 )
 
 var base64URLRegex = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
@@ -34,7 +35,6 @@ func NewPushService(repo repositories.PushRepositoryInterface, logger *zap.Logge
 }
 
 func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin bool) error {
-
 	if !base64urlPattern.MatchString(sub.Keys.P256dh) || !base64urlPattern.MatchString(sub.Keys.Auth) {
 		s.logger.Warn("❌ Ключи не в формате base64url",
 			zap.String("p256dh", sub.Keys.P256dh),
@@ -42,13 +42,21 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		)
 		return errors.New("ключи подписки имеют неверный формат (ожидается base64url)")
 	}
+
+	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
+		return errors.New("ключи подписки отсутствуют")
+	}
+
+	if len(sub.Keys.P256dh) < 80 || len(sub.Keys.Auth) < 16 {
+		return errors.New("ключи слишком короткие — возможно, подписка повреждена")
+	}
+
 	err := s.repo.SaveSubscription(models.Subscription{
 		Endpoint: sub.Endpoint,
 		P256dh:   sub.Keys.P256dh,
 		Auth:     sub.Keys.Auth,
 		IsAdmin:  isAdmin,
 	})
-
 	if err != nil {
 		s.logger.Warn("не удалось сохранить подписку", zap.Error(err))
 	}
@@ -57,18 +65,7 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		"title": "Новое сообщение",
 		"body":  message,
 	})
-	if sub.Keys.P256dh == "" || sub.Keys.Auth == "" {
-		return errors.New("ключи подписки отсутствуют")
-	}
 
-	if !base64URLRegex.MatchString(sub.Keys.P256dh) || !base64URLRegex.MatchString(sub.Keys.Auth) {
-		s.logger.Warn("невалидный формат ключей", zap.String("p256dh", sub.Keys.P256dh), zap.String("auth", sub.Keys.Auth))
-		return errors.New("невалидный формат ключей (ожидается base64url)")
-	}
-
-	if len(sub.Keys.P256dh) < 80 || len(sub.Keys.Auth) < 16 {
-		return errors.New("ключи слишком короткие — возможно, подписка повреждена")
-	}
 	s.logger.Debug("📦 Входящая подписка",
 		zap.String("endpoint", sub.Endpoint),
 		zap.String("p256dh", sub.Keys.P256dh),
@@ -83,19 +80,29 @@ func (s *PushService) SendPush(sub webpush.Subscription, message string, isAdmin
 		VAPIDPrivateKey: s.cfg.VAPIDPrivateKey,
 		TTL:             86400,
 	})
+
 	s.logger.Debug("🚀 Отправка пуша через webpush", zap.String("endpoint", sub.Endpoint))
 
 	if err != nil {
+		s.logger.Error("webpush ошибка", zap.String("body", err.Error()))
+
+		if strings.Contains(err.Error(), "unsubscribed") || strings.Contains(err.Error(), "expired") {
+			_ = s.repo.DeleteByEndpoint(sub.Endpoint)
+			s.logger.Info("🗑️ Удалена неактивная подписка", zap.String("endpoint", sub.Endpoint))
+		}
+
 		return err
 	}
 	defer resp.Body.Close()
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
+
 	if resp.StatusCode >= 400 {
 		s.logger.Error("webpush ошибка", zap.String("body", buf.String()))
 		return errors.New("web push failed")
 	}
+
 	return nil
 }
 
