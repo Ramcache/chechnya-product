@@ -27,6 +27,7 @@ type OrderService struct {
 	cartRepo    repositories.CartRepository
 	orderRepo   repositories.OrderRepository
 	productRepo repositories.ProductRepository
+	userRepo    repositories.UserRepository
 	pushService PushServiceInterface
 	hub         *ws.Hub
 }
@@ -101,7 +102,14 @@ func (s *OrderService) PlaceOrder(ownerID string, req models.PlaceOrderRequest) 
 	if s.hub != nil {
 		s.hub.BroadcastNewOrder(*order)
 	}
-	_ = s.pushService.SendPushToAdmins("📦 Новый заказ поступил!")
+	username := ownerID // по умолчанию
+
+	if name, err := s.userRepo.GetUsernameByID(ownerID); err == nil && name != "" {
+		username = name
+	}
+
+	msg := fmt.Sprintf("📦 Новый заказ #%d от %s", order.ID, username)
+	_ = s.pushService.SendPushToAdmins(msg)
 
 	return order, nil
 }

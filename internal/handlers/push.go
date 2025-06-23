@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"chechnya-product/internal/middleware"
 	"chechnya-product/internal/services"
 	"chechnya-product/internal/utils"
 	"encoding/json"
@@ -27,7 +28,6 @@ func NewPushHandler(service services.PushServiceInterface, logger *zap.Logger) *
 type pushRequest struct {
 	Subscription webpush.Subscription `json:"subscription"`
 	Message      string               `json:"message"`
-	IsAdmin      bool                 `json:"isAdmin"`
 }
 
 // SendNotification
@@ -49,7 +49,10 @@ func (h *PushHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.SendPush(req.Subscription, req.Message, req.IsAdmin); err != nil {
+	role := middleware.GetUserRole(r)
+	isAdmin := role == "admin"
+
+	if err := h.service.SendPush(req.Subscription, req.Message, isAdmin); err != nil {
 		h.logger.Error("ошибка отправки push", zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка отправки push")
 		return

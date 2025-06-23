@@ -128,10 +128,14 @@ func (s *PushService) SendPushToAdmins(message string) error {
 		return err
 	}
 
+	adminCount := 0
+
 	for _, sub := range subs {
 		if !sub.IsAdmin {
 			continue
 		}
+		adminCount++
+
 		webSub := webpush.Subscription{
 			Endpoint: sub.Endpoint,
 			Keys: webpush.Keys{
@@ -139,8 +143,9 @@ func (s *PushService) SendPushToAdmins(message string) error {
 				Auth:   sub.Auth,
 			},
 		}
-		_ = s.SendPush(webSub, message, true) // `true` тут не нужен, но можно оставить
+		_ = s.SendPush(webSub, message, true) // 3-й аргумент можно не важен, т.к. это отправка, не сохранение
 	}
 
+	s.logger.Info("📨 Push отправлен администраторам", zap.Int("admin_count", adminCount))
 	return nil
 }

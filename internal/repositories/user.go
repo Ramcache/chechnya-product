@@ -23,6 +23,7 @@ type UserRepository interface {
 	UpdateAddress(userID int, address *string) error
 	GetAddress(userID int) (*string, error)
 	ClearAddress(userID int) error
+	GetUsernameByID(id string) (string, error)
 }
 
 // Репозиторий пользователей
@@ -180,4 +181,10 @@ func (r *UserRepo) ClearAddress(userID int) error {
 		return fmt.Errorf("не удалось очистить адрес: %w", err)
 	}
 	return nil
+}
+
+func (r *UserRepo) GetUsernameByID(id string) (string, error) {
+	var username string
+	err := r.db.Get(&username, `SELECT username FROM users WHERE id = $1`, id)
+	return username, err
 }
