@@ -49,7 +49,7 @@ func NewServer(cfg *config.Config, logger *zap.Logger, dbConn *sqlx.DB, redisCac
 	reviewService := services.NewReviewService(reviewRepo)
 	adminService := services.NewAdminService(adminRepo)
 	pushService := services.NewPushService(pushRepo, logger, cfg)
-	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, userRepo, pushService, hub)
+	orderService := services.NewOrderService(cartRepo, orderRepo, productRepo, userRepo, pushService, hub, logger)
 
 	// --- Handlers ---
 	userHandler := handlers.NewUserHandler(userService, logger)
