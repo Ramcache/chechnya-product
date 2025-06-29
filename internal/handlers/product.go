@@ -196,6 +196,17 @@ func (h *ProductHandler) Add(w http.ResponseWriter, r *http.Request) {
 
 	product := mapProductInputToProduct(input)
 
+	exists, err := h.service.IsProductNameExists(product.Name)
+	if err != nil {
+		h.logger.Error("failed to check product name", zap.Error(err))
+		utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка проверки имени товара")
+		return
+	}
+	if exists {
+		utils.ErrorJSON(w, http.StatusBadRequest, "Товар с таким именем уже существует")
+		return
+	}
+
 	if err := h.service.AddProduct(&product); err != nil {
 		h.logger.Error("failed to add product", zap.String("name", product.Name), zap.Error(err))
 		utils.ErrorJSON(w, http.StatusInternalServerError, "Failed to add product")
@@ -247,7 +258,24 @@ func (h *ProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	product := mapProductInputToProduct(input)
+	if product.Name != "" {
+		exists, err := h.service.IsProductNameExists(product.Name)
+		if err != nil {
+			utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка проверки имени товара")
+			return
+		}
 
+		currentProduct, err := h.service.GetByID(id)
+		if err != nil {
+			utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка получения текущего товара")
+			return
+		}
+
+		if exists && currentProduct.Name != product.Name {
+			utils.ErrorJSON(w, http.StatusBadRequest, "Товар с таким именем уже существует")
+			return
+		}
+	}
 	response, err := h.service.UpdateProduct(id, &product)
 	if err != nil {
 		h.logger.Error("failed to update product", zap.Int("id", id), zap.Error(err))
@@ -333,7 +361,21 @@ func (h *ProductHandler) AddBulk(w http.ResponseWriter, r *http.Request) {
 	for _, input := range inputs {
 		products = append(products, mapProductInputToProduct(input))
 	}
-
+	names := make([]string, 0, len(products))
+	for _, p := range products {
+		names = append(names, p.Name)
+	}
+	for _, name := range names {
+		exists, err := h.service.IsProductNameExists(name)
+		if err != nil {
+			utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка проверки имени товаров")
+			return
+		}
+		if exists {
+			utils.ErrorJSON(w, http.StatusBadRequest, fmt.Sprintf("Товар с именем \"%s\" уже существует", name))
+			return
+		}
+	}
 	responses, err := h.service.AddProductsBulk(products)
 	if err != nil {
 		h.logger.Error("failed to bulk add products", zap.Error(err))
@@ -407,6 +449,24 @@ func (h *ProductHandler) Patch(w http.ResponseWriter, r *http.Request) {
 	if len(updates) == 0 {
 		utils.ErrorJSON(w, http.StatusBadRequest, "No fields to update")
 		return
+	}
+	if input.Name != nil {
+		exists, err := h.service.IsProductNameExists(*input.Name)
+		if err != nil {
+			utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка проверки имени товара")
+			return
+		}
+
+		currentProduct, err := h.service.GetByID(id)
+		if err != nil {
+			utils.ErrorJSON(w, http.StatusInternalServerError, "Ошибка получения текущего товара")
+			return
+		}
+
+		if exists && currentProduct.Name != *input.Name {
+			utils.ErrorJSON(w, http.StatusBadRequest, "Товар с таким именем уже существует")
+			return
+		}
 	}
 
 	if err := h.service.PatchProduct(id, updates); err != nil {
@@ -553,4 +613,29 @@ func (h *ProductHandler) ListUploadedFiles(w http.ResponseWriter, r *http.Reques
 	}
 
 	utils.JSONResponse(w, http.StatusOK, "Файлы получены", result)
+}
+
+// Проверяет, существует ли товар с таким именем,
+// и если передан id — не совпадает ли это с текущим товаром.
+func (h *ProductHandler) isDuplicateName(name string, excludeID *int) (bool, error) {
+	exists, err := h.service.IsProductNameExists(name)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, nil
+	}
+
+	// Если нужно исключить текущий товар
+	if excludeID != nil {
+		current, err := h.service.GetByID(*excludeID)
+		if err != nil {
+			return false, err
+		}
+		if current.Name == name {
+			return false, nil // Совпадает с самим собой
+		}
+	}
+
+	return true, nil // Дубликат
 }

@@ -44,6 +44,7 @@ type ProductServiceInterface interface {
 		minPrice, maxPrice float64,
 		availability *bool,
 	) (int, error)
+	IsProductNameExists(name string) (bool, error)
 }
 
 type ProductService struct {
@@ -330,4 +331,8 @@ func (s *ProductService) CountFiltered(
 	availability *bool,
 ) (int, error) {
 	return s.repo.CountFiltered(search, category, minPrice, maxPrice, availability)
+}
+
+func (s *ProductService) IsProductNameExists(name string) (bool, error) {
+	return s.repo.IsProductNameExists(name)
 }
