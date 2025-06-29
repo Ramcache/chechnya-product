@@ -39,6 +39,7 @@ type ProductRepository interface {
 		minPrice, maxPrice float64,
 		availability *bool,
 	) (int, error)
+	IsProductNameExists(name string) (bool, error)
 }
 
 type ProductRepo struct {
@@ -355,4 +356,11 @@ func (r *ProductRepo) CountFiltered(
 	var total int
 	err := r.db.Get(&total, query, args...)
 	return total, err
+}
+
+func (r *ProductRepo) IsProductNameExists(name string) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM products WHERE name = $1)`
+	err := r.db.QueryRow(query, name).Scan(&exists)
+	return exists, err
 }
