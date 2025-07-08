@@ -946,7 +946,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin"
                 ],
-                "summary": "Очистка таблицы с перезапуском ID",
+                "summary": "Очистка таблицы  с  перезапуском ID",
                 "parameters": [
                     {
                         "description": "Название таблицы для очистки",

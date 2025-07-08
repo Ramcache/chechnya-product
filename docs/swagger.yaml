@@ -989,7 +989,7 @@ paths:
             $ref: '#/definitions/utils.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Очистка таблицы с перезапуском ID
+      summary: Очистка таблицы  с  перезапуском ID
       tags:
       - Admin
   /api/admin/truncate/all:
