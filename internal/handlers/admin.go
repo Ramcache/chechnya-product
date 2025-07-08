@@ -28,7 +28,7 @@ type TruncateRequest struct {
 }
 
 // TruncateTableHandler
-// @Summary Очистка таблицы с перезапуском ID
+// @Summary Очистка таблицы  с  перезапуском ID
 // @Security BearerAuth
 // @Tags Admin
 // @Accept json
